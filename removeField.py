@@ -2,7 +2,6 @@
 
 import argparse
 import json
-import subprocess
 from fastavro import reader, writer
 
 parser = argparse.ArgumentParser(description='Remove a field from PFB schema')
