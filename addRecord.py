@@ -27,4 +27,5 @@ for line in args.JSON_file:
 	}
 	records.append(jsonInsert)
 	
+print "adding records from JSON file"
 writer(args.PFB_file, schema, records)

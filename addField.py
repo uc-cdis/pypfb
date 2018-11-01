@@ -20,13 +20,15 @@ schema = avro_reader.schema
 
 newField = {u'default':u''+args.fieldDefault,u'type':u''+args.fieldType, u'name':u''+args.field}
 
+print "updating records from PFB by addding " + args.field + "with default value of" + args.fieldDefault
 records = []
 for record in avro_reader:
-	print record['name']
 	if record['name'] == args.parentField:
 		record['val'][u''+args.field] = u''+args.fieldDefault
 	records.append(record)
+print "records updated with new field \n"
 
+print "updating schema with " + args.field
 x = 0
 schemaParents = len(schema['fields'][2]['type'])
 while x < schemaParents:
@@ -34,6 +36,7 @@ while x < schemaParents:
 		schema['fields'][2]['type'][x]['fields'].append(newField)
 		break
 	x += 1
+print "schema updated with new field"
 
 with open('new.pfb', 'wb+') as out:
 	writer(out, schema, records)

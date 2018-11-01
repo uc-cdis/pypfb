@@ -16,6 +16,7 @@ avro_reader = reader(args.PFB_file)
 
 schema = avro_reader.schema
 
+print "updating records from PFB file by removing" + args.field
 records = []
 for record in avro_reader:
 	if record['name'] == args.parentField:
@@ -26,14 +27,14 @@ x = 0
 schemaParents = len(schema['fields'][2]['type'])
 while x < schemaParents:
 	if schema['fields'][2]['type'][x]['name'] == args.parentField:
-		print args.field
 		for y in schema['fields'][2]['type'][x]['fields']:
 			if y['name'] == args.field:
-				print y
+				print "removing " + args.field + " from schema"
 				schema['fields'][2]['type'][x]['fields'].remove(y)
-		# print schema['fields'][2]['type'][x]['fields'][7]
+				break
 		break
 	x += 1
 
+print "writing to new file rm.pfb"
 with open('rm.pfb', 'wb+') as out:
 	writer(out, schema, records)
