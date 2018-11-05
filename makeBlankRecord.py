@@ -12,13 +12,13 @@ args = parser.parse_args()
 avro_reader = reader(args.PFB_file)
 schema = avro_reader.schema
 
-fields = []
+fields = {}
 x = 0
 schemaParents = len(schema['fields'][2]['type'])
 while x < schemaParents:
 	if schema['fields'][2]['type'][x]['name'] == args.node:
 		for y in schema['fields'][2]['type'][x]['fields']:
-			fields.append(y['name'])
+			fields[y["name"]] = y["type"]
 	x += 1
 
 uid = uuid.uuid4()
@@ -26,8 +26,12 @@ name = args.node
 
 val = {}
 for x in fields:
+	if fields[x] == "long":
+		val[x] = 0
+	else:
+		val[x] = ""
 
-	val[x] = ""
+
 record  = {}
 record["id"] = str(uid)
 record["name"] = args.node 
