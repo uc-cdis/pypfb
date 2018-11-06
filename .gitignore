@@ -109,8 +109,5 @@ venv.bak/
 # JSON files
 *.json
 
-# text files
-*.txt
-
 # jupyter notebooks
 *.ipynb
