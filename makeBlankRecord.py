@@ -51,4 +51,4 @@ def makeRecord(pfbFile, node):
 
 if __name__ == '__main__':
 	args = parser.parse_args()
-	makeRecord(args.pfbFile, args.node)
+	makeRecord(args.PFB_file, args.node)

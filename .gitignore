@@ -111,3 +111,6 @@ venv.bak/
 
 # jupyter notebooks
 *.ipynb
+
+# avro files
+*.avro
