@@ -1,0 +1,51 @@
+digraph G {
+  node [
+    shape = "record"
+  ]
+
+  Relation [
+    label = "{Relation|
+      + dst_id : string\l
+      + dst_name : string\l}"
+  ]
+
+  Property [
+    label = "{Property|
+      + name : string\l
+      + ontology_reference : string\l
+      + values : map\<string\>\l}"
+  ]
+
+  Link [
+    label = "{Link|
+      + multiplicity : Multiplicity\l
+      + dst : string\l}"
+  ]
+
+  "Node" [
+    label = "{Node|
+      + name : string\l
+      + ontology_reference : string\l
+      + links : array\<Link\>\l
+      + properties : array\<Property\>}"
+  ]
+
+  Metadata [
+    label = "{Metadata|
+      + nodes : array\<Node\>}"
+  ]
+
+  Entity [
+    label = "{Entity|
+      + id : [\"null\", \"string\"]\l
+      + name : string\l
+      + object : [\"Metadata\"]\l
+      + relations : array\<Relation\>}"
+  ]
+
+  Property -> "Node"[taillabel = "0..*",arrowhead = "odiamond"]
+  Link -> "Node"[taillabel = "0..*",arrowhead = "odiamond"]
+  "Node" -> Metadata[taillabel = "0..*",arrowhead = "odiamond"]
+  Metadata -> Entity[taillabel = "1",arrowhead = "odiamond"]
+  Relation -> Entity[taillabel = "0..*",arrowhead = "odiamond"]
+}

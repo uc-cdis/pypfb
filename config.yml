@@ -1,0 +1,26 @@
+version: 1
+disable_existing_loggers: False
+formatters:
+    simple:
+        format: "%(message)s"
+    full:
+        format: "[%(filename)12.11s:%(lineno)-4d]# %(levelname)-8s [%(asctime)s] %(message)s"
+    json:
+        (): pythonjsonlogger.jsonlogger.JsonFormatter
+        format: "%(filename) %(lineno) %(levelname) %(asctime)s %(message)s"
+
+handlers:
+    console:
+        class: logging.StreamHandler
+        level: INFO
+        formatter: simple
+        stream: ext://sys.stdout
+
+loggers:
+    gunicorn.error:
+        level: INFO
+        handlers: [console]
+
+root:
+    level: INFO
+    handlers: [console]
