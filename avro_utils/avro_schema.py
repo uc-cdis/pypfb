@@ -103,16 +103,23 @@ class AvroSchema:
             properties = record_types['properties']
 
             for property_name, property_type in properties.iteritems():
-                if property_name in ['id', 'type', 'attribution']:
+                if property_name in ['id', 'type']:
                     continue
 
                 avro_type = get_avro_type(property_name, property_type)
 
                 # "None" represent an unsupported type in dictionary
                 if avro_type is not None:
+                    if not isinstance(avro_type, list) and 'null' not in avro_type:
+                        avro_type = ['null', avro_type]
+                    else:
+                        avro_type.insert(0, 'null')
+
                     t = {'name': property_name, 'type': avro_type}
                     if 'default' in property_type:
                         t['default'] = property_type['default']
+                    else:
+                        t['default'] = None
 
                     types.append(t)
 
