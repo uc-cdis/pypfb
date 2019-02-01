@@ -42,7 +42,7 @@ class AvroSchema:
             node_json = {'name': node_name, 'ontology_reference': '', 'links': links, 'properties': properties}
             nodes_json.append(node_json)
 
-        metadata = {'name': 'metadata', 'object': {'nodes': nodes_json}}
+        metadata = {'name': 'metadata', 'object': ('Metadata', {'nodes': nodes_json, 'misc': {}})}
 
         return [metadata]
 
@@ -106,18 +106,26 @@ class AvroSchema:
                 if property_name in ['id', 'type']:
                     continue
 
-                avro_type = get_avro_type(property_name, property_type)
+                avro_type = get_avro_type(property_name, property_type, record_name)
 
                 # "None" represent an unsupported type in dictionary
                 if avro_type is not None:
-                    if not isinstance(avro_type, list) and 'null' not in avro_type:
-                        avro_type = ['null', avro_type]
-                    else:
-                        avro_type.insert(0, 'null')
+                    if not isinstance(avro_type, list):
+                        if 'default' in property_type:
+                            avro_type = [avro_type, 'null']
+                        else:
+                            avro_type = ['null', avro_type]
+                    elif 'null' not in avro_type:
+                        if 'default' in property_type:
+                            avro_type.append('null')
+                        else:
+                            avro_type.insert(0, 'null')
 
                     t = {'name': property_name, 'type': avro_type}
                     if 'default' in property_type:
                         t['default'] = property_type['default']
+                    elif avro_type[0] == 'string':
+                        t['default'] = ''
                     else:
                         t['default'] = None
 
