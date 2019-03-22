@@ -1,7 +1,16 @@
 try:
-    from setuptools import setup
+    from setuptools import setup, find_packages
 except ImportError:
     from distutils.core import setup
+    from pkgutil import walk_packages
+
+
+    def find_packages(path=__path__, prefix=""):
+        yield prefix
+        prefix = prefix + "."
+        for _, name, ispkg in walk_packages(path, prefix):
+            if ispkg:
+                yield name
 
 with open('requirements.txt') as f:
     required = f.read().splitlines()
@@ -15,7 +24,7 @@ setup(
     author_email='',
     license='MIT',
     url='https://github.com/uc-cdis/python_pfb_sdk',
-    packages=['python_pfb_sdk'],
+    packages=['python_pfb_sdk'] + find_packages(),
     zip_safe=False,
     entry_points={
         'console_scripts': [
