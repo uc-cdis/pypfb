@@ -1,3 +1,6 @@
+import base64
+
+
 def get_avro_type(property_name, property_type, name):
     if 'type' in property_type:
         if property_type['type'] == 'array':
@@ -35,12 +38,12 @@ def enum(property_name, symbols, name):
     avro_type = {
         'type': 'enum',
         'name': '{}_{}'.format(name, property_name),
-        'symbols': list(map(replace_everything, symbols))
+        'symbols': list(map(lambda s: replace_everything(str(s)), symbols))
     }
-    avro_type = {
-        'type': 'string',
-        'name': property_name
-    }
+    # avro_type = {
+    #     'type': 'string',
+    #     'name': property_name
+    # }
     return avro_type
 
 
@@ -60,15 +63,7 @@ def python_avro_types(property_type):
 
 
 def replace_everything(identifier):
-    replace = ' -()&,./;<>'
-
-    for r in replace:
-        identifier = identifier.replace(r, '__')
-
-    if identifier[0].isdigit():
-        identifier = '_' + identifier
-
-    return identifier
+    return base64.b64encode(identifier).rstrip("=")
 
 
 def record(name, types):
