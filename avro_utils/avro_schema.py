@@ -171,7 +171,7 @@ class AvroSchema:
                         "null",
                         "string"
                     ],
-                    "default": null
+                    "default": None
                 },
                 {
                     "name": "name",
