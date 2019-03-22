@@ -40,5 +40,4 @@ setup(
         'Topic :: Software Development :: Libraries',
         'Topic :: Scientific/Engineering :: Bio-Informatics',
     ],
-    install_requires=required,
 )
