@@ -1,0 +1,27 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+codacy-coverage = "*"
+pytest = "~=3.2"
+pytest-cov = "~=2.5"
+truffleHog = "*"
+PyGithub = "*"
+gen3git = "*"
+more-itertools = "~=5.0"
+jupyter = "*"
+
+[packages]
+fastavro = "~=0.21"
+python-json-logger = "~=0.1"
+gdcdatamodel = "~=1.3"
+psqlgraph = "~=1.2"
+cdisutils = "~=1.2"
+dictionaryutils = "~=2.0"
+inflection = "*"
+pypfb = {editable = true,path = "."}
+
+[requires]
+python_version = "2.7"

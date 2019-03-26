@@ -1,0 +1,6 @@
+include LICENSE
+include NOTICE
+include Pipfile
+include Pipfile.lock
+include README.md
+include CHANGELOG.md

@@ -1,34 +1,43 @@
-try:
-    from setuptools import setup, find_packages
-except ImportError:
-    from distutils.core import setup
-    from pkgutil import walk_packages
+"""
+This is a file to describe the Python module distribution and
+helps with installation.
+
+More info on various arguments here:
+https://setuptools.readthedocs.io/en/latest/setuptools.html
+"""
+from setuptools import setup, find_packages
+from subprocess import check_output
 
 
-    def find_packages(path=__path__, prefix=""):
-        yield prefix
-        prefix = prefix + "."
-        for _, name, ispkg in walk_packages(path, prefix):
-            if ispkg:
-                yield name
+def get_version():
+    # https://github.com/uc-cdis/dictionaryutils/pull/37#discussion_r257898408
+    try:
+        tag = check_output(
+            ["git", "describe", "--tags", "--abbrev=0", "--match=[0-9]*"]
+        )
+        return tag.decode('utf-8').strip("\n")
+    except Exception:
+        raise RuntimeError(
+            "The version number cannot be extracted from git tag in this source "
+            "distribution; please either download the source from PyPI, or check out "
+            "from GitHub and make sure that the git CLI is available."
+        )
 
-with open('requirements.txt') as f:
-    required = f.read().splitlines()
 
 setup(
-    name='python_pfb_sdk',
-    version='0.0.1',
+    name='pypfb',
+    version=get_version(),
     description='Python SDK for PFB format',
-    long_description=open('README_old.md').read(),
+    long_description=open('README.md').read(),
     author='',
     author_email='',
     license='MIT',
-    url='https://github.com/uc-cdis/python_pfb_sdk',
-    packages=['python_pfb_sdk'] + find_packages(),
+    url='https://github.com/uc-cdis/pypfb',
+    packages=find_packages(),
     zip_safe=False,
     entry_points={
         'console_scripts': [
-            'pfb = python_pfb_sdk.__main__:main',
+            'pfb = pypfb.__main__:main',
         ]
     },
     classifiers=[
@@ -48,5 +57,8 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: Software Development :: Libraries',
         'Topic :: Scientific/Engineering :: Bio-Informatics',
+    ],
+    install_requires=[
+        "cdiserrors~=0.1",
     ],
 )
