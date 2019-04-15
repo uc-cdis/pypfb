@@ -4,17 +4,9 @@ import logging
 from fastavro import writer, parse_schema
 
 from avro_utils.avro_types import get_avro_type, record
-
-from avro_types import replace_everything
+from utils.str import encode
 
 log = logging.getLogger(__name__)
-
-
-# https://stackoverflow.com/a/42377964/1030110
-# required to load JSON without 'unicode' keys and values
-def str_hook(obj):
-    return {k.encode('utf-8') if isinstance(k, unicode) else k: v.encode('utf-8') if isinstance(v, unicode) else v for
-            k, v in obj}
 
 
 class AvroSchema:
@@ -41,7 +33,7 @@ class AvroSchema:
             properties = self.get_ontologies_from_node(node_value)
             links = self.get_links_for_node(self.links[node_name])
 
-            node_json = {'name': node_name, 'ontology_reference': '', 'links': links, 'properties': properties}
+            node_json = {'name': node_name, 'ontology_reference': '', 'values': {}, 'links': links, 'properties': properties}
             nodes_json.append(node_json)
 
         metadata = {'name': 'metadata', 'object': ('Metadata', {'nodes': nodes_json, 'misc': {}})}
@@ -112,17 +104,6 @@ class AvroSchema:
 
                 # "None" represent an unsupported type in dictionary
                 if avro_type is not None:
-                    # if not isinstance(avro_type, list):
-                    #     if 'default' in property_type:
-                    #         avro_type = [avro_type, 'null']
-                    #     else:
-                    #         avro_type = ['null', avro_type]
-                    # elif 'null' not in avro_type:
-                    #     if 'default' in property_type:
-                    #         avro_type.append('null')
-                    #     else:
-                    #         avro_type.insert(0, 'null')
-
                     if isinstance(avro_type, list):
                         new_avro_type = []
                         for item in avro_type:
@@ -131,21 +112,32 @@ class AvroSchema:
 
                         avro_type = new_avro_type
 
+                    if not isinstance(avro_type, list):
+                        if 'default' in property_type:
+                            avro_type = [avro_type, 'null']
+                        else:
+                            avro_type = ['null', avro_type]
+                    elif 'null' not in avro_type:
+                        if 'default' in property_type:
+                            avro_type.append('null')
+                        else:
+                            avro_type.insert(0, 'null')
+
                     t = {'name': property_name, 'type': avro_type}
 
-                    if property_name in ['error_type', 'availability_type']:
-                        t['type'] = ['null', avro_type]
-                        t['default'] = None
+                    # if property_name in ['error_type', 'availability_type']:
+                    #     t['type'] = ['null', avro_type]
+                    #     t['default'] = None
 
                     if 'default' in property_type:
                         if isinstance(property_type['default'], str):
-                            t['default'] = replace_everything(property_type['default'])
+                            t['default'] = encode(property_type['default'])
                         else:
                             t['default'] = property_type['default']
                     elif avro_type == 'string':
                         t['default'] = ''
-                    # else:
-                    #     t['default'] = None
+                    else:
+                        t['default'] = None
 
                     types.append(t)
 
@@ -199,6 +191,13 @@ class AvroSchema:
                                                 {
                                                     "name": "ontology_reference",
                                                     "type": "string"
+                                                },
+                                                {
+                                                    "name": "values",
+                                                    "type": {
+                                                        "type": "map",
+                                                        "values": "string"
+                                                    }
                                                 },
                                                 {
                                                     "name": "links",

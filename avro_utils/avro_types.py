@@ -1,4 +1,4 @@
-import base64
+from utils.str import encode
 
 
 def get_avro_type(property_name, property_type, name):
@@ -38,12 +38,13 @@ def enum(property_name, symbols, name):
     avro_type = {
         'type': 'enum',
         'name': '{}_{}'.format(name, property_name),
-        'symbols': list(map(lambda s: replace_everything(str(s)), symbols))
+        'symbols': list(map(lambda s: encode(str(s)), symbols))
     }
     # avro_type = {
     #     'type': 'string',
     #     'name': property_name
     # }
+
     return avro_type
 
 
@@ -60,10 +61,6 @@ def python_avro_types(property_type):
         'number': 'float'
     }
     return avro_types.get(property_type, property_type)
-
-
-def replace_everything(identifier):
-    return base64.b64encode(identifier).rstrip("=")
 
 
 def record(name, types):

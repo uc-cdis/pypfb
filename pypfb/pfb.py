@@ -17,13 +17,17 @@ def read_schema(filename):
 def read_metadata(filename):
     with open(filename, 'rb') as pfb:
         metadata = next(reader(pfb))
-        metadata = {
-            'id': metadata['id'],
-            'name': metadata['name'],
-            'object': ('Metadata', metadata['object']),
-            'relations': metadata['relations']
-        }
-        return metadata
+        return metadata['object']
+
+
+def read_records(filename, reader_schema=None):
+    with open(filename, 'rb') as pfb:
+        if reader_schema:
+            rr = reader(pfb, reader_schema)
+        else:
+            rr = reader(pfb)
+        for r in rr:
+            yield r
 
 
 def write_records(filename, schema, records):
@@ -34,6 +38,19 @@ def write_records(filename, schema, records):
 def append_records(filename, schema, records):
     with open(filename, 'a+b') as pfb:
         writer(pfb, schema, records)
+
+
+def rename_node(filename_in, filename_out, name_from, name_to):
+    source_schema = read_schema(filename_in)
+
+    # for i in source_schema['fields'][2]['type']:
+    for i in source_schema['fields']:
+        if i['name'] == name_from:
+            i['aliases'] = [name_from]
+            i['name'] = name_to
+            break
+
+    write_records(filename_out, source_schema, read_records(filename_in, source_schema))
 
 
 def convert_json(node_name, json_record, program, project):
@@ -61,14 +78,17 @@ def convert_json(node_name, json_record, program, project):
     vals['created_datetime'] = None
     vals['updated_datetime'] = None
 
-    record = {
-        'id': node_id,
-        'name': node_name,
-        'object': (node_name, vals),
-        'relations': relations
-    }
-    return record
+    return avro_record(node_id, node_name, vals, relations)
 
+
+def avro_record(node_id, node_name, values, relations):
+    node = {
+            'id': node_id,
+            'name': node_name,
+            'object': (node_name, values),
+            'relations': relations
+        }
+    return node
 
 # class AvroFileWrapper:
 #     def __init__(self, filename):
@@ -79,8 +99,12 @@ def convert_json(node_name, json_record, program, project):
 #         self.writer_schema = None
 #         self.metadata = None
 #
-#     def __enter__(self, mode='read'):
-#         self.fh = open(self.filename, mode)
+#     def __enter__(self):
+#         if self.fh is not None:
+#             self.fh = open(self.filename)
+#         else:
+#             self.fh.seek(0)
+#
 #         self.reader = reader(self.fh)
 #         self.writer_schema = self.reader.writer_schema
 #         self.metadata = next(self.reader)
@@ -88,13 +112,17 @@ def convert_json(node_name, json_record, program, project):
 #
 #     def __exit__(self, exc_type, exc_value, traceback):
 #         self.fh.close()
+#         self.fh = None
 #
-#     def write(self, records):
-#         with open(self.filename, 'w+b') as fh:
+#     def _write_avro(self, records, mode):
+#         with open(self.filename, mode) as fh:
 #             writer(fh, self.writer_schema, records)
 #
-#     def append(self, filename, schema, records):
-#         pass
+#     def write(self, records):
+#         self._write_avro(records, mode='w+b')
+#
+#     def append(self, records):
+#         self._write_avro(records, mode='a+b')
 
 
 class PFBFile:
@@ -119,7 +147,7 @@ class PFBFile:
         schema = json.loads(json.dumps(schema), object_pairs_hook=str_hook)
         parsed_schema = parse_schema(schema)
 
-        metadata = [read_metadata(source_pfb_filename)]
+        metadata = [avro_record(None, 'Metadata', read_metadata(source_pfb_filename), [])]
 
         write_records(output_pfb_filename, parsed_schema, metadata)
 
