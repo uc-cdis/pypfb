@@ -59,6 +59,8 @@ DEFAULT_CONFIG = {
   "hardExcludes": [
                     "th_wrapper.py",
                     "thog_config.json",
+                    "Pipfile.lock",
+                    ".travis.yml",
                     "truffles.json"
                   ],
   "regexRules": {
