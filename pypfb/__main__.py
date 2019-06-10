@@ -43,7 +43,11 @@ def main():
     json2pfb_cmd.add_argument('--program', type=str, required=True, help='Name of the program')
     json2pfb_cmd.add_argument('--project', type=str, required=True, help='Name of the project')
 
-    rename = subparsers.add_parser('rename', help='')
+    make_cmd = subparsers.add_parser('make', help='Make blank record')
+    make_cmd.add_argument('input', type=str, help='Path to PFB file')
+    make_cmd.add_argument('-n', '--node', type=str, help='Node to create')
+
+    rename = subparsers.add_parser('rename', help='Rename different parts of schema')
 
     sub_rename = rename.add_subparsers(dest='rename')
     node_rename = sub_rename.add_parser('node', help="Rename node")
@@ -88,7 +92,7 @@ def main():
         PFBFile.from_json(args.schema, args.dir, args.output, args.program, args.project)
 
     elif args.cmd == 'make':
-
+        make_record(args.input, args.n)
 
     elif args.cmd == 'rename':
         if args.rename == 'node':

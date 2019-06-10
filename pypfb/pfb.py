@@ -1,6 +1,7 @@
-import json
 import glob
+import json
 import os
+import uuid
 
 from fastavro import reader, writer, parse_schema
 from inflection import singularize
@@ -38,6 +39,41 @@ def write_records(filename, schema, records):
 def append_records(filename, schema, records):
     with open(filename, 'a+b') as pfb:
         writer(pfb, schema, records)
+
+
+def make_record(pfbFile, node):
+    pfb = open(pfbFile, 'a+b')
+    avro_reader = reader(pfb)
+    schema = avro_reader.schema
+
+    fields = {}
+    x = 0
+    schema_parents = len(schema['fields'][2]['type'])
+    while x < schema_parents:
+        if schema['fields'][2]['type'][x]['name'] == node:
+            for y in schema['fields'][2]['type'][x]['fields']:
+                fields[y["name"]] = y["type"]
+        x += 1
+
+    uid = uuid.uuid4()
+
+    val = {}
+    for x in fields:
+        if fields[x] == "long":
+            val[x] = 0
+        else:
+            val[x] = ""
+
+    record = {"id": str(uid), "name": node, "relations": [], "val": val}
+
+    record = json.dumps(record)
+    loaded_record = json.loads(record)
+
+    print "Creating blank record for " + node + " in blank.json file"
+    print loaded_record
+
+    with open('blank.json', 'wb+') as out:
+        json.dump(loaded_record, out)
 
 
 def rename_node(filename_in, filename_out, name_from, name_to):
@@ -83,12 +119,13 @@ def convert_json(node_name, json_record, program, project):
 
 def avro_record(node_id, node_name, values, relations):
     node = {
-            'id': node_id,
-            'name': node_name,
-            'object': (node_name, values),
-            'relations': relations
-        }
+        'id': node_id,
+        'name': node_name,
+        'object': (node_name, values),
+        'relations': relations
+    }
     return node
+
 
 # class AvroFileWrapper:
 #     def __init__(self, filename):
