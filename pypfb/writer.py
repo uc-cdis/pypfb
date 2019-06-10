@@ -1,132 +1,83 @@
-import json
-import uuid
-
 from fastavro import reader, writer
 
 
 # https://stackoverflow.com/a/42377964/1030110
 # required to load JSON without 'unicode' keys and values
 def str_hook(obj):
-    return {k.encode('utf-8') if isinstance(k, unicode) else k: v.encode('utf-8') if isinstance(v, unicode) else v for
-            k, v in obj}
-
-
-def add_record(pfbFile, jsonFile):
-    pfb = open(pfbFile, 'a+b')
-    jsonF = open(jsonFile, 'rb')
-    schema = reader(pfb).schema
-    schema = json.loads(json.dumps(schema), object_pairs_hook=str_hook)
-
-    records = []
-    print "adding records from JSON file"
-    for line in jsonF:
-        print line
-        jsonLine = json.loads(line, object_pairs_hook=str_hook)
-        jsonInsert = {
-            'id': jsonLine['id'],
-            'name': jsonLine['name'],
-            'val': (jsonLine['name'], jsonLine['val']),
-            'relations': jsonLine['relations']
-        }
-        records.append(jsonInsert)
-    writer(pfb, schema, records)
+    return {
+        k.encode("utf-8")
+        if isinstance(k, unicode)
+        else k: v.encode("utf-8")
+        if isinstance(v, unicode)
+        else v
+        for k, v in obj
+    }
 
 
 def add(pfbFile, parField, newField, newFieldType, newFieldDefault):
-    pfb = open(pfbFile, 'rb')
+    pfb = open(pfbFile, "rb")
     avro_reader = reader(pfb)
 
     schema = avro_reader.schema
 
-    newFieldDict = {u'default': u'' + newFieldDefault, u'type': u'' + newFieldType, u'name': u'' + newField}
+    newFieldDict = {
+        u"default": u"" + newFieldDefault,
+        u"type": u"" + newFieldType,
+        u"name": u"" + newField,
+    }
 
-    print "updating records from PFB by addding " + newField + " with default value of " + newFieldDefault
+    print(
+        "updating records from PFB by addding "
+        + newField
+        + " with default value of "
+        + newFieldDefault
+    )
     records = []
     for record in avro_reader:
-        if record['name'] == parField:
-            record['val'][u'' + newField] = u'' + newFieldDefault
+        if record["name"] == parField:
+            record["val"][u"" + newField] = u"" + newFieldDefault
         records.append(record)
-    print "records updated with new field \n"
+    print("records updated with new field \n")
 
-    print "updating schema with " + newField
+    print("updating schema with " + newField)
     x = 0
-    schemaParents = len(schema['fields'][2]['type'])
+    schemaParents = len(schema["fields"][2]["type"])
     while x < schemaParents:
-        if schema['fields'][2]['type'][x]['name'] == parField:
-            schema['fields'][2]['type'][x]['fields'].append(newFieldDict)
+        if schema["fields"][2]["type"][x]["name"] == parField:
+            schema["fields"][2]["type"][x]["fields"].append(newFieldDict)
             break
         x += 1
-    print "schema updated with new field"
+    print("schema updated with new field")
 
-    with open('new.pfb', 'wb+') as out:
+    with open("new.pfb", "wb+") as out:
         writer(out, schema, records)
 
 
-def makeRecord(pfbFile, node):
-    pfb = open(pfbFile, 'a+b')
-    avro_reader = reader(pfb)
-    schema = avro_reader.schema
-
-    fields = {}
-    x = 0
-    schemaParents = len(schema['fields'][2]['type'])
-    while x < schemaParents:
-        if schema['fields'][2]['type'][x]['name'] == node:
-            for y in schema['fields'][2]['type'][x]['fields']:
-                fields[y["name"]] = y["type"]
-        x += 1
-
-    uid = uuid.uuid4()
-    name = node
-
-    val = {}
-    for x in fields:
-        if fields[x] == "long":
-            val[x] = 0
-        else:
-            val[x] = ""
-
-    record = {}
-    record["id"] = str(uid)
-    record["name"] = node
-    record["relations"] = []
-    record["val"] = val
-
-    record = json.dumps(record)
-    loadedRecord = json.loads(record)
-
-    print "Creating blank record for " + node + " in blank.json file"
-    print loadedRecord
-
-    with open('blank.json', 'wb+') as out:
-        json.dump(loadedRecord, out)
-
-
 def remove(pfbFile, parField, rmField):
-    pfb = open(pfbFile, 'rb')
+    pfb = open(pfbFile, "rb")
     avro_reader = reader(pfb)
 
     schema = avro_reader.schema
 
-    print "updating records from PFB file by removing " + rmField
+    print("updating records from PFB file by removing " + rmField)
     records = []
     for record in avro_reader:
-        if record['name'] == parField:
-            del record['val'][rmField]
+        if record["name"] == parField:
+            del record["val"][rmField]
         records.append(record)
 
     x = 0
-    schemaParents = len(schema['fields'][2]['type'])
+    schemaParents = len(schema["fields"][2]["type"])
     while x < schemaParents:
-        if schema['fields'][2]['type'][x]['name'] == parField:
-            for y in schema['fields'][2]['type'][x]['fields']:
-                if y['name'] == rmField:
-                    print "removing " + rmField + " from schema"
-                    schema['fields'][2]['type'][x]['fields'].remove(y)
+        if schema["fields"][2]["type"][x]["name"] == parField:
+            for y in schema["fields"][2]["type"][x]["fields"]:
+                if y["name"] == rmField:
+                    print("removing " + rmField + " from schema")
+                    schema["fields"][2]["type"][x]["fields"].remove(y)
                     break
             break
         x += 1
 
-    print "writing to new file rm.pfb"
-    with open('rm.pfb', 'wb+') as out:
+    print("writing to new file rm.pfb")
+    with open("rm.pfb", "wb+") as out:
         writer(out, schema, records)
