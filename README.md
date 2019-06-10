@@ -116,11 +116,5 @@ Python SDK to create, explore and modify PFB files.
       --name_from NAME_FROM
       --name_to NAME_TO
 
-## Examples
-
-    dict2pfb.py -d http://s3.amazonaws.com/dictionary-artifacts/kf-dictionary/1.1.0/schema.json
-    dict2pfb.py -d http://s3.amazonaws.com/dictionary-artifacts/kf-dictionary/1.1.0/schema.json -o kf.avro
-    dict2pfb.py --dictionary http://s3.amazonaws.com/dictionary-artifacts/kf-dictionary/1.1.0/schema.json --output kf.avro
-    dict2pfb.py -h
 
   [1]: ./doc/metadata.svg
