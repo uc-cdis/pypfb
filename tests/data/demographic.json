@@ -1,0 +1,15 @@
+[
+    {
+        "age_at_last_follow_up_days": 18074, 
+        "cause_of_death": "Not Reported", 
+        "ethnicity": "not hispanic or latino", 
+        "gender": "female", 
+        "participants": {
+            "submitter_id": "participant_metalinguistics_monofilm"
+        }, 
+        "race": "Native Hawaiian or Other Pacific Islander", 
+        "submitter_id": "demographic_duteousness_unassailing", 
+        "type": "demographic", 
+        "vital_status": "Dead"
+    }
+]

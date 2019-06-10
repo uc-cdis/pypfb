@@ -1,0 +1,25 @@
+[
+    {
+        "a260_a280_ratio": 76.98304781222622, 
+        "aliquot_quantity": 24.16768706561919, 
+        "amount": 27.784898461726314, 
+        "analyte_quantity": 85.42459781874679, 
+        "analyte_type": "Not Reported", 
+        "concentration": 12.121884095444802, 
+        "external_id": "Neozoic_subrhomboid", 
+        "normal_tumor_genotype_snp_match": "No", 
+        "ribosomal_rna_28s_16s_ratio": 7.749384320828723, 
+        "samples": {
+            "submitter_id": "sample_Wagnerism_buccally"
+        }, 
+        "shipment_date": "5905-68-23", 
+        "shipment_destination": "Baylor College of Medicine", 
+        "shipment_origin": "Cerynean_vouchee", 
+        "source_center": "seleniuret_helpable", 
+        "spectrophotometer_method": "intwist_ovariotomy", 
+        "submitter_id": "aliquot_melituria_Khattish", 
+        "type": "aliquot", 
+        "volume": 51.031138922553176, 
+        "well_number": "wi_proteoclastic"
+    }
+]

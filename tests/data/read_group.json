@@ -1,0 +1,41 @@
+[
+    {
+        "RIN": 93.87329766304958, 
+        "adapter_name": "biodyne_choiler", 
+        "adapter_sequence": "subtenancy_skinker", 
+        "aliquots": {
+            "submitter_id": "aliquot_melituria_Khattish"
+        }, 
+        "base_caller_name": "angularity_Ming", 
+        "base_caller_version": "Australianism_exundation", 
+        "experiment_name": "discerpibility_cosmically", 
+        "flow_cell_barcode": "outstride_relay", 
+        "includes_spike_ins": true, 
+        "instrument_model": "Ion Torrent PGM", 
+        "is_paired_end": false, 
+        "library_name": "anenst_moundiness", 
+        "library_preparation_kit_catalog_number": "materfamilias_suppositionally", 
+        "library_preparation_kit_name": "brownout_pereirine", 
+        "library_preparation_kit_vendor": "unwily_unsmitten", 
+        "library_preparation_kit_version": "gob_unruliness", 
+        "library_selection": "Affinity Enrichment", 
+        "library_strand": "Unstranded", 
+        "library_strategy": "ChIP-Seq", 
+        "platform": "Illumina", 
+        "read_group_name": "herbivore_tehseeldar", 
+        "read_length": 47, 
+        "sequencing_center": "Londonization_enterosyphilis", 
+        "sequencing_date": "dextrotropic_unindexed", 
+        "size_selection_range": "servitorial_outmost", 
+        "spike_ins_concentration": "subarboraceous_retaker", 
+        "spike_ins_fasta": "filamentiferous_quakiness", 
+        "submitter_id": "read_group_ethnicon_fordless", 
+        "target_capture_kit_catalog_number": "hemigastrectomy_counterscoff", 
+        "target_capture_kit_name": "Pelargi_eventuality", 
+        "target_capture_kit_target_region": "thistledown_oe", 
+        "target_capture_kit_vendor": "Calophyllum_seraskerate", 
+        "target_capture_kit_version": "humanizer_culturist", 
+        "to_trim_adapter_sequence": true, 
+        "type": "read_group"
+    }
+]

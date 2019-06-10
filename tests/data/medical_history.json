@@ -1,0 +1,13 @@
+[
+    {
+        "asthma": "Negative", 
+        "coronary_artery_disease": "Positive", 
+        "hypertension": "Not Applicable", 
+        "participants": {
+            "submitter_id": "participant_metalinguistics_monofilm"
+        }, 
+        "stroke": "Reported Unknown", 
+        "submitter_id": "medical_history_preterience_Jacobinize", 
+        "type": "medical_history"
+    }
+]

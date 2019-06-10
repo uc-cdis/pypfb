@@ -1,0 +1,17 @@
+[
+    {
+        "data_category": "Raw Sequencing Data", 
+        "data_format": "SRA XML", 
+        "data_type": "Run Metadata", 
+        "file_format": "ollock_nemertoid", 
+        "file_name": "candidacy_towardliness", 
+        "file_size": 25, 
+        "file_url": "fastigiate_resolution", 
+        "md5sum": "c39c27865bb06256034b9efd5f5ff67a", 
+        "read_groups": {
+            "submitter_id": "read_group_ethnicon_fordless"
+        }, 
+        "submitter_id": "run_metadata_panclastic_bandannaed", 
+        "type": "run_metadata"
+    }
+]
