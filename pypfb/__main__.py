@@ -47,6 +47,11 @@ def main():
     make_cmd.add_argument('input', type=str, help='Path to PFB file')
     make_cmd.add_argument('-n', '--node', type=str, help='Node to create')
 
+    add_cmd = subparsers.add_parser('add', description='Add a record to PFB file from a minified JSON file')
+    add_cmd.add_argument('PFB_file', type=str, default='test.pfb', help='pfb file to add record to. Default = test.pfb')
+    add_cmd.add_argument('JSON_file', type=str, default='test.json',
+                         help='JSON file to add into the pfb file. Default = test.json')
+
     rename = subparsers.add_parser('rename', help='Rename different parts of schema')
 
     sub_rename = rename.add_subparsers(dest='rename')
@@ -93,6 +98,9 @@ def main():
 
     elif args.cmd == 'make':
         make_record(args.input, args.n)
+
+    elif args.cmd == 'add':
+        add_record(args.PFB_file, args.JSON_file)
 
     elif args.cmd == 'rename':
         if args.rename == 'node':

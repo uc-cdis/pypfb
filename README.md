@@ -8,9 +8,20 @@ Python SDK to create, explore and modify PFB files.
 
 ## Usage
 
-    usage: dict2pfb.py [-h] -d DICTIONARY -o OUTPUT
+### Main
+
+    usage: pypfb [-h] {show,dict2pfb,json2pfb,make,rename} ...
     
-    Convert Dictionary to PFB
+    PFB tool
+    
+    positional arguments:
+      {show,dict2pfb,json2pfb,make,rename}
+        show                Show schema or records of the PFB file
+        dict2pfb            Convert datadictionary into PFB file with schema
+        json2pfb            Convert JSON files correspond to datadictionary into
+                            PFB file
+        make                Make blank record
+        rename              Rename different parts of schema
     
     optional arguments:
       -h, --help            show this help message and exit

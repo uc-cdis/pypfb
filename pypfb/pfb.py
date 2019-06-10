@@ -41,6 +41,27 @@ def append_records(filename, schema, records):
         writer(pfb, schema, records)
 
 
+def add_record(pfbFile, jsonFile):
+    pfb = open(pfbFile, 'a+b')
+    jsonF = open(jsonFile, 'rb')
+    schema = reader(pfb).schema
+    schema = json.loads(json.dumps(schema), object_pairs_hook=str_hook)
+
+    records = []
+    print "adding records from JSON file"
+    for line in jsonF:
+        print line
+        jsonLine = json.loads(line, object_pairs_hook=str_hook)
+        jsonInsert = {
+            'id': jsonLine['id'],
+            'name': jsonLine['name'],
+            'val': (jsonLine['name'], jsonLine['val']),
+            'relations': jsonLine['relations']
+        }
+        records.append(jsonInsert)
+    writer(pfb, schema, records)
+
+
 def make_record(pfbFile, node):
     pfb = open(pfbFile, 'a+b')
     avro_reader = reader(pfb)
