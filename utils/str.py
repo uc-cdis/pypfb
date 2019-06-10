@@ -6,8 +6,14 @@ import base64
 #
 # TODO: remove in Python 3
 def str_hook(obj):
-    return {k.encode('utf-8') if isinstance(k, unicode) else k: v.encode('utf-8') if isinstance(v, unicode) else v for
-            k, v in obj}
+    return {
+        k.encode("utf-8")
+        if isinstance(k, unicode)
+        else k: v.encode("utf-8")
+        if isinstance(v, unicode)
+        else v
+        for k, v in obj
+    }
 
 
 def encode(raw_value):

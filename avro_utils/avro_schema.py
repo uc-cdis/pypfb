@@ -33,21 +33,30 @@ class AvroSchema:
             properties = self.get_ontologies_from_node(node_value)
             links = self.get_links_for_node(self.links[node_name])
 
-            node_json = {'name': node_name, 'ontology_reference': '', 'values': {}, 'links': links, 'properties': properties}
+            node_json = {
+                "name": node_name,
+                "ontology_reference": "",
+                "values": {},
+                "links": links,
+                "properties": properties,
+            }
             nodes_json.append(node_json)
 
-        metadata = {'name': 'metadata', 'object': ('Metadata', {'nodes': nodes_json, 'misc': {}})}
+        metadata = {
+            "name": "metadata",
+            "object": ("Metadata", {"nodes": nodes_json, "misc": {}}),
+        }
 
         return [metadata]
 
     @staticmethod
     def get_link(node_link):
         add = {}
-        if 'multiplicity' in node_link:
-            add['multiplicity'] = node_link['multiplicity'].upper()
+        if "multiplicity" in node_link:
+            add["multiplicity"] = node_link["multiplicity"].upper()
 
-        if 'name' in node_link:
-            add['dst'] = node_link['name']
+        if "name" in node_link:
+            add["dst"] = node_link["name"]
 
         return add
 
@@ -56,8 +65,8 @@ class AvroSchema:
         links = []
 
         for link in node_links:
-            if 'subgroup' in link:
-                add = AvroSchema.get_links_for_node(link['subgroup'])
+            if "subgroup" in link:
+                add = AvroSchema.get_links_for_node(link["subgroup"])
                 links.extend(add)
 
             else:
@@ -70,16 +79,23 @@ class AvroSchema:
     def get_ontologies_from_node(node_value):
         properties = []
         for property_name, property_value in node_value.iteritems():
-            ontology_reference = property_value.get('term', None)
+            ontology_reference = property_value.get("term", None)
 
             # set ontology reference to empty string if "term" is already "None"
-            ontology_reference = ontology_reference if ontology_reference is not None else ''
+            ontology_reference = (
+                ontology_reference if ontology_reference is not None else ""
+            )
 
             # "values" maps to all properties except the "term"
-            property_json = {'name': property_name,
-                             'ontology_reference': ontology_reference,
-                             'values': {k: str(v) for k, v in property_value.iteritems() if
-                                        k not in ['term'] and v is not None}}
+            property_json = {
+                "name": property_name,
+                "ontology_reference": ontology_reference,
+                "values": {
+                    k: str(v)
+                    for k, v in property_value.iteritems()
+                    if k not in ["term"] and v is not None
+                },
+            }
 
             properties.append(property_json)
 
@@ -94,10 +110,10 @@ class AvroSchema:
         for record_name, record_types in schema.iteritems():
             types = []
             ontology_references_for_record = {}
-            properties = record_types['properties']
+            properties = record_types["properties"]
 
             for property_name, property_type in properties.iteritems():
-                if property_name in ['id', 'type']:
+                if property_name in ["id", "type"]:
                     continue
 
                 avro_type = get_avro_type(property_name, property_type, record_name)
@@ -113,42 +129,46 @@ class AvroSchema:
                         avro_type = new_avro_type
 
                     if not isinstance(avro_type, list):
-                        if 'default' in property_type:
-                            avro_type = [avro_type, 'null']
+                        if "default" in property_type:
+                            avro_type = [avro_type, "null"]
                         else:
-                            avro_type = ['null', avro_type]
-                    elif 'null' not in avro_type:
-                        if 'default' in property_type:
-                            avro_type.append('null')
+                            avro_type = ["null", avro_type]
+                    elif "null" not in avro_type:
+                        if "default" in property_type:
+                            avro_type.append("null")
                         else:
-                            avro_type.insert(0, 'null')
+                            avro_type.insert(0, "null")
 
-                    t = {'name': property_name, 'type': avro_type}
+                    t = {"name": property_name, "type": avro_type}
 
                     # if property_name in ['error_type', 'availability_type']:
                     #     t['type'] = ['null', avro_type]
                     #     t['default'] = None
 
-                    if 'default' in property_type:
-                        if isinstance(property_type['default'], str):
-                            t['default'] = encode(property_type['default'])
+                    if "default" in property_type:
+                        if isinstance(property_type["default"], str):
+                            t["default"] = encode(property_type["default"])
                         else:
-                            t['default'] = property_type['default']
-                    elif avro_type == 'string':
-                        t['default'] = ''
+                            t["default"] = property_type["default"]
+                    elif avro_type == "string":
+                        t["default"] = ""
                     else:
-                        t['default'] = None
+                        t["default"] = None
 
                     types.append(t)
 
-                record_has_ontology = 'term' in property_type and 'termDef' in property_type['term']
+                record_has_ontology = (
+                    "term" in property_type and "termDef" in property_type["term"]
+                )
                 if record_has_ontology:
-                    ontology_references_for_record[property_name] = property_type['term']['termDef']
+                    ontology_references_for_record[property_name] = property_type[
+                        "term"
+                    ]["termDef"]
 
             records.append(record(record_name, types))
 
-            if 'links' in record_types:
-                links[record_name] = record_types['links']
+            if "links" in record_types:
+                links[record_name] = record_types["links"]
 
             if ontology_references_for_record != {}:
                 ontology_references[record_name] = ontology_references_for_record
@@ -157,18 +177,8 @@ class AvroSchema:
             "type": "record",
             "name": "Entity",
             "fields": [
-                {
-                    "name": "id",
-                    "type": [
-                        "null",
-                        "string"
-                    ],
-                    "default": None
-                },
-                {
-                    "name": "name",
-                    "type": "string"
-                },
+                {"name": "id", "type": ["null", "string"], "default": None},
+                {"name": "name", "type": "string"},
                 {
                     "name": "object",
                     "type": [
@@ -184,20 +194,17 @@ class AvroSchema:
                                             "type": "record",
                                             "name": "Node",
                                             "fields": [
-                                                {
-                                                    "name": "name",
-                                                    "type": "string"
-                                                },
+                                                {"name": "name", "type": "string"},
                                                 {
                                                     "name": "ontology_reference",
-                                                    "type": "string"
+                                                    "type": "string",
                                                 },
                                                 {
                                                     "name": "values",
                                                     "type": {
                                                         "type": "map",
-                                                        "values": "string"
-                                                    }
+                                                        "values": "string",
+                                                    },
                                                 },
                                                 {
                                                     "name": "links",
@@ -216,17 +223,17 @@ class AvroSchema:
                                                                             "ONE_TO_ONE",
                                                                             "ONE_TO_MANY",
                                                                             "MANY_TO_ONE",
-                                                                            "MANY_TO_MANY"
-                                                                        ]
-                                                                    }
+                                                                            "MANY_TO_MANY",
+                                                                        ],
+                                                                    },
                                                                 },
                                                                 {
                                                                     "name": "dst",
-                                                                    "type": "string"
-                                                                }
-                                                            ]
-                                                        }
-                                                    }
+                                                                    "type": "string",
+                                                                },
+                                                            ],
+                                                        },
+                                                    },
                                                 },
                                                 {
                                                     "name": "properties",
@@ -238,37 +245,34 @@ class AvroSchema:
                                                             "fields": [
                                                                 {
                                                                     "name": "name",
-                                                                    "type": "string"
+                                                                    "type": "string",
                                                                 },
                                                                 {
                                                                     "name": "ontology_reference",
-                                                                    "type": "string"
+                                                                    "type": "string",
                                                                 },
                                                                 {
                                                                     "name": "values",
                                                                     "type": {
                                                                         "type": "map",
-                                                                        "values": "string"
-                                                                    }
-                                                                }
-                                                            ]
-                                                        }
-                                                    }
-                                                }
-                                            ]
-                                        }
-                                    }
+                                                                        "values": "string",
+                                                                    },
+                                                                },
+                                                            ],
+                                                        },
+                                                    },
+                                                },
+                                            ],
+                                        },
+                                    },
                                 },
                                 {
                                     "name": "misc",
-                                    "type": {
-                                        "type": "map",
-                                        "values": "string"
-                                    }
-                                }
-                            ]
+                                    "type": {"type": "map", "values": "string"},
+                                },
+                            ],
                         }
-                    ]
+                    ],
                 },
                 {
                     "name": "relations",
@@ -278,21 +282,19 @@ class AvroSchema:
                             "type": "record",
                             "name": "Relation",
                             "fields": [
-                                {
-                                    "name": "dst_id",
-                                    "type": "string"
-                                },
-                                {
-                                    "name": "dst_name",
-                                    "type": "string"
-                                }
-                            ]
-                        }
+                                {"name": "dst_id", "type": "string"},
+                                {"name": "dst_name", "type": "string"},
+                            ],
+                        },
                     },
-                    "default": []
-                }
-            ]
+                    "default": [],
+                },
+            ],
         }
-        avro_schema['fields'][2]['type'].extend(records)
+        avro_schema["fields"][2]["type"].extend(records)
 
-        return AvroSchema(avro_schema=avro_schema, ontology_references=ontology_references, links=links)
+        return AvroSchema(
+            avro_schema=avro_schema,
+            ontology_references=ontology_references,
+            links=links,
+        )

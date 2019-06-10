@@ -16,7 +16,7 @@ def get_version():
         tag = check_output(
             ["git", "describe", "--tags", "--abbrev=0", "--match=[0-9]*"]
         )
-        return tag.decode('utf-8').strip("\n")
+        return tag.decode("utf-8").strip("\n")
     except Exception:
         raise RuntimeError(
             "The version number cannot be extracted from git tag in this source "
@@ -26,39 +26,33 @@ def get_version():
 
 
 setup(
-    name='pypfb',
+    name="pypfb",
     version=get_version(),
-    description='Python SDK for PFB format',
-    long_description=open('README.md').read(),
-    author='',
-    author_email='',
-    license='MIT',
-    url='https://github.com/uc-cdis/pypfb',
+    description="Python SDK for PFB format",
+    long_description=open("README.md").read(),
+    author="",
+    author_email="",
+    license="MIT",
+    url="https://github.com/uc-cdis/pypfb",
     packages=find_packages(),
     zip_safe=False,
-    entry_points={
-        'console_scripts': [
-            'pfb = pypfb.__main__:main',
-        ]
-    },
+    entry_points={"console_scripts": ["pfb = pypfb.__main__:main"]},
     classifiers=[
-        'Development Status :: 3 - Alpha',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: Apache Software License',
-        'Operating System :: POSIX :: Linux',
-        'Operating System :: Microsoft :: Windows',
-        'Operating System :: MacOS',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python',
-        'Topic :: Software Development :: Libraries :: Python Modules',
-        'Topic :: Software Development :: Libraries',
-        'Topic :: Scientific/Engineering :: Bio-Informatics',
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: Apache Software License",
+        "Operating System :: POSIX :: Linux",
+        "Operating System :: Microsoft :: Windows",
+        "Operating System :: MacOS",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: Software Development :: Libraries",
+        "Topic :: Scientific/Engineering :: Bio-Informatics",
     ],
-    install_requires=[
-        "cdiserrors~=0.1",
-    ],
+    install_requires=["cdiserrors~=0.1"],
 )
