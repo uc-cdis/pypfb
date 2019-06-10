@@ -36,7 +36,8 @@ def main():
     dict2pfb_cmd.add_argument('-d', '--dictionary', required=True, type=str, help='Link to dictionary URL')
     dict2pfb_cmd.add_argument('-o', '--output', required=True, type=argparse.FileType('wb'), help='Output PFB file')
 
-    json2pfb_cmd = subparsers.add_parser('json2pfb', help='Convert JSON files correspond to datadictionary into PFB file')
+    json2pfb_cmd = subparsers.add_parser('json2pfb',
+                                         help='Convert JSON files correspond to datadictionary into PFB file')
     json2pfb_cmd.add_argument('dir', type=str, help='Path to directory with input JSON files')
     json2pfb_cmd.add_argument('-s', '--schema', type=str, required=True, help='Filename for schema PFB file')
     json2pfb_cmd.add_argument('-o', '--output', type=str, required=True, help='Filename for resulting PFB file')
