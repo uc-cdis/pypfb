@@ -96,18 +96,29 @@ def make_record(pfbFile, node):
     with open("blank.json", "wb+") as out:
         json.dump(loaded_record, out)
 
+def _rename_node_in_records(filename_in, name_from, name_to):
+    for record in list(read_records(filename_in)):
+        if record["name"] == name_from:
+            record["name"] = name_to
+        yield record
+
+
+def _rename_node_in_schema(filename_in, name_from, name_to):
+    source_schema = read_schema(filename_in)
+    for node in source_schema['fields'][2]['type']:
+        if node["name"] == name_from:
+            node["aliases"] = [name_from]
+            node["name"] = name_to
+            for fields in node["fields"]:
+                for type in fields["type"]:
+                    if isinstance(type, dict) and type.get('type') == "enum":
+                        type["name"] = type["name"].replace(name_from, name_to)
+
+    return source_schema
 
 def rename_node(filename_in, filename_out, name_from, name_to):
-    source_schema = read_schema(filename_in)
-
-    # for i in source_schema['fields'][2]['type']:
-    for i in source_schema["fields"]:
-        if i["name"] == name_from:
-            i["aliases"] = [name_from]
-            i["name"] = name_to
-            break
-
-    write_records(filename_out, source_schema, read_records(filename_in, source_schema))
+    source_schema = _rename_node_in_schema(filename_in, name_from, name_to)
+    write_records(filename_out, source_schema, _rename_node_in_records(filename_in, name_from, name_to))
 
 
 def convert_json(node_name, json_record, program, project):
