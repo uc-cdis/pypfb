@@ -1,4 +1,4 @@
-from fastavro import reader, writer
+from fastavro import reader
 
 
 class PFBFile:
