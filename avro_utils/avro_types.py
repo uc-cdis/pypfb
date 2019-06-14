@@ -50,7 +50,7 @@ def enum(property_name, symbols, name):
 
 def union(property_name, types, name):
     output_type = list(
-        map(lambda (position, subtype): get_avro_type('{}_{}_{}'.format(name, property_name, position), subtype, name),
+        map(lambda x: (lambda position, subtype: get_avro_type('{}_{}_{}'.format(name, property_name, position), subtype, name))(*x),
             enumerate(types)))
     return output_type
 

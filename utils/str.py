@@ -1,4 +1,11 @@
 import base64
+import sys
+
+
+if sys.version_info[0] == 3:
+    PY3 = True
+else:
+    PY3 = False
 
 
 # https://stackoverflow.com/a/42377964/1030110
@@ -6,6 +13,8 @@ import base64
 #
 # TODO: remove in Python 3
 def str_hook(obj):
+    if PY3:
+        return obj
     return {
         k.encode("utf-8")
         if isinstance(k, unicode)
