@@ -3,8 +3,8 @@ import logging
 
 from fastavro import writer, parse_schema
 
-from avro_utils.avro_types import get_avro_type, record
-from utils.str import encode
+from .avro_types import get_avro_type, record
+from ..utils.str import encode
 
 log = logging.getLogger(__name__)
 

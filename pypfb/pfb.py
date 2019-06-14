@@ -5,7 +5,7 @@ import uuid
 
 from fastavro import reader, writer, parse_schema
 
-from utils.str import str_hook, encode, decode
+from .utils.str import str_hook, encode, decode
 
 
 def _read_schema(filename):

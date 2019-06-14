@@ -1,4 +1,4 @@
-from utils.str import encode
+from ..utils.str import encode
 
 
 def get_avro_type(property_name, property_type, name):
