@@ -63,7 +63,7 @@ def add_record(pfbFile, jsonFile):
 
 
 def make_record(pfbFile, node):
-    pfb = open(pfbFile, "a+b")
+    pfb = open(pfbFile, "r+b")
     avro_reader = reader(pfb)
     schema = avro_reader.schema
 
