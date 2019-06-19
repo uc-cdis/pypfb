@@ -144,7 +144,7 @@ def main():
         )
 
     elif args.cmd == "make":
-        make_record(args.input, args.n)
+        make_record(args.input, args.node)
 
     elif args.cmd == "add":
         add_record(args.PFB_file, args.JSON_file)
