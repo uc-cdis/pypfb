@@ -82,7 +82,7 @@ def make_record(pfbFile, node):
     :param node: the node name
     :return: None
     """
-    pfb = open(pfbFile, "a+b")
+    pfb = open(pfbFile, "r+b")
     avro_reader = reader(pfb)
     schema = avro_reader.schema
 
