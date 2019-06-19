@@ -58,6 +58,7 @@ DEFAULT_CONFIG = {
         "Pipfile.lock",
         ".travis.yml",
         "truffles.json",
+        "tests/pfb-data/test.avro",
     ],
     "regexRules": {
         "Slack Token": "(xox[p|b|o|a]-[0-9]{12}-[0-9]{12}-[0-9]{12}-[a-z0-9]{32})",
