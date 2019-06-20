@@ -1,0 +1,18 @@
+[
+    {
+        "data_category": "Sequencing Data", 
+        "data_format": "FASTQ", 
+        "data_type": "Unaligned Reads", 
+        "experimental_strategy": "Validation", 
+        "file_format": "extrinsical_inviting", 
+        "file_name": "unasleep_benefaction", 
+        "file_size": 82, 
+        "file_url": "runnable_Socinian", 
+        "md5sum": "d6e94b4ba8de75df7567e49f08393643", 
+        "read_groups": {
+            "submitter_id": "read_group_ethnicon_fordless"
+        }, 
+        "submitter_id": "submitted_unaligned_reads_mutagenic_aflagellar", 
+        "type": "submitted_unaligned_reads"
+    }
+]

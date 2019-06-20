@@ -60,7 +60,7 @@ Python SDK to create, explore and modify PFB files.
     
     optional arguments:
       -h, --help            show this help message and exit
-      -s SCHEMA, --schema SCHEMA
+      -s SCHEMA, --schema PFB SCHEMA
                             Filename for schema PFB file
       -o OUTPUT, --output OUTPUT
                             Filename for resulting PFB file
@@ -115,6 +115,17 @@ Python SDK to create, explore and modify PFB files.
       -o OUTPUT, --output OUTPUT
       --name_from NAME_FROM
       --name_to NAME_TO
+
+## Examples
+
+    python pypfb dict2pfb -d http://s3.amazonaws.com/dictionary-artifacts/kf-dictionary/1.1.0/schema.json -o kf.avro
+    dict2pfb.py -h
+    
+    python -m pypfb json2pfb ./tests/data -s ./tests/schema/kf.avro -o tests/pfb-data/test.avro --program DEV --project test
+
+    python -m pypfb rename node --name_from slide --name_to slide_test -i tests/pfb-data/test.avro -o tests/pfb-data/rename_test.avro
+    
+    python pypfb/__main__.py show -s --limit -1 tests/pfb-data/test.avro 
 
 
   [1]: ./doc/metadata.svg

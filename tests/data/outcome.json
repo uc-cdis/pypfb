@@ -1,0 +1,12 @@
+[
+    {
+        "age_at_event_days": 26897, 
+        "disease_related": "Not Reported", 
+        "participants": {
+            "submitter_id": "participant_metalinguistics_monofilm"
+        }, 
+        "submitter_id": "outcome_hydrocellulose_womandom", 
+        "type": "outcome", 
+        "vital_status": "Dead"
+    }
+]

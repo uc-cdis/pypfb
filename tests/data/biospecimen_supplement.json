@@ -1,0 +1,17 @@
+[
+    {
+        "data_category": "Biospecimen", 
+        "data_format": "PPS", 
+        "data_type": "Biospecimen Supplement", 
+        "file_format": "immerge_Monachi", 
+        "file_name": "coreid_wordsman", 
+        "file_size": 0, 
+        "file_url": "Filicales_midsummery", 
+        "md5sum": "ffc3007da9e3b787606ae8975ad40272", 
+        "participants": {
+            "submitter_id": "participant_metalinguistics_monofilm"
+        }, 
+        "submitter_id": "biospecimen_supplement_ryot_wheelsman", 
+        "type": "biospecimen_supplement"
+    }
+]

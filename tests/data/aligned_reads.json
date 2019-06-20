@@ -1,0 +1,19 @@
+[
+    {
+        "data_category": "Sequencing Reads", 
+        "data_format": "BAM", 
+        "data_type": "Aligned Reads", 
+        "experimental_strategy": "Total RNA-Seq", 
+        "file_format": "whilere_quaestorian", 
+        "file_name": "remonstrant_profanchise", 
+        "file_size": 74, 
+        "file_url": "nidal_soya", 
+        "md5sum": "136971c88e7c2be2196009dbdd504fa2", 
+        "platform": "Other", 
+        "submitted_unaligned_reads_files": {
+            "submitter_id": "submitted_unaligned_reads_mutagenic_aflagellar"
+        }, 
+        "submitter_id": "aligned_reads_unpealed_sexdigital", 
+        "type": "aligned_reads"
+    }
+]

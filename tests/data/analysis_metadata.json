@@ -1,0 +1,17 @@
+[
+    {
+        "data_category": "Sequencing Reads", 
+        "data_format": "ADF", 
+        "data_type": "Analysis Metadata", 
+        "file_format": "overemptiness_uninferred", 
+        "file_name": "admission_tragicomical", 
+        "file_size": 91, 
+        "file_url": "disscepter_arsenotungstic", 
+        "md5sum": "6b52cbc1a7d67379b255d2fc0c76e5fb", 
+        "submitted_aligned_reads_files": {
+            "submitter_id": "submitted_aligned_reads_soixantine_counterimpulse"
+        }, 
+        "submitter_id": "analysis_metadata_apheresis_tympanomandibular", 
+        "type": "analysis_metadata"
+    }
+]

@@ -1,0 +1,31 @@
+[
+    {
+        "age_at_event_days": 6074, 
+        "biospecimen_anatomic_site": "Frontal Cortex", 
+        "composition": "Not Reported", 
+        "current_weight": 94.89736928813251, 
+        "days_to_collection": 86, 
+        "days_to_sample_procurement": 84, 
+        "diagnosis_pathologically_confirmed": "Unknown", 
+        "external_id": "heighday_Larentiidae", 
+        "initial_weight": 44.8326977197873, 
+        "intermediate_dimension": 86.94679525011726, 
+        "longest_dimension": 34.18534631678918, 
+        "method_of_sample_procurement": "Thoracoscopic Biopsy", 
+        "ncit_id_anatomical_site": "comburendo_moo", 
+        "ncit_id_tissue_type": "aphototropic_mercuriamines", 
+        "participants": {
+            "submitter_id": "participant_metalinguistics_monofilm"
+        }, 
+        "preservation_method": "OCT", 
+        "shortest_dimension": 43.43127206241763, 
+        "spatial_descriptor": "Spinozist_symphysic", 
+        "submitter_id": "sample_Wagnerism_buccally", 
+        "time_between_clamping_and_freezing": 83.98328598814156, 
+        "time_between_excision_and_freezing": 82.16534752073477, 
+        "tissue_type": "Unknown", 
+        "tumor_descriptor": "Unknown", 
+        "type": "sample", 
+        "uberon_id_anatomical_site": "derat_peachwort"
+    }
+]

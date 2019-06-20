@@ -1,0 +1,15 @@
+[
+    {
+        "data_category": "Simple Nucleotide Variation", 
+        "data_format": "gVCF", 
+        "data_type": "Simple Germline Variation", 
+        "experimental_strategy": "Validation", 
+        "file_format": "slicht_buhrstone", 
+        "file_name": "unpilgrimlike_incorrupt", 
+        "file_size": 51, 
+        "file_url": "doss_configure", 
+        "md5sum": "707dba155d5c39385e77b01b5fd8de13", 
+        "submitter_id": "simple_germline_variation_eurycephalic_superimpregnated", 
+        "type": "simple_germline_variation"
+    }
+]

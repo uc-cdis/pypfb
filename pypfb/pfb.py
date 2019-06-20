@@ -22,6 +22,12 @@ def read_metadata(filename):
 
 
 def read_records(filename, reader_schema=None):
+    """
+    Read records from pfb file
+    :param filename: the path of pfb
+    :param reader_schema: the pfb schema
+    :return:
+    """
     with open(filename, "rb") as pfb:
         if reader_schema:
             rr = reader(pfb, reader_schema)
@@ -42,6 +48,13 @@ def append_records(filename, schema, records):
 
 
 def add_record(pfbFile, jsonFile):
+    """
+    Add records from json file
+
+    :param pfbFile: the path of pfb file
+    :param jsonFile: the path of json file
+    :return: None
+    """
     pfb = open(pfbFile, "a+b")
     jsonF = open(jsonFile, "rb")
     schema = reader(pfb).schema
@@ -63,6 +76,12 @@ def add_record(pfbFile, jsonFile):
 
 
 def make_record(pfbFile, node):
+    """
+    Make a record
+    :param pfbFile: the path to pfb file
+    :param node: the node name
+    :return: None
+    """
     pfb = open(pfbFile, "r+b")
     avro_reader = reader(pfb)
     schema = avro_reader.schema
@@ -97,17 +116,56 @@ def make_record(pfbFile, node):
         json.dump(loaded_record, out)
 
 
-def rename_node(filename_in, filename_out, name_from, name_to):
+def _rename_node_in_records(filename_in, name_from, name_to):
+    """
+    rename a node in all data
+
+    :param filename_in: the input
+    :param filename_out: the outpu
+    :param name_from: the old name
+
+    :return: iterable object
+    """
+    for record in list(read_records(filename_in)):
+        if record["name"] == name_from:
+            record["name"] = name_to
+        yield record
+
+
+def _rename_node_in_schema(filename_in, name_from, name_to):
+    """
+    rename a node in schema
+    
+    :param filename_in: the input
+    :param filename_out: the outpu
+    :param name_from: the old name
+
+    :return: schema
+    """
     source_schema = read_schema(filename_in)
+    for node in source_schema['fields'][2]['type']:
+        if node["name"] == name_from:
+            node["aliases"] = [name_from]
+            node["name"] = name_to
+            for fields in node["fields"]:
+                for type in fields["type"]:
+                    if isinstance(type, dict) and type.get('type') == "enum":
+                        type["name"] = type["name"].replace(name_from, name_to)
 
-    # for i in source_schema['fields'][2]['type']:
-    for i in source_schema["fields"]:
-        if i["name"] == name_from:
-            i["aliases"] = [name_from]
-            i["name"] = name_to
-            break
+    return source_schema
 
-    write_records(filename_out, source_schema, read_records(filename_in, source_schema))
+def rename_node(filename_in, filename_out, name_from, name_to):
+    """
+    rename a node
+
+    :param filename_in: the input avro file
+    :param filename_out: the output file
+    :param name_from: the old name
+    :param name_to: the new name 
+    :return: None
+    """
+    source_schema = _rename_node_in_schema(filename_in, name_from, name_to)
+    write_records(filename_out, source_schema, _rename_node_in_records(filename_in, name_from, name_to))
 
 
 def convert_json(node_name, json_record, program, project):

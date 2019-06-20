@@ -1,0 +1,17 @@
+[
+    {
+        "data_category": "Simple Nucleotide Variation", 
+        "data_format": "TBI", 
+        "data_type": "Germline Mutation Index", 
+        "file_format": "gelder_emanate", 
+        "file_name": "stevedorage_electropyrometer", 
+        "file_size": 100, 
+        "file_url": "isomerical_waverer", 
+        "md5sum": "0c6e00389a71ad5b1952e40139fa98f8", 
+        "simple_germline_variations": {
+            "submitter_id": "simple_germline_variation_eurycephalic_superimpregnated"
+        }, 
+        "submitter_id": "germline_variation_index_demiculverin_wheatbird", 
+        "type": "germline_variation_index"
+    }
+]
