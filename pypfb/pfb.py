@@ -80,11 +80,12 @@ def _add_record(pfbFile, jsonFile):
     writer(pfb, schema, records)
 
 
-def make_record(pfbFile, node):
+def _make_record(pfbFile, node, output):
     """
     Make a record
     :param pfbFile: the path to pfb file
     :param node: the node name
+    :param output: the output filename storing the new node
     :return: None
     """
     pfb = open(pfbFile, "r+b")
@@ -114,10 +115,10 @@ def make_record(pfbFile, node):
     record = json.dumps(record)
     loaded_record = json.loads(record)
 
-    print("Creating blank record for " + node + " in blank.json file")
+    print("Creating blank record for " + node + " " + output)
     print(loaded_record)
 
-    with open("blank.json", "wb+") as out:
+    with open(output, "wb+") as out:
         json.dump(loaded_record, out)
 
 
@@ -218,7 +219,7 @@ def avro_record(node_id, node_name, values, relations):
 class Gen3PFB(object):
     def __init__(self, pfbfile):
         self.pfbfile = pfbfile
-        self.schema = _read_metadata(pfbfile)
+        self.schema = _read_schema(pfbfile)
 
     @staticmethod
     def from_json(
@@ -278,6 +279,13 @@ class Gen3PFB(object):
         """
         return _read_records(self.pfbfile, limit)
 
+    def make_record(self, node, output="blank.json"):
+        """
+        :param node:
+        :param output:
+        :return:
+        """
+        _make_record(self.pfbfile, node, output)
     def add_record(self, json_file):
         """
         Add records from json file

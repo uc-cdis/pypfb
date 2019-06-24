@@ -121,17 +121,7 @@ def main():
 
     args = parser.parse_args()
 
-    gen3PFB = Gen3PFB()
-    if args.cmd == "show":
-        if args.schema:
-            # print(pfb.schema)
-            print(gen3PFB.read_metadata(args.input))
-        else:
-            limit = args.limit if args.limit != -1 else None
-            for r in itertools.islice(gen3PFB.read_records(args.input), limit):
-                print(r)
-
-    elif args.cmd == "dict2pfb":
+    if args.cmd == "dict2pfb":
         dictionary, _ = init_dictionary(args.dictionary)
         schema = dictionary.schema
 
@@ -145,15 +135,25 @@ def main():
             args.schema, args.dir, args.output, args.program, args.project
         )
 
-    elif args.cmd == "make":
-        gen3PFB.make_record(args.input, args.node)
+    else:
+        gen3PFB = Gen3PFB(args.input)
+        if args.cmd == "show":
+            if args.schema:
+                print(gen3PFB.read_metadata(args.input))
+            else:
+                limit = args.limit if args.limit != -1 else None
+                for r in itertools.islice(gen3PFB.read_records(args.input), limit):
+                    print(r)
+        elif args.cmd == "make":
+            gen3PFB.make_record(args.node)
 
-    elif args.cmd == "add":
-        gen3PFB.add_record(args.PFB_file, args.JSON_file)
+        elif args.cmd == "add":
+            gen3PFB.add_record(args.PFB_file, args.JSON_file)
 
-    elif args.cmd == "rename":
-        if args.rename == "node":
-            gen3PFB.rename_node(args.input, args.output, args.name_from, args.name_to)
+        elif args.cmd == "rename":
+            if args.rename == "node":
+                gen3PFB.rename_node(args.name_from, args.name_to)
+                print "end"
 
 
 if __name__ == "__main__":

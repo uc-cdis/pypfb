@@ -118,12 +118,11 @@ Python SDK to create, explore and modify PFB files.
 
 ## Examples
 
-    python pypfb dict2pfb -d http://s3.amazonaws.com/dictionary-artifacts/kf-dictionary/1.1.0/schema.json -o kf.avro
-    dict2pfb.py -h
+    python pypfb/__main__.py dict2pfb -d http://s3.amazonaws.com/dictionary-artifacts/kf-dictionary/1.1.0/schema.json -o ./tests/schema/kf.avro
     
-    python -m pypfb json2pfb ./tests/data -s ./tests/schema/kf.avro -o tests/pfb-data/test.avro --program DEV --project test
+    python pypfb/__main__.py json2pfb ./tests/data -s ./tests/schema/kf.avro -o tests/pfb-data/test.avro --program DEV --project test
 
-    python -m pypfb rename node --name_from slide --name_to slide_test -i tests/pfb-data/test.avro -o tests/pfb-data/rename_test.avro
+    python pypfb/__main__.py rename node --name_from slide --name_to slide_test -i tests/pfb-data/test.avro -o tests/pfb-data/rename_test.avro
     
     python pypfb/__main__.py show -s --limit -1 tests/pfb-data/test.avro 
 
