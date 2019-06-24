@@ -60,9 +60,10 @@ def _add_record(pfbFile, jsonFile):
     :param jsonFile: the path of json file
     :return: None
     """
+
     pfb = open(pfbFile, "a+b")
     jsonF = open(jsonFile, "rb")
-    schema = reader(pfb).schema
+    schema = _read_schema(pfbFile)
     schema = json.loads(json.dumps(schema), object_pairs_hook=str_hook)
 
     records = []

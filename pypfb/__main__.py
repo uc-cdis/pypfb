@@ -79,7 +79,7 @@ def main():
     )
 
     make_cmd = subparsers.add_parser("make", help="Make blank record")
-    make_cmd.add_argument("input", type=str, help="Path to PFB file")
+    make_cmd.add_argument("--input", type=str, help="Path to PFB file")
     make_cmd.add_argument("-n", "--node", type=str, help="Node to create")
 
     add_cmd = subparsers.add_parser(
@@ -135,24 +135,23 @@ def main():
             args.schema, args.dir, args.output, args.program, args.project
         )
 
-    else:
-        gen3PFB = Gen3PFB(args.input)
-        if args.cmd == "show":
-            if args.schema:
-                print(gen3PFB.read_metadata(args.input))
-            else:
-                limit = args.limit if args.limit != -1 else None
-                for r in itertools.islice(gen3PFB.read_records(args.input), limit):
-                    print(r)
-        elif args.cmd == "make":
-            gen3PFB.make_record(args.node)
+    elif args.cmd == "show":
+        if args.schema:
+            print(Gen3PFB(args.input).read_metadata())
+        else:
+            limit = args.limit if args.limit != -1 else None
+            for r in itertools.islice(Gen3PFB(args.input).read_records(args.input), limit):
+                print(r)
+    elif args.cmd == "make":
+        Gen3PFB(args.input).make_record(args.node)
 
-        elif args.cmd == "add":
-            gen3PFB.add_record(args.PFB_file, args.JSON_file)
+    elif args.cmd == "add":
+        Gen3PFB(args.PFB_file).add_record(args.JSON_file)
+        print("H")
 
-        elif args.cmd == "rename":
-            if args.rename == "node":
-                gen3PFB.rename_node(args.output, args.name_from, args.name_to)
+    elif args.cmd == "rename":
+        if args.rename == "node":
+            Gen3PFB(args.input).rename_node(args.output, args.name_from, args.name_to)
 
 
 if __name__ == "__main__":
