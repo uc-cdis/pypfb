@@ -1,3 +1,4 @@
+import os
 import argparse
 import itertools
 import logging.config
@@ -5,7 +6,7 @@ import logging.config
 import yaml
 
 from avro_utils.avro_schema import AvroSchema
-from pypfb.pfb import *
+from pypfb.pfb import Gen3PFB
 from utils.dictionary import init_dictionary
 
 default_level = logging.INFO
@@ -120,13 +121,14 @@ def main():
 
     args = parser.parse_args()
 
+    gen3PFB = Gen3PFB()
     if args.cmd == "show":
         if args.schema:
             # print(pfb.schema)
-            print(read_metadata(args.input))
+            print(gen3PFB.read_metadata(args.input))
         else:
             limit = args.limit if args.limit != -1 else None
-            for r in itertools.islice(read_records(args.input), limit):
+            for r in itertools.islice(gen3PFB.read_records(args.input), limit):
                 print(r)
 
     elif args.cmd == "dict2pfb":
@@ -139,19 +141,19 @@ def main():
         avro_schema.write(args.output)
 
     elif args.cmd == "json2pfb":
-        PFBFile.from_json(
+        Gen3PFB.from_json(
             args.schema, args.dir, args.output, args.program, args.project
         )
 
     elif args.cmd == "make":
-        make_record(args.input, args.node)
+        gen3PFB.make_record(args.input, args.node)
 
     elif args.cmd == "add":
-        add_record(args.PFB_file, args.JSON_file)
+        gen3PFB.add_record(args.PFB_file, args.JSON_file)
 
     elif args.cmd == "rename":
         if args.rename == "node":
-            rename_node(args.input, args.output, args.name_from, args.name_to)
+            gen3PFB.rename_node(args.input, args.output, args.name_from, args.name_to)
 
 
 if __name__ == "__main__":
