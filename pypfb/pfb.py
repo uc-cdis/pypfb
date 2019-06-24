@@ -293,14 +293,15 @@ class Gen3PFB(object):
         """
         _add_record(self.pfbfile, json_file)
 
-    def rename_node(self, name_from, name_to):
+    def rename_node(self, output, name_from, name_to):
         """
         rename a node
         :param name_from: the old name
         :param name_to: the new name
         """
         source_schema = _rename_node_in_schema(self.pfbfile, name_from, name_to)
-        _write_records(self.pfbfile, source_schema, _rename_node_in_records(self.pfbfile, name_from, name_to))
+        records = _rename_node_in_records(self.pfbfile, name_from, name_to)
+        _write_records(output, source_schema, records)
 
     def rename_property(self, property_from, property_to):
         raise NotImplementedError()

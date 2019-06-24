@@ -152,8 +152,7 @@ def main():
 
         elif args.cmd == "rename":
             if args.rename == "node":
-                gen3PFB.rename_node(args.name_from, args.name_to)
-                print "end"
+                gen3PFB.rename_node(args.output, args.name_from, args.name_to)
 
 
 if __name__ == "__main__":
