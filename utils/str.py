@@ -21,4 +21,4 @@ def encode(raw_value):
 
 
 def decode(encoded_value):
-    return base64.b64decode(encoded_value + '=' * (-len(encoded_value) % 4))
+    return base64.b64decode(encoded_value + "=" * (-len(encoded_value) % 4))

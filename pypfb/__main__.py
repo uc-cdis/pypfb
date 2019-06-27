@@ -79,7 +79,7 @@ def main():
     )
 
     make_cmd = subparsers.add_parser("make", help="Make blank record")
-    make_cmd.add_argument("--input", type=str, help="Path to PFB file")
+    make_cmd.add_argument("input", type=str, help="Path to PFB file")
     make_cmd.add_argument("-n", "--node", type=str, help="Node to create")
 
     add_cmd = subparsers.add_parser(
@@ -141,7 +141,9 @@ def main():
             print(Gen3PFB(args.input).read_metadata())
         else:
             limit = args.limit if args.limit != -1 else None
-            for r in itertools.islice(Gen3PFB(args.input).read_records(args.input), limit):
+            for r in itertools.islice(
+                Gen3PFB(args.input).read_records(args.input), limit
+            ):
                 print(r)
     elif args.cmd == "make":
         Gen3PFB(args.input).make_record(args.node)
@@ -153,8 +155,9 @@ def main():
         if args.rename == "node":
             Gen3PFB(args.input).rename_node(args.output, args.name_from, args.name_to)
         elif args.rename == "enum":
-            Gen3PFB(args.input).rename_field_enum(args.output, args.field_name, args.val_from, args.val_to)
-
+            Gen3PFB(args.input).rename_field_enum(
+                args.output, args.field_name, args.val_from, args.val_to
+            )
 
 
 if __name__ == "__main__":

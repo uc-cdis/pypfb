@@ -150,16 +150,17 @@ def _rename_node_in_schema(filename_in, name_from, name_to):
     :return: schema
     """
     source_schema = _read_schema(filename_in)
-    for node in source_schema['fields'][2]['type']:
+    for node in source_schema["fields"][2]["type"]:
         if node["name"] == name_from:
             node["aliases"] = [name_to]
             node["name"] = name_to
             for fields in node["fields"]:
                 for type in fields["type"]:
-                    if isinstance(type, dict) and type.get('type') == "enum":
+                    if isinstance(type, dict) and type.get("type") == "enum":
                         type["name"] = type["name"].replace(name_from, name_to)
 
     return source_schema
+
 
 # Deprecated function
 def rename_node(filename_in, filename_out, name_from, name_to):
@@ -173,8 +174,11 @@ def rename_node(filename_in, filename_out, name_from, name_to):
     :return: None
     """
     source_schema = _rename_node_in_schema(filename_in, name_from, name_to)
-    _write_records(filename_out, source_schema, _rename_node_in_records(filename_in, name_from, name_to))
-
+    _write_records(
+        filename_out,
+        source_schema,
+        _rename_node_in_records(filename_in, name_from, name_to),
+    )
 
 
 def _rename_enum_in_schema(filename_in, field_name, val_from, val_to):
@@ -185,12 +189,12 @@ def _rename_enum_in_schema(filename_in, field_name, val_from, val_to):
     :param val_to: new value
     """
     source_schema = _read_schema(filename_in)
-    for type in source_schema['fields'][2]['type']:
+    for type in source_schema["fields"][2]["type"]:
         for field in type["fields"]:
-            if isinstance(field, dict) and field['name'] == field_name:
+            if isinstance(field, dict) and field["name"] == field_name:
                 for element in field.get("type", []):
                     try:
-                        if element.get('type') == "enum":
+                        if element.get("type") == "enum":
                             for idx, s in enumerate(element["symbols"]):
                                 if decode(s) == val_from:
                                     element["symbols"][idx] = encode(val_to)
@@ -209,9 +213,9 @@ def _rename_enum_in_data(filename_in, field_name, val_from, val_to):
     :return:
     """
     for record in _read_records(filename_in):
-        if field_name in record['object']:
-            if decode(record['object'][field_name]) == val_from:
-                record['object'][field_name] = encode(val_to)
+        if field_name in record["object"]:
+            if decode(record["object"][field_name]) == val_from:
+                record["object"][field_name] = encode(val_to)
         yield record
 
 
@@ -263,7 +267,7 @@ class Gen3PFB(object):
 
     @staticmethod
     def from_json(
-            source_pfb_filename, input_dir, output_pfb_filename, program, project
+        source_pfb_filename, input_dir, output_pfb_filename, program, project
     ):
         schema = _read_schema(source_pfb_filename)
         schema = json.loads(json.dumps(schema), object_pairs_hook=str_hook)
@@ -326,6 +330,7 @@ class Gen3PFB(object):
         :return:
         """
         _make_record(self.pfbfile, node, output)
+
     def add_record(self, json_file):
         """
         Add records from json file
@@ -352,7 +357,9 @@ class Gen3PFB(object):
         :param val_to:
         :return:
         """
-        source_schema = _rename_enum_in_schema(self.pfbfile, field_name, val_from, val_to)
+        source_schema = _rename_enum_in_schema(
+            self.pfbfile, field_name, val_from, val_to
+        )
         records = _rename_enum_in_data(self.pfbfile, field_name, val_from, val_to)
         _write_records(output, source_schema, records)
 
