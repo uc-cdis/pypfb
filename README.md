@@ -99,7 +99,7 @@ Python SDK to create, explore and modify PFB files.
       {node,type,enum}
         node            Rename node
         type            Rename type (not implemented)
-        enum            Rename enum (not implemented)
+        enum            Rename enum
     
     optional arguments:
       -h, --help        show this help message and exit
@@ -115,6 +115,20 @@ Python SDK to create, explore and modify PFB files.
       -o OUTPUT, --output OUTPUT
       --name_from NAME_FROM
       --name_to NAME_TO
+      
+### Rename enum
+
+    usage: pypfb rename enum [-h] -i INPUT -o OUTPUT --field_name FILED_NAME --val_from VALUE_FROM
+                                   --val_to VALUE_TO
+    
+    optional arguments:
+      -h, --help            show this help message and exit
+      -i INPUT, --input INPUT
+      -o OUTPUT, --output OUTPUT
+      -- field_name FIELD_NAME
+      --val_from VALUE_FROM
+      --val_to VALUE_TO
+      
 
 ## Examples
 
@@ -123,6 +137,8 @@ Python SDK to create, explore and modify PFB files.
     python pypfb/__main__.py json2pfb ./tests/data -s ./tests/schema/kf.avro -o tests/pfb-data/test.avro --program DEV --project test
 
     python pypfb/__main__.py rename node --name_from slide --name_to slide_test -i tests/pfb-data/test.avro -o tests/pfb-data/rename_test.avro
+    
+    python pypfb/__main__.py rename enum --field_name state --val_from validated --val_to validated_test -i tests/pfb-data/test.avro -o tests/pfb-data/rename_test.avro
     
     python pypfb/__main__.py show -s --limit -1 tests/pfb-data/test.avro 
 

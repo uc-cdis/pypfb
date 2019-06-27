@@ -116,8 +116,9 @@ def main():
     enum_rename = sub_rename.add_parser("enum", help="Rename enum (not implemented)")
     enum_rename.add_argument("-i", "--input", type=str, required=True, help="")
     enum_rename.add_argument("-o", "--output", type=str, required=True, help="")
-    enum_rename.add_argument("--name_from", type=str, required=True, help="")
-    enum_rename.add_argument("--name_to", type=str, required=True, help="")
+    enum_rename.add_argument("--field_name", type=str, required=True, help="")
+    enum_rename.add_argument("--val_from", type=str, required=True, help="")
+    enum_rename.add_argument("--val_to", type=str, required=True, help="")
 
     args = parser.parse_args()
 
@@ -147,11 +148,13 @@ def main():
 
     elif args.cmd == "add":
         Gen3PFB(args.PFB_file).add_record(args.JSON_file)
-        print("H")
 
     elif args.cmd == "rename":
         if args.rename == "node":
             Gen3PFB(args.input).rename_node(args.output, args.name_from, args.name_to)
+        elif args.rename == "enum":
+            Gen3PFB(args.input).rename_field_enum(args.output, args.field_name, args.val_from, args.val_to)
+
 
 
 if __name__ == "__main__":

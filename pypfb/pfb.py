@@ -6,7 +6,7 @@ import uuid
 from fastavro import reader, writer, parse_schema
 from inflection import singularize
 
-from utils.str import str_hook, encode
+from utils.str import str_hook, encode, decode
 
 
 def _read_schema(filename):
@@ -152,7 +152,7 @@ def _rename_node_in_schema(filename_in, name_from, name_to):
     source_schema = _read_schema(filename_in)
     for node in source_schema['fields'][2]['type']:
         if node["name"] == name_from:
-            node["aliases"] = [name_from]
+            node["aliases"] = [name_to]
             node["name"] = name_to
             for fields in node["fields"]:
                 for type in fields["type"]:
@@ -174,6 +174,45 @@ def rename_node(filename_in, filename_out, name_from, name_to):
     """
     source_schema = _rename_node_in_schema(filename_in, name_from, name_to)
     _write_records(filename_out, source_schema, _rename_node_in_records(filename_in, name_from, name_to))
+
+
+
+def _rename_enum_in_schema(filename_in, field_name, val_from, val_to):
+    """
+    rename enum in schema
+    filename_in: pfb file path
+    :param val_from: original value
+    :param val_to: new value
+    """
+    source_schema = _read_schema(filename_in)
+    for type in source_schema['fields'][2]['type']:
+        for field in type["fields"]:
+            if isinstance(field, dict) and field['name'] == field_name:
+                for element in field.get("type", []):
+                    try:
+                        if element.get('type') == "enum":
+                            for idx, s in enumerate(element["symbols"]):
+                                if decode(s) == val_from:
+                                    element["symbols"][idx] = encode(val_to)
+                    except Exception as e:
+                        pass
+
+    return source_schema
+
+
+def _rename_enum_in_data(filename_in, field_name, val_from, val_to):
+    """
+    rename enum in data records
+    :param filename_in: pfb file path
+    :param val_from: original value
+    :param val_to: new value
+    :return:
+    """
+    for record in _read_records(filename_in):
+        if field_name in record['object']:
+            if decode(record['object'][field_name]) == val_from:
+                record['object'][field_name] = encode(val_to)
+        yield record
 
 
 def convert_json(node_name, json_record, program, project):
@@ -302,6 +341,19 @@ class Gen3PFB(object):
         """
         source_schema = _rename_node_in_schema(self.pfbfile, name_from, name_to)
         records = _rename_node_in_records(self.pfbfile, name_from, name_to)
+        _write_records(output, source_schema, records)
+
+    def rename_field_enum(self, output, field_name, val_from, val_to):
+        """
+        rename a value of enum type
+        :param output:
+        :param field_name:
+        :param val_from:
+        :param val_to:
+        :return:
+        """
+        source_schema = _rename_enum_in_schema(self.pfbfile, field_name, val_from, val_to)
+        records = _rename_enum_in_data(self.pfbfile, field_name, val_from, val_to)
         _write_records(output, source_schema, records)
 
     def rename_property(self, property_from, property_to):
