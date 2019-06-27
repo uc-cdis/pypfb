@@ -6,27 +6,32 @@ import uuid
 from fastavro import reader, writer, parse_schema
 from inflection import singularize
 
-from utils.str import str_hook, encode
+from utils.str import str_hook, encode, decode
 
 
-def read_schema(filename):
+def _read_schema(filename):
+    """
+    Read schema from a file
+    :param filename(str): file name
+    :return:
+    """
     with open(filename, "rb") as pfb:
         schema = reader(pfb).writer_schema
         return schema
 
 
-def read_metadata(filename):
+def _read_metadata(filename):
     with open(filename, "rb") as pfb:
         metadata = next(reader(pfb))
         return metadata["object"]
 
 
-def read_records(filename, reader_schema=None):
+def _read_records(filename, reader_schema=None):
     """
     Read records from pfb file
     :param filename: the path of pfb
     :param reader_schema: the pfb schema
-    :return:
+    :return:generator record object
     """
     with open(filename, "rb") as pfb:
         if reader_schema:
@@ -37,17 +42,17 @@ def read_records(filename, reader_schema=None):
             yield r
 
 
-def write_records(filename, schema, records):
+def _write_records(filename, schema, records):
     with open(filename, "w+b") as pfb:
         writer(pfb, schema, records)
 
 
-def append_records(filename, schema, records):
+def _append_records(filename, schema, records):
     with open(filename, "a+b") as pfb:
         writer(pfb, schema, records)
 
 
-def add_record(pfbFile, jsonFile):
+def _add_record(pfbFile, jsonFile):
     """
     Add records from json file
 
@@ -55,31 +60,33 @@ def add_record(pfbFile, jsonFile):
     :param jsonFile: the path of json file
     :return: None
     """
+
     pfb = open(pfbFile, "a+b")
     jsonF = open(jsonFile, "rb")
-    schema = reader(pfb).schema
+    schema = _read_schema(pfbFile)
     schema = json.loads(json.dumps(schema), object_pairs_hook=str_hook)
 
     records = []
     print("adding records from JSON file")
     for line in jsonF:
         print(line)
-        jsonLine = json.loads(line, object_pairs_hook=str_hook)
-        jsonInsert = {
-            "id": jsonLine["id"],
-            "name": jsonLine["name"],
-            "val": (jsonLine["name"], jsonLine["val"]),
-            "relations": jsonLine["relations"],
+        json_line = json.loads(line, object_pairs_hook=str_hook)
+        json_insert = {
+            "id": json_line["id"],
+            "name": json_line["name"],
+            "val": (json_line["name"], json_line["val"]),
+            "relations": json_line["relations"],
         }
-        records.append(jsonInsert)
+        records.append(json_insert)
     writer(pfb, schema, records)
 
 
-def make_record(pfbFile, node):
+def _make_record(pfbFile, node, output):
     """
     Make a record
     :param pfbFile: the path to pfb file
     :param node: the node name
+    :param output: the output filename storing the new node
     :return: None
     """
     pfb = open(pfbFile, "r+b")
@@ -109,10 +116,10 @@ def make_record(pfbFile, node):
     record = json.dumps(record)
     loaded_record = json.loads(record)
 
-    print("Creating blank record for " + node + " in blank.json file")
+    print("Creating blank record for " + node + " " + output)
     print(loaded_record)
 
-    with open("blank.json", "wb+") as out:
+    with open(output, "wb+") as out:
         json.dump(loaded_record, out)
 
 
@@ -126,7 +133,7 @@ def _rename_node_in_records(filename_in, name_from, name_to):
 
     :return: iterable object
     """
-    for record in list(read_records(filename_in)):
+    for record in list(_read_records(filename_in)):
         if record["name"] == name_from:
             record["name"] = name_to
         yield record
@@ -142,18 +149,20 @@ def _rename_node_in_schema(filename_in, name_from, name_to):
 
     :return: schema
     """
-    source_schema = read_schema(filename_in)
-    for node in source_schema['fields'][2]['type']:
+    source_schema = _read_schema(filename_in)
+    for node in source_schema["fields"][2]["type"]:
         if node["name"] == name_from:
-            node["aliases"] = [name_from]
+            node["aliases"] = [name_to]
             node["name"] = name_to
             for fields in node["fields"]:
                 for type in fields["type"]:
-                    if isinstance(type, dict) and type.get('type') == "enum":
+                    if isinstance(type, dict) and type.get("type") == "enum":
                         type["name"] = type["name"].replace(name_from, name_to)
 
     return source_schema
 
+
+# Deprecated function
 def rename_node(filename_in, filename_out, name_from, name_to):
     """
     rename a node
@@ -165,7 +174,49 @@ def rename_node(filename_in, filename_out, name_from, name_to):
     :return: None
     """
     source_schema = _rename_node_in_schema(filename_in, name_from, name_to)
-    write_records(filename_out, source_schema, _rename_node_in_records(filename_in, name_from, name_to))
+    _write_records(
+        filename_out,
+        source_schema,
+        _rename_node_in_records(filename_in, name_from, name_to),
+    )
+
+
+def _rename_enum_in_schema(filename_in, field_name, val_from, val_to):
+    """
+    rename enum in schema
+    filename_in: pfb file path
+    :param val_from: original value
+    :param val_to: new value
+    """
+    source_schema = _read_schema(filename_in)
+    for type in source_schema["fields"][2]["type"]:
+        for field in type["fields"]:
+            if isinstance(field, dict) and field["name"] == field_name:
+                for element in field.get("type", []):
+                    try:
+                        if element.get("type") == "enum":
+                            for idx, s in enumerate(element["symbols"]):
+                                if decode(s) == val_from:
+                                    element["symbols"][idx] = encode(val_to)
+                    except Exception as e:
+                        pass
+
+    return source_schema
+
+
+def _rename_enum_in_data(filename_in, field_name, val_from, val_to):
+    """
+    rename enum in data records
+    :param filename_in: pfb file path
+    :param val_from: original value
+    :param val_to: new value
+    :return:
+    """
+    for record in _read_records(filename_in):
+        if field_name in record["object"]:
+            if decode(record["object"][field_name]) == val_from:
+                record["object"][field_name] = encode(val_to)
+        yield record
 
 
 def convert_json(node_name, json_record, program, project):
@@ -209,70 +260,24 @@ def avro_record(node_id, node_name, values, relations):
     return node
 
 
-# class AvroFileWrapper:
-#     def __init__(self, filename):
-#         self.filename = filename
-#         self.fh = None
-#         self.reader = None
-#         self.reader_schema = None
-#         self.writer_schema = None
-#         self.metadata = None
-#
-#     def __enter__(self):
-#         if self.fh is not None:
-#             self.fh = open(self.filename)
-#         else:
-#             self.fh.seek(0)
-#
-#         self.reader = reader(self.fh)
-#         self.writer_schema = self.reader.writer_schema
-#         self.metadata = next(self.reader)
-#         return self
-#
-#     def __exit__(self, exc_type, exc_value, traceback):
-#         self.fh.close()
-#         self.fh = None
-#
-#     def _write_avro(self, records, mode):
-#         with open(self.filename, mode) as fh:
-#             writer(fh, self.writer_schema, records)
-#
-#     def write(self, records):
-#         self._write_avro(records, mode='w+b')
-#
-#     def append(self, records):
-#         self._write_avro(records, mode='a+b')
-
-
-class PFBFile:
-    def __init__(self, filename):
-        self.filename = filename
-
-    # def __getattr__(self, item):
-    #     with PFBFileWrapper(self.filename, mode='rb') as pfb:
-    #         return getattr(pfb, item)
-    #
-    # def read(self):
-    #     with PFBFileWrapper(self.filename, mode='rb') as pfb:
-    #         for r in pfb.records:
-    #             yield r
-    #
-    # def write(self, records, mode='wb'):
-    #     pass
+class Gen3PFB(object):
+    def __init__(self, pfbfile):
+        self.pfbfile = pfbfile
+        self.schema = _read_schema(pfbfile)
 
     @staticmethod
     def from_json(
         source_pfb_filename, input_dir, output_pfb_filename, program, project
     ):
-        schema = read_schema(source_pfb_filename)
+        schema = _read_schema(source_pfb_filename)
         schema = json.loads(json.dumps(schema), object_pairs_hook=str_hook)
         parsed_schema = parse_schema(schema)
 
         metadata = [
-            avro_record(None, "Metadata", read_metadata(source_pfb_filename), [])
+            avro_record(None, "Metadata", _read_metadata(source_pfb_filename), [])
         ]
 
-        write_records(output_pfb_filename, parsed_schema, metadata)
+        _write_records(output_pfb_filename, parsed_schema, metadata)
 
         order = glob.glob(input_dir + "/*.json")
 
@@ -294,4 +299,72 @@ class PFBFile:
                 record = convert_json(node_name, json_record, program, project)
                 input_data.append(record)
 
-            append_records(output_pfb_filename, parsed_schema, input_data)
+            _append_records(output_pfb_filename, parsed_schema, input_data)
+
+    def read_schema(self):
+        """
+        Read schema from a pfb file
+        :param filename(str): file name
+        """
+        return _read_schema(self.pfbfile)
+
+    def read_metadata(self):
+        """
+        Read metadata from a pfb file
+        """
+        return _read_metadata(self.pfbfile)
+
+    def read_records(self, limit=-1):
+        """
+        Read records from pfb file
+        :param filename: the path of pfb
+        :param reader_schema: the pfb schema
+        :return:generator record object
+        """
+        return _read_records(self.pfbfile, limit)
+
+    def make_record(self, node, output="blank.json"):
+        """
+        :param node:
+        :param output:
+        :return:
+        """
+        _make_record(self.pfbfile, node, output)
+
+    def add_record(self, json_file):
+        """
+        Add records from json file
+        :param json_file: the path of json file
+        """
+        _add_record(self.pfbfile, json_file)
+
+    def rename_node(self, output, name_from, name_to):
+        """
+        rename a node
+        :param name_from: the old name
+        :param name_to: the new name
+        """
+        source_schema = _rename_node_in_schema(self.pfbfile, name_from, name_to)
+        records = _rename_node_in_records(self.pfbfile, name_from, name_to)
+        _write_records(output, source_schema, records)
+
+    def rename_field_enum(self, output, field_name, val_from, val_to):
+        """
+        rename a value of enum type
+        :param output:
+        :param field_name:
+        :param val_from:
+        :param val_to:
+        :return:
+        """
+        source_schema = _rename_enum_in_schema(
+            self.pfbfile, field_name, val_from, val_to
+        )
+        records = _rename_enum_in_data(self.pfbfile, field_name, val_from, val_to)
+        _write_records(output, source_schema, records)
+
+    def rename_property(self, property_from, property_to):
+        raise NotImplementedError()
+
+    def rename_type(self, type_from, type_to):
+        raise NotImplementedError()

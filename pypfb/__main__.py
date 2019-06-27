@@ -1,3 +1,4 @@
+import os
 import argparse
 import itertools
 import logging.config
@@ -5,7 +6,7 @@ import logging.config
 import yaml
 
 from avro_utils.avro_schema import AvroSchema
-from pypfb.pfb import *
+from pypfb.pfb import Gen3PFB
 from utils.dictionary import init_dictionary
 
 default_level = logging.INFO
@@ -115,21 +116,13 @@ def main():
     enum_rename = sub_rename.add_parser("enum", help="Rename enum (not implemented)")
     enum_rename.add_argument("-i", "--input", type=str, required=True, help="")
     enum_rename.add_argument("-o", "--output", type=str, required=True, help="")
-    enum_rename.add_argument("--name_from", type=str, required=True, help="")
-    enum_rename.add_argument("--name_to", type=str, required=True, help="")
+    enum_rename.add_argument("--field_name", type=str, required=True, help="")
+    enum_rename.add_argument("--val_from", type=str, required=True, help="")
+    enum_rename.add_argument("--val_to", type=str, required=True, help="")
 
     args = parser.parse_args()
 
-    if args.cmd == "show":
-        if args.schema:
-            # print(pfb.schema)
-            print(read_metadata(args.input))
-        else:
-            limit = args.limit if args.limit != -1 else None
-            for r in itertools.islice(read_records(args.input), limit):
-                print(r)
-
-    elif args.cmd == "dict2pfb":
+    if args.cmd == "dict2pfb":
         dictionary, _ = init_dictionary(args.dictionary)
         schema = dictionary.schema
 
@@ -139,19 +132,32 @@ def main():
         avro_schema.write(args.output)
 
     elif args.cmd == "json2pfb":
-        PFBFile.from_json(
+        Gen3PFB.from_json(
             args.schema, args.dir, args.output, args.program, args.project
         )
 
+    elif args.cmd == "show":
+        if args.schema:
+            print(Gen3PFB(args.input).read_metadata())
+        else:
+            limit = args.limit if args.limit != -1 else None
+            for r in itertools.islice(
+                Gen3PFB(args.input).read_records(args.input), limit
+            ):
+                print(r)
     elif args.cmd == "make":
-        make_record(args.input, args.node)
+        Gen3PFB(args.input).make_record(args.node)
 
     elif args.cmd == "add":
-        add_record(args.PFB_file, args.JSON_file)
+        Gen3PFB(args.PFB_file).add_record(args.JSON_file)
 
     elif args.cmd == "rename":
         if args.rename == "node":
-            rename_node(args.input, args.output, args.name_from, args.name_to)
+            Gen3PFB(args.input).rename_node(args.output, args.name_from, args.name_to)
+        elif args.rename == "enum":
+            Gen3PFB(args.input).rename_field_enum(
+                args.output, args.field_name, args.val_from, args.val_to
+            )
 
 
 if __name__ == "__main__":
