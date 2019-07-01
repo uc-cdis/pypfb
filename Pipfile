@@ -11,6 +11,7 @@ truffleHog = "*"
 PyGithub = "*"
 gen3git = "*"
 more-itertools = "~=5.0"
+pipenv-to-requirements = "*"
 
 [packages]
 fastavro = "~=0.21"

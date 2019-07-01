@@ -10,11 +10,11 @@
 # `Pipfile.lock` and then regenerate `requirements*.txt`.
 ################################################################################
 
--e .
-cdisutils~=1.2
-dictionaryutils~=2.0
-fastavro~=0.21
-gdcdatamodel~=1.3
-inflection
-psqlgraph~=1.2
-python-json-logger~=0.1
+codacy-coverage
+gen3git
+more-itertools~=5.0
+pipenv-to-requirements
+pygithub
+pytest-cov~=2.5
+pytest~=3.2
+trufflehog
