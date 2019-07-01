@@ -219,7 +219,7 @@ def _rename_enum_in_data(filename_in, field_name, val_from, val_to):
         yield record
 
 
-def convert_json(node_name, json_record, program, project):
+def convert_json(node_name, node_schema, json_record, program, project):
     relations = []
     node_id = json_record["submitter_id"]
     vals = json_record
@@ -236,7 +236,28 @@ def convert_json(node_name, json_record, program, project):
                 }
             )
 
-        if type(json_record[item]) == unicode:
+        is_enum = False
+
+        current_node_schema = [x for x in node_schema["fields"] if x["name"] == item]
+
+        if not current_node_schema:
+            print("Undefined schema for node: {}".format(item))
+        else:
+            assert len(current_node_schema) == 1
+            current_node_schema = current_node_schema[0]
+
+            if isinstance(current_node_schema["type"], list):
+                is_enum = False
+                for x in current_node_schema["type"]:
+                    if "type" in x:
+                        is_enum = is_enum or (x["type"] == "enum")
+            elif (
+                "type" in current_node_schema["type"]
+                and current_node_schema["type"]["type"] == "enum"
+            ):
+                is_enum = True
+
+        if is_enum and json_record[item] is not None:
             json_record[item] = encode(json_record[item])
 
     if to_del in vals:
@@ -295,8 +316,17 @@ class Gen3PFB(object):
 
             node_name = o
 
+            node_schema = [x for x in parsed_schema["fields"][2]["type"] if x["name"] == node_name]
+
+            if not node_schema:
+                print("Empty schema for node {}".format(node_name))
+                print("Probably an incorrect node name either in JSON or in PFB?")
+            else:
+                assert len(node_schema) == 1
+                node_schema = node_schema[0]
+
             for json_record in json_data:
-                record = convert_json(node_name, json_record, program, project)
+                record = convert_json(node_name, node_schema, json_record, program, project)
                 input_data.append(record)
 
             _append_records(output_pfb_filename, parsed_schema, input_data)
