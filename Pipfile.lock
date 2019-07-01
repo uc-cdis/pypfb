@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "82238e9f241bc6d5c6f9ab34b702206c951cbd32b3e0b3627dc79ada6d0a012a"
+            "sha256": "37cd3c33c6a7596a5615e4615548d5285e5bc46dbf49905ff4bb907d8a059085"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -218,13 +218,6 @@
                 "sha256:25795b03be24108dcf67dc85e0d34926318772076504d001a91217e028f648ab"
             ],
             "version": "==1.5.8"
-        },
-        "inflection": {
-            "hashes": [
-                "sha256:18ea7fb7a7d152853386523def08736aa8c32636b047ade55f7578c4edeb16ca"
-            ],
-            "index": "pypi",
-            "version": "==0.3.1"
         },
         "ipaddress": {
             "hashes": [
@@ -572,6 +565,7 @@
             "hashes": [
                 "sha256:8c7cf3587eda51008bcc1eed99ea2c331ccd265c231dbaa95ec5258d3dc03100"
             ],
+            "markers": "python_version < '3.4'",
             "version": "==0.4.7"
         },
         "enum34": {
@@ -641,7 +635,7 @@
                 "sha256:2156525d6576d21c4dcaddfa427fae887ef89a7a9de5cbfe0728b3aafa78427e",
                 "sha256:446014523bb9be5c28128c4d2a10ad6bb60769e78bd85658fe44a450674e0ef8"
             ],
-            "markers": "python_version == '3.4.*' or python_version < '3'",
+            "markers": "python_version < '3.6'",
             "version": "==2.3.4"
         },
         "pbr": {
