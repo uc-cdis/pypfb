@@ -142,7 +142,7 @@ def main():
         else:
             limit = args.limit if args.limit != -1 else None
             for r in itertools.islice(
-                Gen3PFB(args.input).read_records(args.input), limit
+                Gen3PFB(args.input).read_records(), limit
             ):
                 print(r)
     elif args.cmd == "make":

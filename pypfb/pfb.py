@@ -314,14 +314,13 @@ class Gen3PFB(object):
         """
         return _read_metadata(self.pfbfile)
 
-    def read_records(self, limit=-1):
+    def read_records(self, schema=None):
         """
         Read records from pfb file
-        :param filename: the path of pfb
-        :param reader_schema: the pfb schema
+        :param schema: the pfb schema
         :return:generator record object
         """
-        return _read_records(self.pfbfile, limit)
+        return _read_records(self.pfbfile, schema)
 
     def make_record(self, node, output="blank.json"):
         """
