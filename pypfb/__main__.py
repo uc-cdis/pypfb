@@ -141,9 +141,7 @@ def main():
             print(Gen3PFB(args.input).read_metadata())
         else:
             limit = args.limit if args.limit != -1 else None
-            for r in itertools.islice(
-                Gen3PFB(args.input).read_records(args.input), limit
-            ):
+            for r in itertools.islice(Gen3PFB(args.input).read_records(), limit):
                 print(r)
     elif args.cmd == "make":
         Gen3PFB(args.input).make_record(args.node)
