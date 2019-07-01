@@ -257,7 +257,7 @@ def convert_json(node_name, node_schema, json_record, program, project):
             ):
                 is_enum = True
 
-        if is_enum:
+        if is_enum and json_record[item] is not None:
             json_record[item] = encode(json_record[item])
 
     if to_del in vals:
