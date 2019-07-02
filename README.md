@@ -40,6 +40,7 @@ pipenv install
       make    Make blank record from the PFB file.
       rename  Rename different parts of schema.
       show    Show schema or records of the PFB file.
+      to      Convert PFB into other data formats.
 
 ### Show different parts of PFB
 
@@ -123,6 +124,17 @@ pipenv install
       --from TEXT   [required]
       --to TEXT     [required]
 
+### Convert PFB into Neptune (bulk load format for Gremlin)
+
+    Usage: pfb to gremlin [OPTIONS] PFB
+
+      Convert PFB into CSV files for Neptune bulk load (Gremlin).
+
+    Options:
+      -o, --output TEXT   Directory to store the output files.  [default:
+                          ./gremlin/]
+      --gzip / --no-gzip  Whether gzip the output.  [default: yes]
+
 
 ## Examples
 
@@ -135,6 +147,8 @@ pipenv install
     pfb rename -i tests/pfb-data/test.avro -o tests/pfb-data/rename_test.avro enum --field_name state --val_from validated --val_to validated_test
     
     pfb show -s --limit -1 tests/pfb-data/test.avro 
+
+    pfb to gremlin -o output tests/pfb-data/test.avro 
 
 
   [1]: ./doc/metadata.svg

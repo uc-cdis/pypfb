@@ -48,6 +48,17 @@ def enum(property_name, symbols, name):
     return avro_type
 
 
+def is_enum(data_type):
+    data_type = [data_type]
+    while data_type:
+        type_ = data_type.pop()
+        if isinstance(type_, list):
+            data_type.extend(type_)
+        elif isinstance(type_, dict) and type_['type'] == 'enum':
+            return True
+    return False
+
+
 def union(property_name, types, name):
     output_type = list(
         map(
