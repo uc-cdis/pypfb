@@ -54,9 +54,6 @@ setup(
         "Topic :: Software Development :: Libraries",
         "Topic :: Scientific/Engineering :: Bio-Informatics",
     ],
-    install_requires=[
-        "fastavro~=0.21",
-        "python-json-logger~=0.1",
-        "gen3datamodel~=2.0",
-    ],
+    install_requires=["fastavro~=0.21", "python-json-logger~=0.1", "PyYAML~=5.1"],
+    extras_require=dict(gen3=["gen3datamodel~=2.0"]),
 )

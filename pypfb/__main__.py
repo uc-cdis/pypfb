@@ -7,7 +7,11 @@ import yaml
 
 from .avro_utils.avro_schema import AvroSchema
 from .pfb import Gen3PFB
-from .utils.dictionary import init_dictionary
+
+try:
+    from .utils.dictionary import init_dictionary
+except ImportError:
+    init_dictionary = None
 
 default_level = logging.INFO
 config_path = "config.yml"
@@ -41,19 +45,20 @@ def main():
         help='How many entries to show, -1 for all; ignored for "schema"',
     )
 
-    dict2pfb_cmd = subparsers.add_parser(
-        "dict2pfb", help="Convert datadictionary into PFB file with schema"
-    )
-    dict2pfb_cmd.add_argument(
-        "-d", "--dictionary", required=True, type=str, help="Link to dictionary URL"
-    )
-    dict2pfb_cmd.add_argument(
-        "-o",
-        "--output",
-        required=True,
-        type=argparse.FileType("wb"),
-        help="Output PFB file",
-    )
+    if init_dictionary is not None:
+        dict2pfb_cmd = subparsers.add_parser(
+            "dict2pfb", help="Convert datadictionary into PFB file with schema"
+        )
+        dict2pfb_cmd.add_argument(
+            "-d", "--dictionary", required=True, type=str, help="Link to dictionary URL"
+        )
+        dict2pfb_cmd.add_argument(
+            "-o",
+            "--output",
+            required=True,
+            type=argparse.FileType("wb"),
+            help="Output PFB file",
+        )
 
     json2pfb_cmd = subparsers.add_parser(
         "json2pfb", help="Convert JSON files correspond to datadictionary into PFB file"
