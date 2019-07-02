@@ -12,4 +12,4 @@ gen3git = "*"
 more-itertools = "~=5.0"
 
 [packages]
-pypfb = {editable = true,path = "."}
+pypfb = {editable = true,extras = ["gen3"],path = "."}
