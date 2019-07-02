@@ -1,19 +1,6 @@
 from fastavro import reader, writer
 
 
-# https://stackoverflow.com/a/42377964/1030110
-# required to load JSON without 'unicode' keys and values
-def str_hook(obj):
-    return {
-        k.encode("utf-8")
-        if isinstance(k, unicode)
-        else k: v.encode("utf-8")
-        if isinstance(v, unicode)
-        else v
-        for k, v in obj
-    }
-
-
 def add(pfbFile, parField, newField, newFieldType, newFieldDefault):
     pfb = open(pfbFile, "rb")
     avro_reader = reader(pfb)
