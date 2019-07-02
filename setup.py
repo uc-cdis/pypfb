@@ -54,5 +54,9 @@ setup(
         "Topic :: Software Development :: Libraries",
         "Topic :: Scientific/Engineering :: Bio-Informatics",
     ],
-    install_requires=["cdiserrors~=0.1"],
+    install_requires=[
+        "fastavro~=0.21",
+        "python-json-logger~=0.1",
+        "gen3datamodel~=2.0",
+    ],
 )

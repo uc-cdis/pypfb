@@ -98,3 +98,4 @@ venv.bak/
 .idea/
 
 *.DS_Store
+Pipfile.lock

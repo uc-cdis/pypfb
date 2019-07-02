@@ -5,9 +5,9 @@ import logging.config
 
 import yaml
 
-from avro_utils.avro_schema import AvroSchema
-from pypfb.pfb import Gen3PFB
-from utils.dictionary import init_dictionary
+from .avro_utils.avro_schema import AvroSchema
+from .pfb import Gen3PFB
+from .utils.dictionary import init_dictionary
 
 default_level = logging.INFO
 config_path = "config.yml"

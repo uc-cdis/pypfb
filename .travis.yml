@@ -2,12 +2,20 @@ dist: xenial
 language: python
 python:
 - 2.7
+- 3.5
+- 3.6
+- 3.7
+matrix:
+  allow_failures:
+    - python: "3.5"
+    - python: "3.6"
+    - python: "3.7"
 cache:
 - pip
 - apt
 install:
 - pip install pipenv
-- pipenv install --dev --deploy
+- pipenv install --dev --skip-lock --python `which python`
 - pipenv graph
 script:
 - pipenv run py.test -vv --cov=pypfb --cov-report xml tests
@@ -27,5 +35,11 @@ deploy:
     python: 2.7
     repo: uc-cdis/pypfb
     tags: true
+  password:
+    secure: k7G4W34hr5jC/9OfGljEV3cTKomObKWAsw1PHJQgDwHgF1ZjrP5P4KzELNhenngs6ujVogc5ExNqlnvN7/cZF9wECCemIgyq36T/ZEstOLfyww+iP3kjEscDXC1GUnQIfdNkdvm9nPaoM/HXQogXy3vgMXvnaDWxzzZcERwvc00Q5cUHVquYDwpfybGXkWrfvctinAO5EeBGS0Lb0oP9sKoWcrSWu2etL4KE7kmifTYNCPnphMyhSS7BgUaPJszQZq0ywczvkk4VVybouFbvjtj0mowIXiATjV+mN6PXPdpcMdDzmGe3jbmBBgC5AwV34mTA10NzHOY0i5GyIAwEIgrK3ioC6YNUdk/BcYht+VBXHQrnYPJaIYwC7Ly1XbXWhdHA2nvknBKNKeIzRIn2CfXVvzNleTqE0AiPia8oQYzSBNttm8rGTy+ImE983NuQCif4WAi4kr7lTX5MxIGqpImjCBF5XPMmWKslDgZ/6sBsdTocronDNpQi1TpnZfOCKDbQPgIheGgQF9/yWuCnxXdxB9YJP1p9HeZMIqPyfojgEGDyuXnFGtiLQ179Vuo9hC9gAd1QF6zHsKn7xGRAUHYpriPz5cGuQNVMl3BoinNvHSwBSIAmsbbhk98PadJQSnTMcfzLsQPQnifoTtX76ReJYQjGLy8a8Ai7cXBrIno=
 after_deploy:
-- gen3git release
+- pipenv run gen3git release
+env:
+  global:
+  - PIPENV_IGNORE_VIRTUALENVS=1
+  - secure: JNYL+kdqriNWUzqchEUOrApgZes/6JYxpmKR84EoxFg4tWukCaCypUSa6cqU3FUhv1tQRDZc+h6gMqmVK/DsoLrbPSioWwVDlX0t92m9zBupcYbsiUk68tkHNDag5Ks8oUlk6VYtygHDtLmkA3abADrEgCv/Wh+enofZd4mjRly2p2dcOmsT34t+7eBiQe9rwtsoWyLqiPmgDN+HzlAI+q/aSojpuZpN+wO29k3jNCUBG8ulwORFc9B0pKrDcWSjm/4m5DaZTxYzA4cbDHr1Xtlpinm4JLj9vIPnNwO8hGNsqdNSIMszBs/ovhGvyfajn4mgtDD58UnfIquiYJYHgazBjdFIQ8A5FZewROs67OKRR7pw2weJ8RxbWylCZSbuETiDzGPSAPDNTDgX41tonXFjLCWSRaQGbe/NE1IKauZ+etaZ+asqPfTGDzHE7gAy3EIML+p6YG5FCKyKWna3wywAns2j40Ovh6guj8RNF+ikfL5Q6YipXWRLZD3JJPtVqQV6k0N3CfE5+Z8PTTkuBQNfvtobo3EosMnJBmZTIcEc7jBh+LPt3Hl+oROpL80SrMhMbnbMygFZbznAM7wriODlYjJ/thj6L/jIqc+x/dc5azz0yC7EDFEOVixRR3O0MlUfb79Uskp90RcQvr91HHKJCCYFkeuLFLqgi2Vecs4=
