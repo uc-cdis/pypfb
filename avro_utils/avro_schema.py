@@ -55,8 +55,9 @@ class AvroSchema:
         if "multiplicity" in node_link:
             add["multiplicity"] = node_link["multiplicity"].upper()
 
-        if "name" in node_link:
-            add["dst"] = node_link["name"]
+        if "name" in node_link and "target_type" in node_link:
+            add["name"] = node_link["name"]
+            add["dst"] = node_link["target_type"]
 
         return add
 
@@ -170,8 +171,7 @@ class AvroSchema:
             if "links" in record_types:
                 links[record_name] = record_types["links"]
 
-            if ontology_references_for_record != {}:
-                ontology_references[record_name] = ontology_references_for_record
+            ontology_references[record_name] = ontology_references_for_record
 
         avro_schema = {
             "type": "record",
@@ -229,6 +229,10 @@ class AvroSchema:
                                                                 },
                                                                 {
                                                                     "name": "dst",
+                                                                    "type": "string",
+                                                                },
+                                                                {
+                                                                    "name": "name",
                                                                     "type": "string",
                                                                 },
                                                             ],

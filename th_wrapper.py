@@ -15,6 +15,7 @@ commits.
 """
 
 import argparse
+import glob
 import json
 import git
 import hashlib
@@ -59,8 +60,8 @@ DEFAULT_CONFIG = {
         ".travis.yml",
         "truffles.json",
         "tests/pfb-data/test.avro",
-        "tests/data/*",
-    ],
+        "tests/schema/kf.avro",
+    ] + glob.glob("tests/data/*"),
     "regexRules": {
         "Slack Token": "(xox[p|b|o|a]-[0-9]{12}-[0-9]{12}-[0-9]{12}-[a-z0-9]{32})",
         "RSA private key": "-----BEGIN RSA PRIVATE KEY-----",
