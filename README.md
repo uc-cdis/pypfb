@@ -1,144 +1,138 @@
-# :construction: pypfb :construction:
+# :construction: PFB Python SDK :construction:
 
-Python SDK to create, explore and modify PFB files.
+Python SDK to create, explore and modify PFB (Portable Format for Biomedical Data) files.
 
 ## PFB Schema
 
 [![metadata][1]][1]
 
+## Installation
+
+* From PyPI:
+
+```bash
+pip install pypfb[gen3]
+```
+
+(The optional `gen3` dependencies add the ability to convert a Gen3 data dictionary into
+a PFB file.)
+
+* From source code:
+
+```bash
+pipenv install
+```
+
+(Also add `--dev` for development.)
+
+
 ## Usage
 
 ### Main
 
-    usage: pypfb [-h] {show,dict2pfb,json2pfb,make,rename} ...
-    
-    PFB tool
-    
-    positional arguments:
-      {show,dict2pfb,json2pfb,make,rename}
-        show                Show schema or records of the PFB file
-        dict2pfb            Convert datadictionary into PFB file with schema
-        json2pfb            Convert JSON files correspond to datadictionary into
-                            PFB file
-        make                Make blank record
-        rename              Rename different parts of schema
-    
-    optional arguments:
-      -h, --help            show this help message and exit
+    Usage: pfb [OPTIONS] COMMAND [ARGS]...
+
+      PFB: Portable Format for Biomedical Data.
+
+    Commands:
+      add     Add a record from a minified JSON file to the PFB file.
+      from    Generate PFB from other data formats.
+      make    Make blank record from the PFB file.
+      rename  Rename different parts of schema.
+      show    Show schema or records of the PFB file.
 
 ### Show different parts of PFB
 
-    usage: pypfb show [-h] [-s] [--limit LIMIT] input
-    
-    positional arguments:
-      input          Path to PFB file
-    
-    optional arguments:
-      -h, --help     show this help message and exit
-      -s, --schema   Show PFB file schema
-      --limit LIMIT  How many entries to show, -1 for all; ignored for "schema"
+    Usage: pfb show [OPTIONS] PFB
 
-### Convert datadictionary into PFB schema
+      Show schema or records of the PFB file.
 
-    usage: pypfb dict2pfb [-h] -d DICTIONARY -o OUTPUT
-    
-    optional arguments:
-      -h, --help            show this help message and exit
-      -d DICTIONARY, --dictionary DICTIONARY
-                            Link to dictionary URL
-      -o OUTPUT, --output OUTPUT
-                            Output PFB file
+    Options:
+      -s, --schema     Show PFB file schema.
+      --limit INTEGER  How many entries to show, -1 for all; ignored for "schema".
+
+### Convert Gen3 data dictionary into PFB schema
+
+    Usage: pfb from dict [OPTIONS] URL
+
+      Convert Gen3 data dictionary at URL into PFB file.
+
+    Options:
+      -o, --output FILENAME  Output PFB file.  [required]
 
 ### Convert JSON for corresponding datadictionary to PFB
 
-    usage: pypfb json2pfb [-h] -s SCHEMA -o OUTPUT --program PROGRAM
-                                --project PROJECT
-                                dir
-    
-    positional arguments:
-      dir                   Path to directory with input JSON files
-    
-    optional arguments:
-      -h, --help            show this help message and exit
-      -s SCHEMA, --schema PFB SCHEMA
-                            Filename for schema PFB file
-      -o OUTPUT, --output OUTPUT
-                            Filename for resulting PFB file
-      --program PROGRAM     Name of the program
-      --project PROJECT     Name of the project
+    Usage: pfb from json [OPTIONS] PATH
+
+      Convert JSON files under PATH into a PFB file.
+
+    Options:
+      -s, --schema FILENAME  The PFB file to load the schema from.  [required]
+      -o, --output FILENAME  The result PFB file.  [required]
+      --program TEXT         Name of the program.  [required]
+      --project TEXT         Name of the project.  [required]
 
 ### Make new blank record
 
-    usage: pypfb make [-h] [-n NODE] input
-    
-    positional arguments:
-      input                 Path to PFB file
-    
-    optional arguments:
-      -h, --help            show this help message and exit
-      -n NODE, --node NODE  Node to create
+    Usage: pfb make [OPTIONS] PFB
+
+      Make blank record from the PFB file.
+
+    Options:
+      -n, --node TEXT  Node to create.  [required]
 
 ### Add new record to PFB
 
-    usage: pypfb add [-h] PFB_file JSON_file
-    
-    Add a record to PFB file from a minified JSON file
-    
-    positional arguments:
-      PFB_file    pfb file to add record to. Default = test.pfb
-      JSON_file   JSON file to add into the pfb file. Default = test.json
-    
-    optional arguments:
-      -h, --help  show this help message and exit
+    Usage: pfb add [OPTIONS] JSON PFB
+
+      Add a record from a minified JSON file to the PFB file.
 
 ### Rename different parts of PFB (schema evolution)
 
-    usage: pypfb rename [-h] {node,type,enum} ...
-    
-    positional arguments:
-      {node,type,enum}
-        node            Rename node
-        type            Rename type (not implemented)
-        enum            Rename enum
-    
-    optional arguments:
-      -h, --help        show this help message and exit
+    Usage: pfb rename [OPTIONS] COMMAND [ARGS]...
+
+      Rename different parts of schema.
+
+    Options:
+      -i, --input FILENAME   Source PFB file.  [required]
+      -o, --output FILENAME  Destination PFB file.  [required]
+
+    Commands:
+      enum  Rename enum.
+      node  Rename node.
+      type  Rename type (not implemented).
 
 ### Rename node
 
-    usage: pypfb rename node [-h] -i INPUT -o OUTPUT --name_from NAME_FROM
-                                   --name_to NAME_TO
-    
-    optional arguments:
-      -h, --help            show this help message and exit
-      -i INPUT, --input INPUT
-      -o OUTPUT, --output OUTPUT
-      --name_from NAME_FROM
-      --name_to NAME_TO
-      
+    Usage: pfb rename [PARENT OPTIONS] node [OPTIONS]
+
+      Rename node.
+
+    Options:
+      --from TEXT  [required]
+      --to TEXT    [required]
+
 ### Rename enum
 
-    usage: pypfb rename enum [-h] -i INPUT -o OUTPUT --field_name FILED_NAME --val_from VALUE_FROM
-                                   --val_to VALUE_TO
-    
-    optional arguments:
-      -h, --help            show this help message and exit
-      -i INPUT, --input INPUT
-      -o OUTPUT, --output OUTPUT
-      --field_name FIELD_NAME
-      --val_from VALUE_FROM
-      --val_to VALUE_TO
-      
+    Usage: pfb rename [PARENT OPTIONS] enum [OPTIONS]
+
+      Rename enum.
+
+    Options:
+      --field TEXT  [required]
+      --from TEXT   [required]
+      --to TEXT     [required]
+
 
 ## Examples
 
-    pfb dict2pfb -d http://s3.amazonaws.com/dictionary-artifacts/kf-dictionary/1.1.0/schema.json -o ./tests/schema/kf.avro
+    pfb from dict http://s3.amazonaws.com/dictionary-artifacts/kf-dictionary/1.1.0/schema.json -o ./tests/schema/kf.avro
     
-    pfb json2pfb ./tests/data -s ./tests/schema/kf.avro -o tests/pfb-data/test.avro --program DEV --project test
+    pfb from json ./tests/data -s ./tests/schema/kf.avro -o tests/pfb-data/test.avro --program DEV --project test
 
-    pfb rename node --name_from slide --name_to slide_test -i tests/pfb-data/test.avro -o tests/pfb-data/rename_test.avro
+    pfb rename -i tests/pfb-data/test.avro -o tests/pfb-data/rename_test.avro node --name_from slide --name_to slide_test
     
-    pfb rename enum --field_name state --val_from validated --val_to validated_test -i tests/pfb-data/test.avro -o tests/pfb-data/rename_test.avro
+    pfb rename -i tests/pfb-data/test.avro -o tests/pfb-data/rename_test.avro enum --field_name state --val_from validated --val_to validated_test
     
     pfb show -s --limit -1 tests/pfb-data/test.avro 
 
