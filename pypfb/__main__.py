@@ -64,7 +64,7 @@ if init_dictionary is not None:
     )
     def dict_command(url, output):
         """Convert Gen3 data dictionary at URL into PFB file."""
-        dictionary, _ = init_dictionary(url)
+        dictionary = init_dictionary(url)
         schema = dictionary.schema
 
         log.info("Using dictionary: {}".format(url))
