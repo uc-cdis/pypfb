@@ -7,6 +7,7 @@ import click
 import yaml
 
 from .avro_utils.avro_schema import AvroSchema
+from .exporters import PFB2GremlinExporter
 from .pfb import Gen3PFB
 
 try:
@@ -90,6 +91,32 @@ if init_dictionary is not None:
 def json_command(path, schema, output, program, project):
     """Convert JSON files under PATH into a PFB file."""
     Gen3PFB.from_json(schema, path, output, program, project)
+
+
+@main.group("to")
+def to_command():
+    """Convert PFB into other data formats."""
+
+
+@to_command.command()
+@click.argument("pfb", type=click.File("rb"))
+@click.option(
+    "-o",
+    "--output",
+    default="./gremlin/",
+    show_default=True,
+    help="Directory to store the output files.",
+)
+@click.option(
+    "--gzip/--no-gzip",
+    "gzipped",
+    default=True,
+    help="Whether gzip the output.  [default: yes]",
+)
+def gremlin(pfb, output, gzipped):
+    """Convert PFB into CSV files for Neptune bulk load (Gremlin)."""
+    with PFB2GremlinExporter(pfb) as exporter:
+        exporter.export_files(output, gzipped)
 
 
 @main.command()

@@ -5,6 +5,7 @@ import uuid
 
 from fastavro import reader, writer, parse_schema
 
+from .avro_utils.avro_types import is_enum
 from .utils.str import str_hook, encode, decode
 
 
@@ -238,19 +239,9 @@ def convert_json(node_name, json_record, program, project, link_dests, field_typ
                 }
             )
 
-        is_enum = False
-
         if item in field_types and json_record[item] is not None:
-            data_type = [field_types[item]['type']]
-            while data_type:
-                type_ = data_type.pop()
-                if isinstance(type_, list):
-                    data_type.extend(type_)
-                elif isinstance(type_, dict) and type_['type'] == 'enum':
-                    is_enum = True
-                    break
-        if is_enum:
-            json_record[item] = encode(json_record[item])
+            if is_enum(field_types[item]["type"]):
+                json_record[item] = encode(json_record[item])
 
     if to_del in vals:
         del vals[to_del]
