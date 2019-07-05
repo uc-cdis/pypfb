@@ -35,58 +35,74 @@ pipenv install
       PFB: Portable Format for Biomedical Data.
 
     Commands:
-      add     Add a record from a minified JSON file to the PFB file.
+      add     Add records into a PFB file.
       from    Generate PFB from other data formats.
-      make    Make blank record from the PFB file.
+      make    Make a blank record for add.
       rename  Rename different parts of schema.
-      show    Show schema or records of the PFB file.
+      show    Show different parts of a PFB file.
       to      Convert PFB into other data formats.
 
 ### Show different parts of PFB
 
-    Usage: pfb show [OPTIONS] PFB
+    Usage: pfb show [OPTIONS] COMMAND [ARGS]...
 
-      Show schema or records of the PFB file.
+      Show records of the PFB file.
+
+      Specify a sub-command to show other information.
 
     Options:
-      -s, --schema     Show PFB file schema.
-      --limit INTEGER  How many entries to show, -1 for all; ignored for "schema".
+      -i, --input FILENAME  The PFB file.  [default: <stdin>]
+      -n, --limit INTEGER   How many records to show, ignored for sub-commands.
+                            [default: no limit]
+
+    Commands:
+      metadata  Show the metadata of the PFB file.
+      nodes     Show all the node names in the PFB file.
+      schema    Show the schema of the PFB file.
 
 ### Convert Gen3 data dictionary into PFB schema
 
-    Usage: pfb from dict [OPTIONS] URL
+    Usage: pfb from [PARENT OPTIONS] dict DICTIONARY
 
-      Convert Gen3 data dictionary at URL into PFB file.
+      Convert Gen3 data DICTIONARY into a PFB file.
 
-    Options:
-      -o, --output FILENAME  Output PFB file.  [required]
+      If DICTIONARY is a HTTP URL, it will be downloaded and parsed as JSON; or
+      it will be treated as a local path to a directory containing YAML files.
+
+    Parent Options:
+      -o, --output FILENAME  The output PFB file.  [default: <stdout>]
 
 ### Convert JSON for corresponding datadictionary to PFB
 
-    Usage: pfb from json [OPTIONS] PATH
+    Usage: pfb from [PARENT OPTIONS] json [OPTIONS] [PATH]
 
       Convert JSON files under PATH into a PFB file.
 
+    Parent Options:
+      -o, --output FILENAME  The output PFB file.  [default: <stdout>]
+
     Options:
       -s, --schema FILENAME  The PFB file to load the schema from.  [required]
-      -o, --output FILENAME  The result PFB file.  [required]
       --program TEXT         Name of the program.  [required]
       --project TEXT         Name of the project.  [required]
 
 ### Make new blank record
 
-    Usage: pfb make [OPTIONS] PFB
+    Usage: pfb make [OPTIONS] NAME
 
-      Make blank record from the PFB file.
+      Make a blank record according to given NODE schema in the PFB file.
 
     Options:
-      -n, --node TEXT  Node to create.  [required]
+      -i, --input PFB  Read schema from this PFB file.  [default: <stdin>]
 
 ### Add new record to PFB
 
-    Usage: pfb add [OPTIONS] JSON PFB
+    Usage: pfb add [OPTIONS] PFB
 
-      Add a record from a minified JSON file to the PFB file.
+      Add records from a minified JSON file to the PFB file.
+
+    Options:
+      -i, --input JSON  The JSON file to add.  [default: <stdin>]
 
 ### Rename different parts of PFB (schema evolution)
 
@@ -95,8 +111,8 @@ pipenv install
       Rename different parts of schema.
 
     Options:
-      -i, --input FILENAME   Source PFB file.  [required]
-      -o, --output FILENAME  Destination PFB file.  [required]
+      -i, --input FILENAME   Source PFB file.  [default: <stdin>]
+      -o, --output FILENAME  Destination PFB file.  [default: <stdout>]
 
     Commands:
       enum  Rename enum.
@@ -105,50 +121,43 @@ pipenv install
 
 ### Rename node
 
-    Usage: pfb rename [PARENT OPTIONS] node [OPTIONS]
+    Usage: pfb rename [PARENT OPTIONS] node [OPTIONS] OLD NEW
 
-      Rename node.
-
-    Options:
-      --from TEXT  [required]
-      --to TEXT    [required]
+      Rename node from OLD to NEW.
 
 ### Rename enum
 
-    Usage: pfb rename [PARENT OPTIONS] enum [OPTIONS]
+    Usage: pfb rename [PARENT OPTIONS] enum [OPTIONS] FIELD OLD NEW
 
-      Rename enum.
-
-    Options:
-      --field TEXT  [required]
-      --from TEXT   [required]
-      --to TEXT     [required]
+      Rename enum of FIELD from OLD to NEW.
 
 ### Convert PFB into Neptune (bulk load format for Gremlin)
 
-    Usage: pfb to gremlin [OPTIONS] PFB
+    Usage: pfb to [PARENT OPTIONS] gremlin [OPTIONS] [OUTPUT]
 
-      Convert PFB into CSV files for Neptune bulk load (Gremlin).
+      Convert PFB into CSV files under OUTPUT for Neptune bulk load (Gremlin).
+
+      The default OUTPUT is ./gremlin/.
 
     Options:
-      -o, --output TEXT   Directory to store the output files.  [default:
-                          ./gremlin/]
       --gzip / --no-gzip  Whether gzip the output.  [default: yes]
 
 
 ## Examples
 
-    pfb from dict http://s3.amazonaws.com/dictionary-artifacts/kf-dictionary/1.1.0/schema.json -o ./tests/schema/kf.avro
+    pfb from dict http://s3.amazonaws.com/dictionary-artifacts/kf-dictionary/1.1.0/schema.json > ./tests/schema/kf.avro
     
-    pfb from json ./tests/data -s ./tests/schema/kf.avro -o tests/pfb-data/test.avro --program DEV --project test
+    pfb from json ./tests/data -s ./tests/schema/kf.avro --program DEV --project test > tests/pfb-data/test.avro
 
-    pfb rename -i tests/pfb-data/test.avro -o tests/pfb-data/rename_test.avro node --name_from slide --name_to slide_test
+    cat tests/pfb-data/test.avro | pfb rename node slide slide_test > tests/pfb-data/rename_test.avro
     
-    pfb rename -i tests/pfb-data/test.avro -o tests/pfb-data/rename_test.avro enum --field_name state --val_from validated --val_to validated_test
+    cat tests/pfb-data/test.avro | pfb rename enum state validated validated_test > tests/pfb-data/rename_test.avro
     
-    pfb show -s --limit -1 tests/pfb-data/test.avro 
+    cat tests/pfb-data/test.avro | pfb show -n 1 | jq
 
-    pfb to gremlin -o output tests/pfb-data/test.avro 
+    cat tests/pfb-data/test.avro | pfb show --schema | jq
+
+    cat tests/pfb-data/test.avro | pfb to gremlin ./output/
 
 
   [1]: ./doc/metadata.svg
