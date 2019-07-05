@@ -57,7 +57,7 @@ def _to_gremlin(reader, dir_path, gzipped, handlers_by_name):
     uuids = {}
     project_ids = []
     edges = []
-    num_files = 1
+    num_files = 1  # the gremlin_egdes
 
     if not os.path.exists(dir_path):
         os.mkdir(dir_path)
@@ -70,9 +70,9 @@ def _to_gremlin(reader, dir_path, gzipped, handlers_by_name):
     click.secho("Creating ", fg="blue", err=True, nl=False)
     click.secho(path, fg="white", err=True)
     f = open_func(path, "wb")
-    ew = csv.writer(f)
-    ew.writerow(["~id", "~from", "~to", "~label"])
-    handlers_by_name["~edges"] = f, ew
+    edge_writer = csv.writer(f)
+    edge_writer.writerow(["~id", "~from", "~to", "~label"])
+    handlers_by_name["~edges"] = f, edge_writer
 
     fields_by_name = {node["name"]: node["fields"] for node in reader.schema}
     for row in reader:
@@ -83,19 +83,10 @@ def _to_gremlin(reader, dir_path, gzipped, handlers_by_name):
         obj = row["object"]
         relations = row["relations"]
 
+        # get the CSV writer for this row, create one if not created
         pair = handlers_by_name.get(name)
         if pair is None:
-            header_row = ["~label", "~id"]
-            for field in fields:
-                field_type = "string"
-                for field_type in field["type"]:
-                    if field_type != "null":
-                        break
-                if isinstance(field_type, (str, unicode)):
-                    field_type = TYPE_MAPPING[field_type]
-                else:
-                    field_type = "String"
-                header_row.append(field["name"] + ":" + field_type)
+            header_row = _make_header_row(fields)
             path = os.path.join(dir_path, name + ".csv")
             if gzipped:
                 path += ".gz"
@@ -109,6 +100,7 @@ def _to_gremlin(reader, dir_path, gzipped, handlers_by_name):
         else:
             w = pair[1]
 
+        # write data into CSV
         uuid = uuids[(name, row_id)] = str(uuid4())
         row = [name, uuid]
         for field in fields:
@@ -119,14 +111,38 @@ def _to_gremlin(reader, dir_path, gzipped, handlers_by_name):
                 value = obj[field["name"]]
                 row.append(value)
         w.writerow(row)
+
+        # write relations if possible, or store in memory for later
         for relation in relations:
             key = relation["dst_name"], relation["dst_id"]
             to_uuid = uuids.get(key)
             if to_uuid is None:
                 edges.append((key, uuid))
             else:
-                ew.writerow([str(uuid4()), uuid, to_uuid, relation["dst_name"]])
+                edge_writer.writerow(
+                    [str(uuid4()), uuid, to_uuid, relation["dst_name"]]
+                )
+
     click.secho("Writing remaining edges...", fg="cyan", err=True)
     for edge in edges:
-        ew.writerow([str(uuid4()), edge[1], uuids[edge[0]], edge[0][0]])
+        edge_writer.writerow([str(uuid4()), edge[1], uuids[edge[0]], edge[0][0]])
+
     return num_files
+
+
+def _make_header_row(fields):
+    header_row = ["~label", "~id"]
+    for field in fields:
+        field_type = "string"
+        avro_type = field["type"]
+        if isinstance(avro_type, list):
+            for field_type in avro_type:
+                if field_type != "null":
+                    break
+        if isinstance(field_type, (str, unicode)):
+            field_type = TYPE_MAPPING[field_type]
+        else:
+            # structural types are simply treated as string
+            field_type = "String"
+        header_row.append(field["name"] + ":" + field_type)
+    return header_row
