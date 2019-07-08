@@ -124,36 +124,26 @@ class PFBBase(object):
         return self._is_base64[node_name].get(field_name, False)
 
     def make_empty_record(self, node_name):
-        fields = {}
+        values = {}
         for node in self.schema:
             if node["name"] == node_name:
                 for field in node["fields"]:
-                    type_ = field["type"]
+                    val = field.get("default", "")
                     stack = deque([field["type"]])
                     while stack:
                         t = stack.pop()
                         if isinstance(t, list):
                             stack.extend(t)
-                        elif t == "long":
-                            type_ = "long"
+                        elif t in ["long", "float"]:
+                            val = 0
                             break
-                        elif t == "float":
-                            type_ = "float"
+                        elif t in ["string"]:
+                            val = ""
                             break
                         elif isinstance(t, dict) and t["type"] == "enum":
-                            type_ = "enum"
+                            val = t["symbols"][0]
                             break
 
-                    fields[field["name"]] = type_
+                    values[field["name"]] = val
 
-        uid = uuid.uuid4()
-
-        val = {}
-        for x in fields:
-            if fields[x] in ("long", "float"):
-                val[x] = 0
-            elif fields[x] == "enum":
-                val[x] = None
-            else:
-                val[x] = ""
-        return avro_record(str(uid), node_name, val, [])
+        return avro_record(str(uuid.uuid4()), node_name, values, [])

@@ -24,7 +24,13 @@ from ..reader import PFBReader
 @click.option("--project", required=True, help="Name of the project.")
 @click.pass_context
 def from_json(ctx, path, schema, program, project):
-    """Convert JSON files under PATH into a PFB file."""
+    """Convert JSON files under PATH into a PFB file.
+
+    The JSON files are expected to be directly under PATH, and match "*.json". Each file
+    should be a single JSON list of objects that matches the specified schema. Also, for
+    now it is hard-coded that each object should contain at least the "submitter_id", or
+    it will be ignored.
+    """
     try:
         with ctx.obj["writer"] as writer:
             if writer.isatty:

@@ -30,7 +30,7 @@ def test_from_dict(runner, invoke):
             "dict",
             "http://s3.amazonaws.com/dictionary-artifacts/kf-dictionary/1.1.0/schema.json",
         )
-        assert result.exit_code == 0
+        assert result.exit_code == 0, result.output
 
         with open("output.avro") as f:
             r = reader(f)
@@ -53,7 +53,7 @@ def test_from_json(runner, invoke, path_join):
             "--project",
             "test",
         )
-        assert result.exit_code == 0
+        assert result.exit_code == 0, result.output
         with open("output.avro") as f:
             r = reader(f)
             _test_schema(r)
@@ -74,7 +74,7 @@ def test_from_json(runner, invoke, path_join):
 def test_to_gremlin(runner, invoke, path_join, test_avro):
     with runner.isolated_filesystem():
         result = invoke("to", "gremlin", "./output", input=test_avro)
-        assert result.exit_code == 0
+        assert result.exit_code == 0, result.output
         with gzip.open(os.path.join("output", "demographic.csv.gz")) as f:
             result = list(csv.DictReader(f))
             assert len(result) == 1
@@ -98,7 +98,7 @@ def test_to_gremlin(runner, invoke, path_join, test_avro):
 
 def test_make(invoke, path_join):
     result = invoke("make", "-i", path_join("schema", "kf.avro"), "sample")
-    assert result.exit_code == 0
+    assert result.exit_code == 0, result.output
     record = json.loads(result.output)
     record.pop("id")
     assert record == {
@@ -109,23 +109,23 @@ def test_make(invoke, path_join):
             "submitter_id": "",
             "intermediate_dimension": 0,
             "created_datetime": "",
-            "tumor_descriptor": None,
-            "biospecimen_anatomic_site": None,
-            "state": None,
-            "diagnosis_pathologically_confirmed": None,
+            "tumor_descriptor": 'Metastatic',
+            "biospecimen_anatomic_site": 'Abdomen',
+            "state": 'validated',
+            "diagnosis_pathologically_confirmed": 'Yes',
             "project_id": "",
             "current_weight": 0,
             "age_at_event_days": 0,
             "time_between_clamping_and_freezing": 0,
             "shortest_dimension": 0,
-            "method_of_sample_procurement": None,
-            "tissue_type": None,
+            "method_of_sample_procurement": 'Abdomino-perineal Resection of Rectum',
+            "tissue_type": 'Tumor',
             "uberon_id_anatomical_site": "",
             "days_to_sample_procurement": 0,
             "spatial_descriptor": "",
             "ncit_id_tissue_type": "",
-            "preservation_method": None,
-            "composition": None,
+            "preservation_method": 'Cryopreserved',
+            "composition": "Blood",
             "days_to_collection": 0,
             "ncit_id_anatomical_site": "",
             "initial_weight": 0,
@@ -143,18 +143,18 @@ def test_add(runner, invoke, path_join):
         with open("test.avro", "rb") as f:
             assert len(list(reader(f))) == 37
         result = invoke("add", "test.avro", input=test_make(invoke, path_join))
-        assert result.exit_code == 0
+        assert result.exit_code == 0, result.output
         with open("test.avro", "rb") as f:
             assert len(list(reader(f))) == 38
 
 
 def test_show(invoke, test_avro):
     result = invoke("show", input=test_avro)
-    assert result.exit_code == 0
+    assert result.exit_code == 0, result.output
     assert len(result.output.splitlines()) == 36
 
     result = invoke("show", "-n", "1", input=test_avro)
-    assert result.exit_code == 0
+    assert result.exit_code == 0, result.output
     result = json.loads(result.output)
     result["object"].pop("md5sum")  # mute truffles
     assert result == {
@@ -185,21 +185,21 @@ def test_show(invoke, test_avro):
     }
 
     result = invoke("show", "nodes", input=test_avro)
-    assert result.exit_code == 0
+    assert result.exit_code == 0, result.output
     assert len(result.output.splitlines()) == 40
     assert "submitted_aligned_reads" in result.output.splitlines()
 
     result = invoke("show", "schema", input=test_avro)
-    assert result.exit_code == 0
+    assert result.exit_code == 0, result.output
 
     result = invoke("show", "schema", "sample", input=test_avro)
-    assert result.exit_code == 0
+    assert result.exit_code == 0, result.output
 
     result = invoke("show", "metadata", input=test_avro)
-    assert result.exit_code == 0
+    assert result.exit_code == 0, result.output
 
     result = invoke("show", "metadata", "sample", input=test_avro)
-    assert result.exit_code == 0
+    assert result.exit_code == 0, result.output
 
 
 def test_rename_node(runner, invoke, test_avro):
@@ -213,7 +213,7 @@ def test_rename_node(runner, invoke, test_avro):
             "outcome2",
             input=test_avro,
         )
-        assert result.exit_code == 0
+        assert result.exit_code == 0, result.output
         with open("output.avro", "rb") as f:
             r = reader(f)
             _test_schema(r)
