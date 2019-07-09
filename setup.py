@@ -36,7 +36,17 @@ setup(
     url="https://github.com/uc-cdis/pypfb",
     packages=find_packages(),
     zip_safe=False,
-    entry_points={"console_scripts": ["pfb = pypfb.__main__:main"]},
+    entry_points={
+        "console_scripts": ["pfb = pfb.cli:main"],
+        "pfb.plugins": [
+            "from_gen3dict = pfb.importers.gen3dict [gen3]",
+            "from_json = pfb.importers.json",
+            "to_gremlin = pfb.exporters.gremlin",
+            "show = pfb.commands.show",
+            "add = pfb.commands.add",
+            "rename = pfb.commands.rename",
+        ],
+    },
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",

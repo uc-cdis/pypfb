@@ -1,10 +1,10 @@
 dist: xenial
 language: python
 python:
-- 2.7
-- 3.5
-- 3.6
-- 3.7
+- "2.7"
+- "3.5"
+- "3.6"
+- "3.7"
 matrix:
   allow_failures:
     - python: "3.5"
@@ -18,7 +18,7 @@ install:
 - pipenv install --dev --skip-lock --python `which python`
 - pipenv graph
 script:
-- pipenv run py.test -vv --cov=pypfb --cov-report xml tests
+- pipenv run py.test -vv --cov=pfb --cov-report xml tests
 - pipenv run python th_wrapper.py -w truffles.json -c thog_config.json -g file:///${PWD}/ --check
 after_script:
 - pipenv run python-codacy-coverage -r coverage.xml
