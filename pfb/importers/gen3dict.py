@@ -138,7 +138,7 @@ def _parse_dictionary(d):
             if property_name in ["id", "type"]:
                 continue
 
-            # Need to reorder the property_types so the default value is a part of the first list of enumns as per avro spce
+            # Need to reorder the property_types so the default value is a part of the first list of enums as per avro spec
             if "default" in property_type:
                 if "oneOf" in property_type:
                     default = property_type["default"]
