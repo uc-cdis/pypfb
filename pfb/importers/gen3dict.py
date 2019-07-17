@@ -138,6 +138,15 @@ def _parse_dictionary(d):
             if property_name in ["id", "type"]:
                 continue
 
+            # Need to reorder the property_types so the default value is a part of the first list of enums as per avro spec
+            if "default" in property_type:
+                if "oneOf" in property_type:
+                    default = property_type["default"]
+                    for enum in property_type["oneOf"]:
+                        if default in enum["enum"]:
+                            property_type["oneOf"].insert(0, property_type["oneOf"].pop(property_type["oneOf"].index(enum)))
+                            break
+
             avro_type = _get_avro_type(property_name, property_type, record_name)
 
             # "None" represent an unsupported type in dictionary
