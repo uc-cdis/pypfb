@@ -181,6 +181,10 @@ def _parse_dictionary(d):
                 elif avro_type == "string":
                     t["default"] = ""
                 else:
+                    # if theres no default and null is not the first type then we need to fix order per avro spec
+                    if isinstance(avro_type, list) and avro_type[0] != "null":
+                        avro_type.insert(0, avro_type.pop(avro_type.index("null")))
+                        t["type"] = avro_type
                     t["default"] = None
 
                 types.append(t)
