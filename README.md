@@ -60,6 +60,16 @@ pipenv install
       nodes     Show all the node names in the PFB file.
       schema    Show the schema of the PFB file.
 
+    Examples:
+      schema:
+        pfb show -i data.avro schema
+      nodes:
+        pfb show -i data.avro nodes
+      metadata:
+        pfb show -i data.avro metadata
+      records:
+        pfb show -i data.avro -n 5
+
 ### Convert Gen3 data dictionary into PFB schema
 
     Usage: pfb from [PARENT OPTIONS] dict DICTIONARY
@@ -71,6 +81,12 @@ pipenv install
 
     Parent Options:
       -o, --output FILENAME  The output PFB file.  [default: <stdout>]
+
+    Examples:
+      URL:
+        pfb from -o thing.avro dict https://s3.amazonaws.com/dictionary-artifacts/gtexdictionary/3.2.2/schema.json
+      Directory:
+        pfb from -o gdc.avro dict /path/to/dictionary/schemas/
 
 ### Convert JSON for corresponding datadictionary to PFB
 
@@ -86,6 +102,9 @@ pipenv install
       --program TEXT         Name of the program.  [required]
       --project TEXT         Name of the project.  [required]
 
+    Example:
+      pfb from -o data.avro json -s schema.avro --program DEV --project test /path/to/data/json/
+
 ### Make new blank record
 
     Usage: pfb make [OPTIONS] NAME
@@ -95,6 +114,9 @@ pipenv install
     Options:
       -i, --input PFB  Read schema from this PFB file.  [default: <stdin>]
 
+    Example:
+      pfb make -i test.avro demographic > empty_demographic.json
+
 ### Add new record to PFB
 
     Usage: pfb add [OPTIONS] PFB
@@ -103,6 +125,9 @@ pipenv install
 
     Options:
       -i, --input JSON  The JSON file to add.  [default: <stdin>]
+
+    Example:
+      pfb add -i new_record.json pfb.avro 
 
 ### Rename different parts of PFB (schema evolution)
 
@@ -118,6 +143,12 @@ pipenv install
       enum  Rename enum.
       node  Rename node.
       type  Rename type (not implemented).
+
+    Examples:
+      enum:
+        pfb rename -i data.avro -o data_enum.avro enum demographic_ethnicity old_enum new_enum
+      node:
+        pfb rename -i data.avro -o data_update.avro node demographic information
 
 ### Rename node
 
@@ -141,6 +172,9 @@ pipenv install
 
     Options:
       --gzip / --no-gzip  Whether gzip the output.  [default: yes]
+
+    Example:
+      pfb to -i data.avro gremlin
 
 
 ## Examples
