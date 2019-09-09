@@ -2,10 +2,6 @@
 
 Python SDK to create, explore and modify PFB (Portable Format for Biomedical Data) files.
 
-## PFB Schema
-
-[![metadata][1]][1]
-
 ## Installation
 
 * From PyPI:
@@ -158,6 +154,3 @@ pipenv install
     cat tests/pfb-data/test.avro | pfb show --schema | jq
 
     cat tests/pfb-data/test.avro | pfb to gremlin ./output/
-
-
-  [1]: ./doc/metadata.svg
