@@ -2,6 +2,7 @@
 
 Python SDK to create, explore and modify PFB (Portable Format for Biomedical Data) files.
 
+
 ## PyPFB Overview
 
 PyPFB is a python sdk to create, explore, and modify PFB (Portable Format for Bioinformatics) files.
@@ -205,6 +206,3 @@ pipenv install
     cat tests/pfb-data/test.avro | pfb show --schema | jq
 
     cat tests/pfb-data/test.avro | pfb to gremlin ./output/
-
-
-  [1]: ./doc/metadata.svg
