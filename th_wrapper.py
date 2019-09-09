@@ -61,6 +61,7 @@ DEFAULT_CONFIG = {
         "truffles.json",
         "tests/pfb-data/test.avro",
         "tests/schema/kf.avro",
+        "examples/*"
     ] + glob.glob("tests/data/*"),
     "regexRules": {
         "Slack Token": "(xox[p|b|o|a]-[0-9]{12}-[0-9]{12}-[0-9]{12}-[a-z0-9]{32})",
