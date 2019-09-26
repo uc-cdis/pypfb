@@ -6,7 +6,7 @@ import shutil
 
 from fastavro import reader
 
-from pfb.base import b64_decode, b64_encode
+from pfb.base import decode_enum, encode_enum
 
 
 def _test_schema(r):
@@ -14,11 +14,11 @@ def _test_schema(r):
         if node["name"] == "experiment_metadata":
             for field in node["fields"]:
                 if field["name"] == "state":
-                    assert b64_decode(field["default"]) == "validated"
+                    assert decode_enum(field["default"]) == "validated"
                     for type_ in field["type"]:
                         if isinstance(type_, dict) and type_["type"] == "enum":
                             for symbol in type_["symbols"]:
-                                b64_decode(symbol)
+                                decode_enum(symbol)
 
 
 def test_from_dict(runner, invoke):
@@ -63,10 +63,10 @@ def test_from_json(runner, invoke, path_join):
                 if record["name"] == "submitted_aligned_reads":
                     obj = record["object"]
                     if "soixantine_counterimpulse" in obj["submitter_id"]:
-                        assert b64_decode(obj["state"]) == "validated"
-                        assert b64_decode(obj["data_type"]) == "Aligned Reads"
-                        assert b64_decode(obj["data_category"]) == "Sequencing Reads"
-                        assert b64_decode(obj["file_state"]) == "registered"
+                        assert decode_enum(obj["state"]) == "validated"
+                        assert decode_enum(obj["data_type"]) == "Aligned Reads"
+                        assert decode_enum(obj["data_category"]) == "Sequencing Reads"
+                        assert decode_enum(obj["file_state"]) == "registered"
                         assert obj["file_format"] == "thumb_cotranspire"
                         assert obj["file_name"] == "virtuosi_conticent"
 
@@ -250,7 +250,7 @@ def test_rename_enum(runner, invoke, test_avro):
             input=test_avro,
         )
         assert result.exit_code == 0, result.output
-        new = b64_encode("validated2")
+        new = encode_enum("validated2")
         with open("output.avro", "rb") as f:
             r = reader(f)
             found = False
