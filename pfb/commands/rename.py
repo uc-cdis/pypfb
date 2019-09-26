@@ -41,7 +41,7 @@ def node_command(ctx, old, new):
     try:
         with ctx.obj["reader"] as reader, ctx.obj["writer"] as writer:
             writer.copy_schema(reader)
-            writer.prepare_base64_cache()
+            writer.prepare_encode_cache()
             writer.rename_node(old.encode("utf-8"), new.encode("utf-8"))
             writer.write(reader)
     except Exception:
@@ -69,7 +69,7 @@ def enum_command(ctx, field, old, new):
     try:
         with ctx.obj["reader"] as reader, ctx.obj["writer"] as writer:
             writer.copy_schema(reader)
-            writer.prepare_base64_cache()
+            writer.prepare_encode_cache()
             writer.rename_enum(field, old.encode("utf-8"), new.encode("utf-8"))
             writer.write(reader)
     except Exception:

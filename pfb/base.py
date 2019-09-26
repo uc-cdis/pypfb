@@ -1,6 +1,8 @@
-import base64
+# -*- coding: utf-8 -*-
+
 import sys
 import uuid
+import re
 from collections import deque
 
 if sys.version_info[0] == 3:
@@ -25,13 +27,31 @@ def str_hook(obj):
         for k, v in obj
     }
 
+def unicode_encode(matchobj):
+    unicodeRep = str(hex(ord(matchobj.group(0))))[2:]
+    return "_" + unicodeRep + "_"
 
-def b64_encode(raw_value):
-    return base64.b64encode(raw_value).rstrip("=")
+def unicode_decode(matchobj):
+    unicodeRep = matchobj.group(0)
+    unicodeRep = unicodeRep.strip("_")
 
+    if len(unicodeRep) == 2:
+        unicodeRep = "\\u00"+ unicodeRep
+    elif len(unicodeRep) == 3:
+        unicodeRep = "\\u0"+ unicodeRep
+    else:
+        unicodeRep = "\\u" + unicodeRep
 
-def b64_decode(encoded_value):
-    return base64.b64decode(encoded_value + "=" * (-len(encoded_value) % 4))
+    unicodeRep = unicodeRep.encode().decode("unicode_escape")
+    return unicodeRep
+
+def encode_enum(enumValue):
+    encodedValue = re.sub("[^A-Za-z0-9']", unicode_encode, enumValue, flags=re.UNICODE)
+    return encodedValue
+
+def decode_enum(enumValue):
+    decodedValue = re.sub("_[a-z0-9]+_", unicode_decode, enumValue, flags=re.UNICODE)
+    return decodedValue
 
 
 def is_enum(data_type):
@@ -44,9 +64,8 @@ def is_enum(data_type):
             return True
     return False
 
-
-def handle_schema_field_b64(field, encode=True):
-    method = b64_encode if encode else b64_decode
+def handle_schema_field_unicode(field, encode=True):
+    method = encode_enum if encode else decode_enum
     is_enum_ = False
     stack = deque([field["type"]])
     while stack:
@@ -74,7 +93,7 @@ class PFBBase(object):
 
     def __init__(self, file_or_path):
         self._file_or_path = file_or_path
-        self._is_base64 = None
+        self._is_encode = None
         self._schema = None
         self._metadata = None
 
@@ -111,17 +130,17 @@ class PFBBase(object):
     def set_metadata(self, metadata):
         self._metadata = metadata
 
-    def prepare_base64_cache(self):
-        if self._is_base64 is None:
-            self._is_base64 = {}
+    def prepare_encode_cache(self):
+        if self._is_encode is None:
+            self._is_encode = {}
             for node in self._schema:
-                self._is_base64[node["name"]] = fields = {}
+                self._is_encode[node["name"]] = fields = {}
                 for field in node["fields"]:
                     fields[field["name"]] = is_enum(field["type"])
 
-    def is_base64(self, node_name, field_name):
-        self.prepare_base64_cache()
-        return self._is_base64[node_name].get(field_name, False)
+    def is_encode(self, node_name, field_name):
+        self.prepare_encode_cache()
+        return self._is_encode[node_name].get(field_name, False)
 
     def make_empty_record(self, node_name):
         values = {}
