@@ -68,10 +68,6 @@ enum Multiplicity {
 
 #### Enum
 
-Draft implementation: currently all enums is encoded in `base64`.
-
-##### Future implementation:
-
 Because Avro can't store anything except alphanumeric and `_` symbols, all enums are encoded in such a way, that all other symbols is being encoded with codepoint wrapped in single underscores. For example `bpm > 60` will be encoded in: `bpm_32__62__32_60`, so space ` ` is encoded as `_32_` and greater sign `>` into `_62_`. Same for Unicode characters: `ä` - `_228_`, `ü` - `_252_`.
 
 ## Example
