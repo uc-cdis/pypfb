@@ -2,7 +2,7 @@ from copy import deepcopy
 
 from fastavro import writer
 
-from .base import PFBBase, b64_encode, avro_record, handle_schema_field_b64
+from .base import PFBBase, encode_enum, avro_record, handle_schema_field_unicode
 
 
 # def add(pfbFile, parField, newField, newFieldType, newFieldDefault):
@@ -80,7 +80,7 @@ def make_avro_schema(schema):
         node = deepcopy(node)
         encoded_schema.append(node)
         for field in node["fields"]:
-            handle_schema_field_b64(field, encode=True)
+            handle_schema_field_unicode(field, encode=True)
 
     return {
         "type": "record",
@@ -232,8 +232,8 @@ class PFBWriter(PFBBase):
 
                     to_update = {}
                     for field, value in obj.iteritems():
-                        if value and self.is_base64(name, field):
-                            obj[field] = b64_encode(value)
+                        if value and self.is_encode(name, field):
+                            obj[field] = encode_enum(value)
                     obj.update(to_update)
                     yield record
 

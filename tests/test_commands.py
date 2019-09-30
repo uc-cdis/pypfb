@@ -1,12 +1,13 @@
 import csv
 import gzip
 import json
+import yaml
 import os
 import shutil
 
 from fastavro import reader
 
-from pfb.base import b64_decode, b64_encode
+from pfb.base import decode_enum, encode_enum, str_hook
 
 
 def _test_schema(r):
@@ -14,11 +15,11 @@ def _test_schema(r):
         if node["name"] == "experiment_metadata":
             for field in node["fields"]:
                 if field["name"] == "state":
-                    assert b64_decode(field["default"]) == "validated"
+                    assert decode_enum(field["default"]) == "validated"
                     for type_ in field["type"]:
                         if isinstance(type_, dict) and type_["type"] == "enum":
                             for symbol in type_["symbols"]:
-                                b64_decode(symbol)
+                                decode_enum(symbol)
 
 
 def test_from_dict(runner, invoke):
@@ -63,10 +64,10 @@ def test_from_json(runner, invoke, path_join):
                 if record["name"] == "submitted_aligned_reads":
                     obj = record["object"]
                     if "soixantine_counterimpulse" in obj["submitter_id"]:
-                        assert b64_decode(obj["state"]) == "validated"
-                        assert b64_decode(obj["data_type"]) == "Aligned Reads"
-                        assert b64_decode(obj["data_category"]) == "Sequencing Reads"
-                        assert b64_decode(obj["file_state"]) == "registered"
+                        assert decode_enum(obj["state"]) == "validated"
+                        assert decode_enum(obj["data_type"]) == "Aligned Reads"
+                        assert decode_enum(obj["data_category"]) == "Sequencing Reads"
+                        assert decode_enum(obj["file_state"]) == "registered"
                         assert obj["file_format"] == "thumb_cotranspire"
                         assert obj["file_name"] == "virtuosi_conticent"
 
@@ -99,8 +100,9 @@ def test_to_gremlin(runner, invoke, path_join, test_avro):
 def test_make(invoke, path_join):
     result = invoke("make", "-i", path_join("schema", "kf.avro"), "sample")
     assert result.exit_code == 0, result.output
-    record = json.loads(result.output)
+    record = json.loads(result.output, object_pairs_hook=str_hook)
     record.pop("id")
+    print(record)
     assert record == {
         "relations": [],
         "object": {
@@ -111,7 +113,7 @@ def test_make(invoke, path_join):
             "created_datetime": "",
             "tumor_descriptor": 'Metastatic',
             "biospecimen_anatomic_site": 'Abdomen',
-            "state": 'validated',
+            "state": 'uploading',
             "diagnosis_pathologically_confirmed": 'Yes',
             "project_id": "",
             "current_weight": 0,
@@ -155,33 +157,28 @@ def test_show(invoke, test_avro):
 
     result = invoke("show", "-n", "1", input=test_avro)
     assert result.exit_code == 0, result.output
-    result = json.loads(result.output)
-    result["object"].pop("md5sum")  # mute truffles
+    result = json.loads(result.output, object_pairs_hook=str_hook)
+    # result["object"].pop("md5sum")  # mute truffles
+    print(json.dumps(result))
     assert result == {
         "object": {
-            "data_format": "BAM",
-            "error_type": None,
-            "data_type": "Aligned Reads",
+            "cause_of_death": "Not Reported",
             "updated_datetime": None,
             "created_datetime": None,
-            "file_name": "virtuosi_conticent",
-            "file_url": "docility_cryophile",
-            "file_format": "thumb_cotranspire",
-            "object_id": None,
-            "submitter_id": "submitted_aligned_reads_soixantine_counterimpulse",
+            "gender": "female",
+            "submitter_id": "demographic_duteousness_unassailing",
             "state": "validated",
-            "data_category": "Sequencing Reads",
-            "file_size": 54,
+            "race": "Native Hawaiian or Other Pacific Islander",
+            "age_at_last_follow_up_days": 18074,
+            "vital_status": "Dead",
             "project_id": "DEV-test",
-            "state_comment": None,
-            "file_state": "registered",
-            "experimental_strategy": "miRNA-Seq",
+            "ethnicity": "not hispanic or latino"
         },
-        "id": "submitted_aligned_reads_soixantine_counterimpulse",
+        "id": "demographic_duteousness_unassailing",
         "relations": [
-            {"dst_id": "read_group_ethnicon_fordless", "dst_name": "read_group"}
+            {"dst_id": "participant_metalinguistics_monofilm","dst_name": "participant"}
         ],
-        "name": "submitted_aligned_reads",
+        "name": "demographic"
     }
 
     result = invoke("show", "nodes", input=test_avro)
@@ -250,7 +247,7 @@ def test_rename_enum(runner, invoke, test_avro):
             input=test_avro,
         )
         assert result.exit_code == 0, result.output
-        new = b64_encode("validated2")
+        new = encode_enum("validated2")
         with open("output.avro", "rb") as f:
             r = reader(f)
             found = False
