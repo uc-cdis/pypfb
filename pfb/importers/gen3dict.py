@@ -33,6 +33,8 @@ def _from_dict(writer, url_or_path):
     click.secho("Loading dictionary: {}".format(url_or_path), fg="cyan", err=True)
     if url_or_path.lower().startswith("http"):
         d = DataDictionary(url=url_or_path)
+    elif url_or_path.lower().endswith(".json"):
+        d = DataDictionary(local_file=str(url_or_path))
     else:
         d = DataDictionary(root_dir=url_or_path)
     dictionary.init(d)

@@ -70,5 +70,5 @@ setup(
         "python-json-logger~=0.1",
         "PyYAML~=5.1",
     ],
-    extras_require=dict(gen3=["dictionaryutils>=2.0.8,<3.0"]),
+    extras_require=dict(gen3=["dictionaryutils>=2.0.9,<3.0"]),
 )
