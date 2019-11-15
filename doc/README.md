@@ -68,7 +68,7 @@ enum Multiplicity {
 
 #### Enum
 
-Because Avro can't store anything except alphanumeric and `_` symbols, all enums are encoded in such a way, that all other symbols is being encoded with codepoint wrapped in single underscores. For example `bpm > 60` will be encoded in: `bpm_32__62__32_60`, so space ` ` is encoded as `_32_` and greater sign `>` into `_62_`. Same for Unicode characters: `ä` - `_228_`, `ü` - `_252_`.
+Because Avro can't store anything except alphanumeric and `_` symbols, all enums are encoded in such a way, that all other symbols is being encoded with codepoint wrapped in single underscores. For example `bpm > 60` will be encoded in: `bpm_32__62__32_60`, so space ` ` is encoded as `_32_` and greater sign `>` into `_62_`. Same for Unicode characters: `ä` - `_228_`, `ü` - `_252_`. The Avro schema also doesn't allow for the first character to be a number. So we encode the first character in the way if the character happens to be a number.
 
 ## Example
 
