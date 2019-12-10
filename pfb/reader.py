@@ -34,7 +34,7 @@ class PFBReader(PFBBase):
         rv = next(self._reader)
         obj = rv["object"]
         to_update = {}
-        for name, value in obj.iteritems():
+        for name, value in list(obj.items()):
             if value and self.is_encode(rv["name"], name):
                 to_update[name] = decode_enum(value)
         obj.update(to_update)

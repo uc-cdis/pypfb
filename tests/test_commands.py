@@ -33,7 +33,7 @@ def test_from_dict(runner, invoke):
         )
         assert result.exit_code == 0, result.output
 
-        with open("output.avro") as f:
+        with open("output.avro", "rb") as f:
             r = reader(f)
             _test_schema(r)
             assert len(list(r)) == 1
@@ -55,7 +55,7 @@ def test_from_json(runner, invoke, path_join):
             "test",
         )
         assert result.exit_code == 0, result.output
-        with open("output.avro") as f:
+        with open("output.avro", "rb") as f:
             r = reader(f)
             _test_schema(r)
             data = list(r)
@@ -76,11 +76,12 @@ def test_to_gremlin(runner, invoke, path_join, test_avro):
     with runner.isolated_filesystem():
         result = invoke("to", "gremlin", "./output", input=test_avro)
         assert result.exit_code == 0, result.output
-        with gzip.open(os.path.join("output", "demographic.csv.gz")) as f:
+        with gzip.open(os.path.join("output", "demographic.csv.gz"), "rt") as f:
             result = list(csv.DictReader(f))
             assert len(result) == 1
             result = result[0]
             result.pop("~id")
+            result = dict(result)
             assert result == {
                 "ethnicity:String": "not hispanic or latino",
                 "age_at_last_follow_up_days:Long": "18074",

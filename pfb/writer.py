@@ -231,7 +231,7 @@ class PFBWriter(PFBBase):
                         record = hook(record)
 
                     to_update = {}
-                    for field, value in obj.iteritems():
+                    for field, value in list(obj.items()):
                         if value and self.is_encode(name, field):
                             obj[field] = encode_enum(value)
                     obj.update(to_update)
@@ -240,6 +240,10 @@ class PFBWriter(PFBBase):
         writer(self._file_obj, make_avro_schema(self.schema), _iter())
 
     def rename_node(self, name_from, name_to):
+        if type(name_from) == bytes:
+            name_from = name_from.decode()
+        if type(name_to) == bytes:
+            name_to = name_to.decode()
         for node in self.schema:
             if node["name"] == name_from:
                 node["aliases"] = node.get("aliases", []) + [name_from]
@@ -258,6 +262,10 @@ class PFBWriter(PFBBase):
         self._hooks.append(_rename_node)
 
     def rename_enum(self, field_name, val_from, val_to):
+        if type(val_from) == bytes:
+            val_from = val_from.decode()
+        if type(val_to) == bytes:
+            val_to = val_to.decode()
         renamed = set()
         for node in self.schema:
             for field in node["fields"]:

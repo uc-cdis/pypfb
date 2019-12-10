@@ -57,7 +57,7 @@ def _from_dict(writer, url_or_path):
 def _get_ontology_references(ontology_references, all_links):
     nodes_json = []
 
-    for node_name, node_value in ontology_references.iteritems():
+    for node_name, node_value in list(ontology_references.items()):
         properties = _get_ontologies_from_node(node_value)
         links = _get_links_for_node(all_links[node_name])
 
@@ -102,7 +102,7 @@ def _get_links_for_node(node_links):
 
 def _get_ontologies_from_node(node_value):
     properties = []
-    for property_name, property_value in node_value.iteritems():
+    for property_name, property_value in list(node_value.items()):
         ontology_reference = property_value.get("term", None)
 
         # set ontology reference to empty string if "term" is already "None"
@@ -116,7 +116,7 @@ def _get_ontologies_from_node(node_value):
             "ontology_reference": ontology_reference,
             "values": {
                 k: str(v)
-                for k, v in property_value.iteritems()
+                for k, v in list(property_value.items())
                 if k not in ["term"] and v is not None
             },
         }
@@ -131,12 +131,12 @@ def _parse_dictionary(d):
     ontology_references = {}
     links = {}
 
-    for record_name, record_types in d.schema.iteritems():
+    for record_name, record_types in list(d.schema.items()):
         types = []
         ontology_references_for_record = {}
         properties = record_types["properties"]
 
-        for property_name, property_type in properties.iteritems():
+        for property_name, property_type in list(properties.items()):
             if property_name in ["id", "type"]:
                 continue
 

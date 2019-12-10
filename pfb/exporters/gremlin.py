@@ -12,6 +12,7 @@ TYPE_MAPPING = dict(
     enum="String",
     integer="Long",
     long="Long",
+    int="Long",
     md5sum="String",
     float="Double",
     number="Double",
@@ -41,7 +42,7 @@ def to_gremlin(ctx, output, gzipped):
         click.secho("Failed!", fg="red", bold=True, err=True)
         raise
     finally:
-        for f, w in handlers_by_name.itervalues():
+        for f, w in list(handlers_by_name.values()):
             f.close()
     click.secho(
         "Done, created %d files under: " % num_files,
@@ -69,7 +70,7 @@ def _to_gremlin(reader, dir_path, gzipped, handlers_by_name):
         open_func = gzip.open
     click.secho("Creating ", fg="blue", err=True, nl=False)
     click.secho(path, fg="white", err=True)
-    f = open_func(path, "wb")
+    f = open_func(path, "wt")
     edge_writer = csv.writer(f)
     edge_writer.writerow(["~id", "~from", "~to", "~label"])
     handlers_by_name["~edges"] = f, edge_writer
@@ -92,7 +93,7 @@ def _to_gremlin(reader, dir_path, gzipped, handlers_by_name):
                 path += ".gz"
             click.secho("Creating ", fg="blue", err=True, nl=False)
             click.secho(path, fg="white", err=True)
-            f = open_func(path, "wb")
+            f = open_func(path, "wt")
             num_files += 1
             w = csv.writer(f)
             w.writerow(header_row)
@@ -139,7 +140,7 @@ def _make_header_row(fields):
             for field_type in avro_type:
                 if field_type != "null":
                     break
-        if isinstance(field_type, (str, unicode)):
+        if isinstance(field_type, str):
             field_type = TYPE_MAPPING[field_type]
         else:
             # structural types are simply treated as string
