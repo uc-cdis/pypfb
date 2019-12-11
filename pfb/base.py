@@ -17,7 +17,9 @@ else:
 # TODO: remove in Python 3
 def str_hook(obj):
     if PY3:
-        return obj
+        return {
+            k: v for k, v in obj
+        }
     return {
         k.encode("utf-8")
         if isinstance(k, unicode)

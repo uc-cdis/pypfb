@@ -66,9 +66,12 @@ setup(
     ],
     install_requires=[
         "click~=7.0",
-        "fastavro~=0.21",
+        "fastavro>=0.21",
         "python-json-logger~=0.1",
         "PyYAML~=5.1",
+        "dictionaryutils>=3.0",
+        "gdcdictionary>=1.2.0",
     ],
-    extras_require=dict(gen3=["dictionaryutils>=2.0.9,<3.0"]),
+    extras_require=dict(gen3=[
+    ]),
 )
