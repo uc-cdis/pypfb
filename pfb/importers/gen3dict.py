@@ -174,6 +174,9 @@ def _parse_dictionary(d):
 
                 t = {"name": property_name, "type": avro_type}
 
+                if "description" in property_type:
+                    t["doc"] = property_type["description"]
+
                 # if property_name in ['error_type', 'availability_type']:
                 #     t['type'] = ['null', avro_type]
                 #     t['default'] = None
