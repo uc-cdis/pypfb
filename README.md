@@ -206,3 +206,6 @@ pipenv install
     cat tests/pfb-data/test.avro | pfb show --schema | jq
 
     cat tests/pfb-data/test.avro | pfb to gremlin ./output/
+
+
+  [1]: ./doc/schema.svg
