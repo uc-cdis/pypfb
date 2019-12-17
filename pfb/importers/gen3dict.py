@@ -58,13 +58,17 @@ def _get_ontology_references(ontology_references, all_links):
     nodes_json = []
 
     for node_name, node_value in list(ontology_references.items()):
-        properties = _get_ontologies_from_node(node_value)
+        properties, nodeRef = _get_ontologies_from_node(node_value)
         links = _get_links_for_node(all_links[node_name])
 
+        if nodeRef and "termDef" in nodeRef:
+            val = nodeRef["termDef"]
+        else:
+            val = {}
         node_json = {
             "name": node_name,
             "ontology_reference": "",
-            "values": {},
+            "values": val,
             "links": links,
             "properties": properties,
         }
@@ -102,7 +106,7 @@ def _get_links_for_node(node_links):
 
 def _get_ontologies_from_node(node_value):
     properties = []
-    for property_name, property_value in list(node_value.items()):
+    for property_name, property_value in list(node_value[0].items()):
         ontology_reference = property_value.get("term", None)
 
         # set ontology reference to empty string if "term" is already "None"
@@ -123,7 +127,8 @@ def _get_ontologies_from_node(node_value):
 
         properties.append(property_json)
 
-    return properties
+
+    return properties, node_value[1]
 
 
 def _parse_dictionary(d):
@@ -134,6 +139,15 @@ def _parse_dictionary(d):
     for record_name, record_types in list(d.schema.items()):
         types = []
         ontology_references_for_record = {}
+
+        # print(record_types)
+
+        if "term" in record_types:
+            nodeRef = record_types["term"]
+            print("HEY THIS IS NODES", nodeRef)
+        else:
+            nodeRef = {}
+
         properties = record_types["properties"]
 
         for property_name, property_type in list(properties.items()):
@@ -207,8 +221,10 @@ def _parse_dictionary(d):
         if "links" in record_types:
             links[record_name] = record_types["links"]
 
-        ontology_references[record_name] = ontology_references_for_record
-
+        if nodeRef:
+            ontology_references[record_name] = (ontology_references_for_record, nodeRef)
+        else:
+            ontology_references[record_name] = (ontology_references_for_record, {})
     return records, ontology_references, links
 
 
