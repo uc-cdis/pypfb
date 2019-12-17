@@ -140,11 +140,8 @@ def _parse_dictionary(d):
         types = []
         ontology_references_for_record = {}
 
-        # print(record_types)
-
         if "term" in record_types:
             nodeRef = record_types["term"]
-            print("HEY THIS IS NODES", nodeRef)
         else:
             nodeRef = {}
 
