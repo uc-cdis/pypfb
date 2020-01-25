@@ -1,0 +1,8 @@
+doc/*
+tests/*
+.travis.yml
+CHANGELOG.md
+LICENSE
+NOTICE
+pull_request_template.md
+README.md
