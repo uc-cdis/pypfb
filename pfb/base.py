@@ -48,11 +48,19 @@ def unicode_decode(matchobj):
     return unicodeRep
 
 def encode_enum(enumValue):
-    encodedValue = re.sub("^[0-9]|[^A-Za-z0-9]", unicode_encode, enumValue, flags=re.UNICODE)
+    try:
+        encodedValue = re.sub("^[0-9]|[^A-Za-z0-9]", unicode_encode, enumValue, flags=re.UNICODE)
+    except:
+        encodedValue = enumValue
+        #print("problem with encode")
     return encodedValue
 
 def decode_enum(enumValue):
-    decodedValue = re.sub("_[a-z0-9]+_", unicode_decode, enumValue, flags=re.UNICODE)
+    try:
+        decodedValue = re.sub("_[a-z0-9]+_", unicode_decode, enumValue, flags=re.UNICODE)
+    except:
+        decodedValue = enumValue
+        #print("problem with decode")
     return decodedValue
 
 
