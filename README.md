@@ -207,9 +207,44 @@ pipenv install
 
     cat tests/pfb-data/test.avro | pfb to gremlin ./output/
 
+    # Brian's examples
+    # create a new avro file based on minimal_file.json
+
     pfb from -o minimal_file.avro dict minimal_file.json
 
+    # create an example record
+
+    pfb make -i minimal_file.avro submitted_aligned_reads > sample_file_json/example_submitted_aligned_reads.json
+
+    # edit this to be the following
+    {
+       "id" : "7d9dd25c-2b9a-43cc-8b95-db1f8d6fe1dc",
+       "name" : "submitted_aligned_reads",
+       "submitter_id" : "HG01101_cram",
+       "object" : {
+          "created_datetime" : "2020-01-27T14:32:19.373454+00:00",
+          "error_type" : "file_size",
+          "file_format" : "BAM",
+          "file_name" : "foo.bam",
+          "file_size" : 512,
+          "file_state" : "registered",
+          "md5sum" : "bdf121aadba028d57808101cb4455fa7",
+          "object_id" : "dg.4503/cc32d93d-a73c-4d2c-a061-26c0410e74fa",
+          "project_id" : "tutorial-synthetic_data_set_1",
+          "state" : "uploading",
+          "submitter_id" : "HG01101_cram",
+          "updated_datetime" : "2020-01-27T14:32:19.373454+00:00"
+       }
+    }
+
+    # I had to add submitter_id at the top here for some reason!?
+
+    # now import the example
+
     pfb from -o minimal_file_data.avro json -s minimal_file.avro --program DEV --project test sample_file_json/
+
+    # this fails...
+    KeyError: 'example_submitted_aligned_reads'
 
 
   [1]: ./doc/schema.svg
