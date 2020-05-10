@@ -150,6 +150,7 @@ class PFBBase(object):
 
     def is_encode(self, node_name, field_name):
         self.prepare_encode_cache()
+        print("NODE NAME: "+node_name+" "+field_name)
         return self._is_encode[node_name].get(field_name, False)
 
     def make_empty_record(self, node_name):

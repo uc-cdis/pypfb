@@ -1,0 +1,29 @@
+[
+   {
+      "id" : "0273a22d-d067-4fb9-ab2e-2271e1e6d671",
+      "name" : "submitted_aligned_reads",
+      "object" : {
+         "created_datetime" : "2020-01-27T14:32:19.373454+00:00",
+         "data_category" : "Sequencing Data",
+         "data_format" : "CRAM",
+         "data_type" : "Aligned Reads",
+         "error_type" : null,
+         "experimental_strategy" : "WGS",
+         "file_name" : "HG01101.final.cram",
+         "file_size" : 17262697572,
+         "file_state" : "registered",
+         "md5sum" : "bdf121aadba028d57808101cb4455fa7",
+         "object_id" : "dg.4503/cc32d93d-a73c-4d2c-a061-26c0410e74fa",
+         "project_id" : "tutorial-synthetic_data_set_1",
+         "state" : "validated",
+         "submitter_id" : "HG01101_cram",
+         "updated_datetime" : "2020-01-27T14:32:19.373454+00:00"
+      },
+      "relations" : [
+         {
+            "dst_id" : "deb00ae7-aa16-419b-8c9b-f857fb9cb270",
+            "dst_name" : "read_group"
+         }
+      ]
+   }
+]

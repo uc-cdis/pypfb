@@ -80,6 +80,7 @@ def _from_json(metadata, path, program, project):
 
 def _convert_json(node_name, json_record, program, project, link_dests):
     relations = []
+    print(json_record)
     try:
         node_id = json_record["submitter_id"]
     except KeyError:

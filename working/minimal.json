@@ -1,0 +1,503 @@
+{
+  "_definitions.yaml" : {
+     "UUID" : {
+        "pattern" : "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$",
+        "term" : {
+           "$ref" : "_terms.yaml#/UUID"
+        },
+        "type" : "string"
+     },
+     "data_bundle_state" : {
+        "default" : "submitted",
+        "description" : "State of a data bundle.",
+        "enum" : [
+           "submitted",
+           "validated",
+           "error",
+           "released",
+           "suppressed",
+           "redacted"
+        ]
+     },
+     "data_file_error_type" : {
+        "enum" : [
+           "file_size",
+           "file_format",
+           "md5sum"
+        ],
+        "term" : {
+           "$ref" : "_terms.yaml#/data_file_error_type"
+        }
+     },
+     "data_file_properties" : {
+        "$ref" : "#/ubiquitous_properties",
+        "error_type" : {
+           "$ref" : "#/data_file_error_type"
+        },
+        "file_name" : {
+           "$ref" : "#/file_name"
+        },
+        "file_size" : {
+           "$ref" : "#/file_size"
+        },
+        "file_state" : {
+           "$ref" : "#/file_state"
+        },
+        "md5sum" : {
+           "$ref" : "#/md5sum"
+        },
+        "object_id" : {
+           "$ref" : "#/object_id"
+        }
+     },
+     "datetime" : {
+        "oneOf" : [
+           {
+              "format" : "date-time",
+              "type" : "string"
+           },
+           {
+              "type" : "null"
+           }
+        ],
+        "term" : {
+           "$ref" : "_terms.yaml#/datetime"
+        }
+     },
+     "file_format" : {
+        "term" : {
+           "$ref" : "_terms.yaml#/file_format"
+        },
+        "type" : "string"
+     },
+     "file_name" : {
+        "term" : {
+           "$ref" : "_terms.yaml#/file_name"
+        },
+        "type" : "string"
+     },
+     "file_size" : {
+        "term" : {
+           "$ref" : "_terms.yaml#/file_size"
+        },
+        "type" : "integer"
+     },
+     "file_state" : {
+        "default" : "registered",
+        "enum" : [
+           "registered",
+           "uploading",
+           "uploaded",
+           "validating",
+           "validated",
+           "submitted",
+           "processing",
+           "processed",
+           "released",
+           "error"
+        ],
+        "term" : {
+           "$ref" : "_terms.yaml#/file_state"
+        }
+     },
+     "foreign_key" : {
+        "additionalProperties" : true,
+        "properties" : {
+           "id" : {
+              "$ref" : "#/UUID"
+           },
+           "submitter_id" : {
+              "type" : "string"
+           }
+        },
+        "type" : "object"
+     },
+     "foreign_key_project" : {
+        "additionalProperties" : true,
+        "properties" : {
+           "code" : {
+              "type" : "string"
+           },
+           "id" : {
+              "$ref" : "#/UUID"
+           }
+        },
+        "type" : "object"
+     },
+     "id" : "_definitions",
+     "md5sum" : {
+        "pattern" : "^[a-f0-9]{32}$",
+        "term" : {
+           "$ref" : "_terms.yaml#/md5sum"
+        },
+        "type" : "string"
+     },
+     "object_id" : {
+        "description" : "The GUID of the object in the index service.",
+        "type" : "string"
+     },
+     "parent_uuids" : {
+        "items" : {
+           "$ref" : "#/UUID"
+        },
+        "minItems" : 1,
+        "type" : "array",
+        "uniqueItems" : true
+     },
+     "project_id" : {
+        "term" : {
+           "$ref" : "_terms.yaml#/project_id"
+        },
+        "type" : "string"
+     },
+     "qc_metrics_state" : {
+        "enum" : [
+           "FAIL",
+           "PASS",
+           "WARN"
+        ],
+        "term" : {
+           "$ref" : "_terms.yaml#/qc_metric_state"
+        }
+     },
+     "release_state" : {
+        "default" : "unreleased",
+        "description" : "Release state of an entity.",
+        "enum" : [
+           "unreleased",
+           "released",
+           "redacted"
+        ]
+     },
+     "state" : {
+        "default" : "validated",
+        "downloadable" : [
+           "uploaded",
+           "md5summed",
+           "validating",
+           "validated",
+           "error",
+           "invalid",
+           "released"
+        ],
+        "oneOf" : [
+           {
+              "enum" : [
+                 "uploading",
+                 "uploaded",
+                 "md5summing",
+                 "md5summed",
+                 "validating",
+                 "error",
+                 "invalid",
+                 "suppressed",
+                 "redacted",
+                 "live"
+              ]
+           },
+           {
+              "enum" : [
+                 "validated",
+                 "submitted",
+                 "released"
+              ]
+           }
+        ],
+        "public" : [
+           "live"
+        ],
+        "term" : {
+           "$ref" : "_terms.yaml#/state"
+        }
+     },
+     "to_many" : {
+        "anyOf" : [
+           {
+              "items" : {
+                 "$ref" : "#/foreign_key",
+                 "minItems" : 1
+              },
+              "type" : "array"
+           },
+           {
+              "$ref" : "#/foreign_key"
+           }
+        ]
+     },
+     "to_many_project" : {
+        "anyOf" : [
+           {
+              "items" : {
+                 "$ref" : "#/foreign_key_project",
+                 "minItems" : 1
+              },
+              "type" : "array"
+           },
+           {
+              "$ref" : "#/foreign_key_project"
+           }
+        ]
+     },
+     "to_one" : {
+        "anyOf" : [
+           {
+              "items" : {
+                 "$ref" : "#/foreign_key",
+                 "maxItems" : 1,
+                 "minItems" : 1
+              },
+              "type" : "array"
+           },
+           {
+              "$ref" : "#/foreign_key"
+           }
+        ]
+     },
+     "to_one_project" : {
+        "anyOf" : [
+           {
+              "items" : {
+                 "$ref" : "#/foreign_key_project",
+                 "maxItems" : 1,
+                 "minItems" : 1
+              },
+              "type" : "array"
+           },
+           {
+              "$ref" : "#/foreign_key_project"
+           }
+        ]
+     },
+     "ubiquitous_properties" : {
+        "created_datetime" : {
+           "$ref" : "#/datetime"
+        },
+        "id" : {
+           "$ref" : "#/UUID",
+           "systemAlias" : "node_id"
+        },
+        "project_id" : {
+           "$ref" : "#/project_id"
+        },
+        "state" : {
+           "$ref" : "#/state"
+        },
+        "submitter_id" : {
+           "description" : "A project-specific identifier for a node. This property is the calling card/nickname/alias for a unit of submission. It can be used in place of the UUID for identifying or recalling a node.\n",
+           "type" : [
+              "string"
+           ]
+        },
+        "type" : {
+           "type" : "string"
+        },
+        "updated_datetime" : {
+           "$ref" : "#/datetime"
+        }
+     },
+     "workflow_properties" : {
+        "$ref" : "#/ubiquitous_properties",
+        "workflow_end_datetime" : {
+           "$ref" : "#/datetime"
+        },
+        "workflow_link" : {
+           "description" : "Link to Github hash for the CWL workflow used.",
+           "type" : "string"
+        },
+        "workflow_start_datetime" : {
+           "$ref" : "#/datetime"
+        },
+        "workflow_version" : {
+           "description" : "Major version for a GDC workflow.",
+           "type" : "string"
+        }
+     }
+  },
+  "_settings.yaml" : {
+     "_dict_commit" : "41fd097a6ce8c166399b7ab2f27d71e7bf50107a",
+     "_dict_version" : "3.4.6-23-g41fd097",
+     "enable_case_cache" : false
+  },
+  "_terms.yaml" : {
+    "UUID" : {
+       "description" : "A 128-bit identifier. Depending on the mechanism used to generate it, it is either guaranteed to be different from all other UUIDs/GUIDs generated until 3400 AD or extremely likely to be different. Its relatively small size lends itself well to sorting, ordering, and hashing of all sorts, storing in databases, simple allocation, and ease of programming in general.\n",
+       "termDef" : {
+          "cde_id" : "C54100",
+          "cde_version" : null,
+          "source" : "NCIt",
+          "term" : "Universally Unique Identifier",
+          "term_url" : "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&version=16.02d&ns=NCI_Thesaurus&code=C54100"
+       }
+    },
+    "data_file_error_type" : {
+       "description" : "Type of error for the data file object.\n"
+    },
+    "datetime" : {
+       "description" : "A combination of date and time of day in the form [-]CCYY-MM-DDThh:mm:ss[Z|(+|-)hh:mm]\n"
+    },
+    "file_name" : {
+       "description" : "The name (or part of a name) of a file (of any type).\n"
+    },
+    "file_size" : {
+       "description" : "The size of the data file (object) in bytes.\n"
+    },
+    "file_state" : {
+       "description" : "The current state of the data file object.\n"
+    },
+    "file_format" : {
+       "description" : "The file format.\n"
+    },
+    "md5sum" : {
+       "description" : "The 128-bit hash value expressed as a 32 digit hexadecimal number used as a file's digital fingerprint.\n"
+    },
+    "project_id" : {
+       "description" : "Unique ID for any specific defined piece of work that is undertaken or attempted to meet a single requirement.\n"
+    },
+    "qc_metric_state" : {
+       "description" : "State classification given by FASTQC for the metric. Metric specific details about the states are available on their website.\n",
+       "termDef" : {
+          "cde_id" : null,
+          "cde_version" : null,
+          "source" : "FastQC",
+          "term" : "QC Metric State",
+          "term_url" : "http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/3%20Analysis%20Modules/"
+       }
+    },
+    "state" : {
+       "description" : "The current state of the object.\n"
+    },
+    "data_category" : {
+       "description" : "Broad categorization of the contents of the data file.\n"
+    },
+    "data_format" : {
+       "description" : "Format of the data files.\n"
+    },
+    "data_type" : {
+       "description" : "Specific content type of the data file.\n"
+    },
+    "experimental_strategy" : {
+       "description" : "The sequencing strategy used to generate the data file.\n"
+    }
+  },
+  "submitted_aligned_reads.yaml" : {
+     "$schema" : "http://json-schema.org/draft-04/schema#",
+     "additionalProperties" : false,
+     "category" : "data_file",
+     "description" : "Data file containing aligned reads that are used as input to GDC workflows.\n",
+     "id" : "submitted_aligned_reads",
+     "links" : [
+        {
+           "exclusive" : false,
+           "required" : true,
+           "subgroup" : [
+              {
+                 "backref" : "submitted_aligned_reads_files",
+                 "label" : "data_from",
+                 "multiplicity" : "many_to_one",
+                 "name" : "core_metadata_collections",
+                 "required" : false,
+                 "target_type" : "core_metadata_collection"
+              },
+              {
+                 "backref" : "submitted_aligned_reads_files",
+                 "label" : "data_from",
+                 "multiplicity" : "one_to_many",
+                 "name" : "read_groups",
+                 "required" : false,
+                 "target_type" : "read_group"
+              }
+           ]
+        }
+     ],
+     "namespace" : "https://dcp.bionimbus.org/",
+     "program" : "*",
+     "project" : "*",
+     "properties" : {
+        "$ref" : "_definitions.yaml#/data_file_properties",
+        "callset" : {
+           "description" : "Periodically, the TOPMed Informatics Research Center (IRC) performs variant identification and genotype calling on all samples available at a given time and the resulting call set is referred to as a genotype \"Freeze\".\n",
+           "type" : "string"
+        },
+        "core_metadata_collections" : {
+           "$ref" : "_definitions.yaml#/to_many"
+        },
+        "data_category" : {
+           "enum" : [
+              "Sequencing Data",
+              "Sequencing Reads",
+              "Raw Sequencing Data"
+           ],
+           "term" : {
+              "$ref" : "_terms.yaml#/data_category"
+           }
+        },
+        "data_format" : {
+           "enum" : [
+              "BAM",
+              "CRAM"
+           ],
+           "term" : {
+              "$ref" : "_terms.yaml#/data_format"
+           }
+        },
+        "data_type" : {
+           "enum" : [
+              "Aligned Reads"
+           ],
+           "term" : {
+              "$ref" : "_terms.yaml#/data_type"
+           }
+        },
+        "experimental_strategy" : {
+           "enum" : [
+              "WGS",
+              "WXS",
+              "Low Pass WGS",
+              "Validation",
+              "RNA-Seq",
+              "miRNA-Seq",
+              "Total RNA-Seq"
+           ],
+           "term" : {
+              "$ref" : "_terms.yaml#/experimental_strategy"
+           }
+        },
+        "read_groups" : {
+           "$ref" : "_definitions.yaml#/to_many"
+        }
+     },
+     "required" : [
+        "type",
+        "submitter_id",
+        "file_name",
+        "file_size",
+        "data_format",
+        "md5sum",
+        "data_category",
+        "data_type",
+        "experimental_strategy"
+     ],
+     "submittable" : true,
+     "systemProperties" : [
+        "id",
+        "project_id",
+        "created_datetime",
+        "updated_datetime",
+        "state",
+        "file_state",
+        "error_type"
+     ],
+     "title" : "Submitted Aligned Reads",
+     "type" : "object",
+     "uniqueKeys" : [
+        [
+           "id"
+        ],
+        [
+           "project_id",
+           "submitter_id"
+        ]
+     ],
+     "validators" : null
+  }
+}

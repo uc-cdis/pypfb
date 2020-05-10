@@ -1,0 +1,14 @@
+data_file_error_type
+datetime
+file_format
+file_name
+file_size
+file_state
+md5sum
+project_id
+qc_metric_state
+state
+data_category
+data_format
+data_type
+experimental_strategy
