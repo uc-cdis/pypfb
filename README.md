@@ -207,7 +207,7 @@ pipenv install
 
     cat tests/pfb-data/test.avro | pfb to gremlin ./output/
 
-    # Brian's examples
+    # Brian's examples (all done in the working dir)
     # create a new avro file based on minimal_file.json
 
     pfb from -o minimal_file.avro dict minimal_file.json
