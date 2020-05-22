@@ -190,6 +190,21 @@ pipenv install
     Example:
       pfb to -i data.avro gremlin
 
+### Example of minimal PFB
+    In the examples/minimal-pfb directory we have an example of a minimal pfb that only contains submitted unaligned read data
+
+    First create the PFB with schema from the json dictionary
+    pfb from -o minimal_schema.avro dict minimal_file.json
+
+    Then we put the data into the PFB
+    pfb from -o minimal_data.avro json -s minimal_schema.avro --program DEV --project test sample_file_json/
+
+    We can view the data of the PFB
+    pfb show -i minimal_data.pfb
+
+    We can also view the schema of the PFB
+    pfb show -i minimal_data.pfb schema
+
 
 ## Examples
 
