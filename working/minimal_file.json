@@ -403,12 +403,12 @@
        "description" : "The sequencing strategy used to generate the data file.\n"
     }
   },
-  "submitted_aligned_reads.yaml" : {
+  "files.yaml" : {
      "$schema" : "http://json-schema.org/draft-04/schema#",
      "additionalProperties" : false,
      "category" : "data_file",
      "description" : "Data file.\n",
-     "id" : "submitted_aligned_reads",
+     "id" : "files",
      "links" : [],
      "namespace" : "https://dcp.bionimbus.org/",
      "program" : "*",
@@ -416,10 +416,7 @@
      "properties" : {
         "$ref" : "_definitions.yaml#/data_file_properties",
         "file_format" : {
-           "enum" : [
-              "BAM",
-              "CRAM"
-           ],
+           "type" : "string",
            "term" : {
               "$ref" : "_terms.yaml#/data_format"
            }

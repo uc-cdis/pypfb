@@ -220,9 +220,9 @@ pipenv install
 		Done, created PFB file at: minimal_file.avro
 
 		# make a template JSON to fill in for a file record
-    $> pfb make -i minimal_file.avro submitted_aligned_reads | json_pp > sample_file_json/submitted_aligned_reads.json
+    $> pfb make -i minimal_file.avro files | json_pp > temp_files.json
 
-    # edit sample_file_json/submitted_aligned_reads.json to be the following. You can see this file in example_submitted_aligned_reads.json.  Notice we're moving the "object" sub-structure up.
+    # edit temp_files.json to be the following and put its content in sample_file_json/files.json (you can see an example file in example_files.json).  Notice we're moving the "object" sub-structure up compared to the file generated for us.
 		{
 		   "id" : "7d9dd25c-2b9a-43cc-8b95-db1f8d6fe1dc",
 		   "name" : "submitted_aligned_reads",
@@ -244,7 +244,7 @@ pipenv install
 		}
 
 		# now load the example data into the avro PFB file
-		$> pfb from -o minimal_data.avro json -s minimal_file.avro --program DEV --project test sample_file_json/
+		$> pfb from -o minimal_file_data.avro json -s minimal_file.avro --program DEV --project test sample_file_json/
 
 		# output
 		Loading schema...
