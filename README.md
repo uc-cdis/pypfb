@@ -208,48 +208,63 @@ pipenv install
 
     cat tests/pfb-data/test.avro | pfb to gremlin ./output/
 
-    # Brian's examples (all done in the working dir)
-    # create a new avro file based on minimal_file.json
+    # Minimal file handoff PFB examples (all done in the working dir, we can rename submitted aligned reads to be something more generic)
 
-    pfb from -o minimal_file.avro dict minimal_file.json
+		# Create the PFB avro based on the minimal_file schema
+		$> pfb from -o minimal_file.avro dict minimal_file.json
 
-    # create an example record
+		# output
+		Loading dictionary: minimal_file.json
+		Parsing dictionary...
+		Writing PFB...
+		Done, created PFB file at: minimal_file.avro
 
-    pfb make -i minimal_file.avro submitted_aligned_reads > sample_file_json/example_submitted_aligned_reads.json
+		# make a template JSON to fill in for a file record
+    $> pfb make -i minimal_file.avro submitted_aligned_reads | json_pp > sample_file_json/submitted_aligned_reads.json
 
-    # edit this to be the following
-    {
-       "id" : "7d9dd25c-2b9a-43cc-8b95-db1f8d6fe1dc",
-       "name" : "submitted_aligned_reads",
-       "submitter_id" : "HG01101_cram",
-       "object" : {
-          "created_datetime" : "2020-01-27T14:32:19.373454+00:00",
-          "error_type" : "file_size",
-          "file_format" : "BAM",
-          "file_name" : "foo.bam",
-          "file_size" : 512,
-          "file_state" : "registered",
-          "md5sum" : "bdf121aadba028d57808101cb4455fa7",
-          "object_id" : "dg.4503/cc32d93d-a73c-4d2c-a061-26c0410e74fa",
-          "project_id" : "tutorial-synthetic_data_set_1",
-          "state" : "uploading",
-          "submitter_id" : "HG01101_cram",
-          "updated_datetime" : "2020-01-27T14:32:19.373454+00:00"
-       }
-    }
+    # edit sample_file_json/submitted_aligned_reads.json to be the following. You can see this file in example_submitted_aligned_reads.json.  Notice we're moving the "object" sub-structure up.
+		{
+		   "id" : "7d9dd25c-2b9a-43cc-8b95-db1f8d6fe1dc",
+		   "name" : "submitted_aligned_reads",
+		   "submitter_id" : "HG01101_cram",
+		   "created_datetime" : "2020-01-27T14:32:19.373454+00:00",
+		   "error_type" : "file_size",
+		   "file_format" : "BAM",
+		   "file_name" : "foo.bam",
+		   "file_size" : 512,
+		   "file_state" : "registered",
+		   "md5sum" : "bdf121aadba028d57808101cb4455fa7",
+		   "object_id" : "dg.4503/cc32d93d-a73c-4d2c-a061-26c0410e74fa",
+		   "project_id" : "tutorial-synthetic_data_set_1",
+		   "state" : "uploading",
+		   "submitter_id" : "HG01101_cram",
+		   "subject_id" : "p1011554-9",
+		   "drs_uri" : "drs://example.org/dg.4503/cc32d93d-a73c-4d2c-a061-26c0410e74fa",
+		   "updated_datetime" : "2020-01-27T14:32:19.373454+00:00"
+		}
 
-    # I had to add submitter_id at the top here for some reason!?
+		# now load the example data into the avro PFB file
+		$> pfb from -o minimal_data.avro json -s minimal_file.avro --program DEV --project test sample_file_json/
 
-    # now import the example
-
-    pfb from -o minimal_file_data.avro json -s minimal_file.avro --program DEV --project test sample_file_json/
-
-    # this fails...
-    KeyError: 'example_submitted_aligned_reads'
-
-		pfb from -o minimal_file.avro dict minimal_file.json
-
-		pfb from -o minimal_data.avro json -s minimal_file.avro --program DEV --project test sample_file_json/
+		# output
+		Loading schema...
+		1/1: submitted_aligned_reads
+		{'id': '7d9dd25c-2b9a-43cc-8b95-db1f8d6fe1dc', 'name': 'submitted_aligned_reads', 'submitter_id': 'HG01101_cram', 'created_datetime': '2020-01-27T14:32:19.373454+00:00', 'error_type': 'file_size', 'file_format': 'BAM', 'file_name': 'foo.bam', 'file_size': 512, 'file_state': 'registered', 'md5sum': 'bdf121aadba028d57808101cb4455fa7', 'object_id': 'dg.4503/cc32d93d-a73c-4d2c-a061-26c0410e74fa', 'project_id': 'tutorial-synthetic_data_set_1', 'state': 'uploading', 'subject_id': 'p1011554-9', 'drs_uri': 'drs://example.org/dg.4503/cc32d93d-a73c-4d2c-a061-26c0410e74fa', 'updated_datetime': '2020-01-27T14:32:19.373454+00:00'}
+		NODE NAME: submitted_aligned_reads id
+		NODE NAME: submitted_aligned_reads name
+		NODE NAME: submitted_aligned_reads submitter_id
+		NODE NAME: submitted_aligned_reads error_type
+		NODE NAME: submitted_aligned_reads file_format
+		NODE NAME: submitted_aligned_reads file_name
+		NODE NAME: submitted_aligned_reads file_size
+		NODE NAME: submitted_aligned_reads file_state
+		NODE NAME: submitted_aligned_reads md5sum
+		NODE NAME: submitted_aligned_reads object_id
+		NODE NAME: submitted_aligned_reads project_id
+		NODE NAME: submitted_aligned_reads state
+		NODE NAME: submitted_aligned_reads subject_id
+		NODE NAME: submitted_aligned_reads drs_uri
+		Done!
 
 
   [1]: ./doc/schema.svg
