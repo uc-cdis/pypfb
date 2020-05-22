@@ -208,7 +208,12 @@ pipenv install
 
     cat tests/pfb-data/test.avro | pfb to gremlin ./output/
 
-    # Minimal file handoff PFB examples (all done in the working dir, we can rename submitted aligned reads to be something more generic)
+    # Minimal file handoff PFB examples
+		# this is all done in the minimal_example/ directory
+		$> cd minimal_example
+
+		# clear out any old .avro files
+		$> rm minimal*.avro
 
 		# Create the PFB avro based on the minimal_file schema
 		$> pfb from -o minimal_file.avro dict minimal_file.json
@@ -265,6 +270,15 @@ pipenv install
 		NODE NAME: submitted_aligned_reads subject_id
 		NODE NAME: submitted_aligned_reads drs_uri
 		Done!
+
+		# take a look inside the data avro file
+		$> cat minimal_file_data.avro | pfb show -n 1
+
+		# look at schema
+		$> cat minimal_file_data.avro | pfb show schema
+
+		# dump to csv
+		$> cat minimal_file_data.avro | pfb to gremlin ./output/
 
 
   [1]: ./doc/schema.svg
