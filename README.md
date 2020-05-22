@@ -34,6 +34,7 @@ a PFB file.)
 * From source code:
 
 ```bash
+pip install pipenv
 pipenv install
 ```
 
@@ -245,6 +246,10 @@ pipenv install
 
     # this fails...
     KeyError: 'example_submitted_aligned_reads'
+
+		pfb from -o minimal_file.avro dict minimal_file.json
+
+		pfb from -o minimal_data.avro json -s minimal_file.avro --program DEV --project test sample_file_json/
 
 
   [1]: ./doc/schema.svg

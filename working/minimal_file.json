@@ -64,6 +64,12 @@
            "$ref" : "_terms.yaml#/datetime"
         }
      },
+     "drs_uri" : {
+        "term" : {
+           "$ref" : "_terms.yaml#/drs_uri"
+        },
+        "type" : "string"
+     },
      "file_format" : {
         "term" : {
            "$ref" : "_terms.yaml#/file_format"
@@ -210,6 +216,12 @@
            "$ref" : "_terms.yaml#/state"
         }
      },
+     "subject_id" : {
+        "term" : {
+           "$ref" : "_terms.yaml#/subject_id"
+        },
+        "type" : "string"
+     },
      "to_many" : {
         "anyOf" : [
            {
@@ -276,6 +288,9 @@
            "$ref" : "#/UUID",
            "systemAlias" : "node_id"
         },
+        "drs_uri" : {
+           "$ref" : "#/drs_uri"
+        },
         "project_id" : {
            "$ref" : "#/project_id"
         },
@@ -287,6 +302,9 @@
            "type" : [
               "string"
            ]
+        },
+        "subject_id" : {
+           "$ref" : "#/subject_id"
         },
         "type" : {
            "type" : "string"
@@ -335,6 +353,9 @@
     "datetime" : {
        "description" : "A combination of date and time of day in the form [-]CCYY-MM-DDThh:mm:ss[Z|(+|-)hh:mm]\n"
     },
+    "drs_uri":{
+      "description": "The DRS URI of the object.\n"
+    },
     "file_name" : {
        "description" : "The name (or part of a name) of a file (of any type).\n"
     },
@@ -365,6 +386,9 @@
     },
     "state" : {
        "description" : "The current state of the object.\n"
+    },
+    "subject_id" : {
+       "description" : "ID for subject.\n"
     },
     "data_category" : {
        "description" : "Broad categorization of the contents of the data file.\n"
@@ -416,7 +440,9 @@
         "updated_datetime",
         "state",
         "file_state",
-        "error_type"
+        "error_type",
+        "subject_id",
+        "drs_uri"
      ],
      "title" : "File",
      "type" : "object",
