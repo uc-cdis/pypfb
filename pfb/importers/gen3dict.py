@@ -20,9 +20,7 @@ def from_dict(ctx, url_or_path):
     try:
         with ctx.obj["writer"] as writer:
             _from_dict(writer, url_or_path)
-    except Exception as e:
-        print(type(e))
-        print(e)
+    except Exception:
         click.secho("Failed!", fg="red", bold=True, err=True)
         raise
 

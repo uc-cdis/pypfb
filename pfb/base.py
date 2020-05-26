@@ -48,6 +48,8 @@ def unicode_decode(matchobj):
     return unicodeRep
 
 def encode_enum(enumValue):
+    if enumValue is None:
+        return "None"
     encodedValue = re.sub("^[0-9]|[^A-Za-z0-9]", unicode_encode, enumValue, flags=re.UNICODE)
     return encodedValue
 
