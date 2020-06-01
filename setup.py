@@ -69,7 +69,7 @@ setup(
         "fastavro>=0.21",
         "python-json-logger~=0.1",
         "PyYAML~=5.1",
-        "dictionaryutils>=3.0",
+        "dictionaryutils>=3.0.2",
         "gdcdictionary>=1.2.0",
     ],
     extras_require=dict(gen3=[

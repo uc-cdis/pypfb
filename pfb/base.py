@@ -78,6 +78,8 @@ def handle_schema_field_unicode(field, encode=True):
             is_enum_ = True
             symbols = []
             for symbol in t["symbols"]:
+                if symbol == None:
+                    continue
                 symbols.append(method(symbol))
             t["symbols"] = symbols
     default = field.get("default")
