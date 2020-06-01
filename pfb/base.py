@@ -48,8 +48,6 @@ def unicode_decode(matchobj):
     return unicodeRep
 
 def encode_enum(enumValue):
-    if enumValue is None:
-        return "None"
     encodedValue = re.sub("^[0-9]|[^A-Za-z0-9]", unicode_encode, enumValue, flags=re.UNICODE)
     return encodedValue
 
@@ -80,6 +78,8 @@ def handle_schema_field_unicode(field, encode=True):
             is_enum_ = True
             symbols = []
             for symbol in t["symbols"]:
+                if symbol == None:
+                    continue
                 symbols.append(method(symbol))
             t["symbols"] = symbols
     default = field.get("default")
