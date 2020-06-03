@@ -1,0 +1,21 @@
+{
+   "id" : "8209c7c8-c32c-4c0f-98c5-c36a9a503cee",
+   "name" : "files",
+   "object" : {
+      "md5sum" : "",
+      "submitter_id" : "",
+      "file_format" : "",
+      "subject_id" : "",
+      "drs_uri" : "",
+      "file_name" : "",
+      "updated_datetime" : "",
+      "file_state" : "registered",
+      "error_type" : "file_size",
+      "project_id" : "",
+      "file_size" : 0,
+      "state" : "uploading",
+      "created_datetime" : "",
+      "object_id" : ""
+   },
+   "relations" : []
+}
