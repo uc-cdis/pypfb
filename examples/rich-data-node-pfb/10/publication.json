@@ -1,0 +1,92 @@
+[
+    {
+        "doi": "503e47be28", 
+        "pmid": "f287c7f57c", 
+        "projects": {
+            "code": "test"
+        }, 
+        "submitter_id": "publication_90889bc2ec", 
+        "type": "publication"
+    }, 
+    {
+        "doi": "a860bc53b8", 
+        "pmid": "b3d42f3c0f", 
+        "projects": {
+            "code": "test"
+        }, 
+        "submitter_id": "publication_4fe124fec3", 
+        "type": "publication"
+    }, 
+    {
+        "doi": "1c39f06d78", 
+        "pmid": "c3188d6767", 
+        "projects": {
+            "code": "test"
+        }, 
+        "submitter_id": "publication_f0cd3fa36f", 
+        "type": "publication"
+    }, 
+    {
+        "doi": "8cced436ae", 
+        "pmid": "83eef26d3c", 
+        "projects": {
+            "code": "test"
+        }, 
+        "submitter_id": "publication_847114619b", 
+        "type": "publication"
+    }, 
+    {
+        "doi": "73f42a53fb", 
+        "pmid": "6be9232234", 
+        "projects": {
+            "code": "test"
+        }, 
+        "submitter_id": "publication_cd8dfc972d", 
+        "type": "publication"
+    }, 
+    {
+        "doi": "5d4bd508cd", 
+        "pmid": "22835e3972", 
+        "projects": {
+            "code": "test"
+        }, 
+        "submitter_id": "publication_689d5b84d7", 
+        "type": "publication"
+    }, 
+    {
+        "doi": "b2736fffb1", 
+        "pmid": "bd19e4c6ff", 
+        "projects": {
+            "code": "test"
+        }, 
+        "submitter_id": "publication_8c85a4d08e", 
+        "type": "publication"
+    }, 
+    {
+        "doi": "e460f30973", 
+        "pmid": "e7dd0e304d", 
+        "projects": {
+            "code": "test"
+        }, 
+        "submitter_id": "publication_a548b119c5", 
+        "type": "publication"
+    }, 
+    {
+        "doi": "6f1f0453ff", 
+        "pmid": "c629e56b6b", 
+        "projects": {
+            "code": "test"
+        }, 
+        "submitter_id": "publication_0852027b54", 
+        "type": "publication"
+    }, 
+    {
+        "doi": "3bc6bd2f88", 
+        "pmid": "8c4c6cdb52", 
+        "projects": {
+            "code": "test"
+        }, 
+        "submitter_id": "publication_69b2da65db", 
+        "type": "publication"
+    }
+]

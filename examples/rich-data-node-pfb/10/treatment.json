@@ -1,0 +1,162 @@
+[
+    {
+        "days_to_treatment": 84.11005818844936, 
+        "days_to_treatment_end": 95.49780140367967, 
+        "days_to_treatment_start": 83.85370812026707, 
+        "diagnoses": {
+            "submitter_id": "diagnosis_4b7f2295a8"
+        }, 
+        "submitter_id": "treatment_da2cee1f1a", 
+        "therapeutic_agents": "e7406179c3", 
+        "treatment_anatomic_site": "Brain, focal", 
+        "treatment_intent_type": "016a96d4f6", 
+        "treatment_or_therapy": "no", 
+        "treatment_outcome": "Unknown", 
+        "treatment_type": "Internal Radiation", 
+        "type": "treatment"
+    }, 
+    {
+        "days_to_treatment": 83.45735374743523, 
+        "days_to_treatment_end": 28.104012745359007, 
+        "days_to_treatment_start": 16.521060575596547, 
+        "diagnoses": {
+            "submitter_id": "diagnosis_68689e5b69"
+        }, 
+        "submitter_id": "treatment_0880f8f9a8", 
+        "therapeutic_agents": "16bda90148", 
+        "treatment_anatomic_site": "Submandibular", 
+        "treatment_intent_type": "ce3e311c7a", 
+        "treatment_or_therapy": "no", 
+        "treatment_outcome": "Treatment Ongoing", 
+        "treatment_type": "Other", 
+        "type": "treatment"
+    }, 
+    {
+        "days_to_treatment": 57.97233609270602, 
+        "days_to_treatment_end": 24.173956449303844, 
+        "days_to_treatment_start": 26.391605538019657, 
+        "diagnoses": {
+            "submitter_id": "diagnosis_4fe84518b9"
+        }, 
+        "submitter_id": "treatment_d90559a34c", 
+        "therapeutic_agents": "b3894626a9", 
+        "treatment_anatomic_site": "Mediastinal", 
+        "treatment_intent_type": "278c0b5029", 
+        "treatment_or_therapy": "no", 
+        "treatment_outcome": "Treatment Ongoing", 
+        "treatment_type": "Cryoablation", 
+        "type": "treatment"
+    }, 
+    {
+        "days_to_treatment": 1.628152732966981, 
+        "days_to_treatment_end": 9.40527231026902, 
+        "days_to_treatment_start": 49.72800205955086, 
+        "diagnoses": {
+            "submitter_id": "diagnosis_1754f64843"
+        }, 
+        "submitter_id": "treatment_88418971a8", 
+        "therapeutic_agents": "ec15691935", 
+        "treatment_anatomic_site": "Retroperitoneal", 
+        "treatment_intent_type": "6904709e03", 
+        "treatment_or_therapy": "no", 
+        "treatment_outcome": "Partial Response", 
+        "treatment_type": "Targeted Molecular Therapy", 
+        "type": "treatment"
+    }, 
+    {
+        "days_to_treatment": 18.944797090356204, 
+        "days_to_treatment_end": 5.132396765564373, 
+        "days_to_treatment_start": 35.27925021691559, 
+        "diagnoses": {
+            "submitter_id": "diagnosis_f047404d71"
+        }, 
+        "submitter_id": "treatment_cd3d1fc1e3", 
+        "therapeutic_agents": "2ce310a90b", 
+        "treatment_anatomic_site": "Genitourinary, Prostate", 
+        "treatment_intent_type": "c1171c05fe", 
+        "treatment_or_therapy": "not reported", 
+        "treatment_outcome": "Unknown", 
+        "treatment_type": "Internal Radiation", 
+        "type": "treatment"
+    }, 
+    {
+        "days_to_treatment": 97.81176632508395, 
+        "days_to_treatment_end": 1.7946914528026658, 
+        "days_to_treatment_start": 10.04335609087451, 
+        "diagnoses": {
+            "submitter_id": "diagnosis_a39bba4bae"
+        }, 
+        "submitter_id": "treatment_77b541514b", 
+        "therapeutic_agents": "bf51f15552", 
+        "treatment_anatomic_site": "Other", 
+        "treatment_intent_type": "b663ac96fc", 
+        "treatment_or_therapy": "not reported", 
+        "treatment_outcome": "Unknown", 
+        "treatment_type": "Not Reported", 
+        "type": "treatment"
+    }, 
+    {
+        "days_to_treatment": 8.86567870284205, 
+        "days_to_treatment_end": 53.301056123201995, 
+        "days_to_treatment_start": 26.877559079396175, 
+        "diagnoses": {
+            "submitter_id": "diagnosis_9fb203713b"
+        }, 
+        "submitter_id": "treatment_c207f762c1", 
+        "therapeutic_agents": "5547545fc2", 
+        "treatment_anatomic_site": "Ascites", 
+        "treatment_intent_type": "fcbdaaa01d", 
+        "treatment_or_therapy": "yes", 
+        "treatment_outcome": "Complete Response", 
+        "treatment_type": "Targeted Molecular Therapy", 
+        "type": "treatment"
+    }, 
+    {
+        "days_to_treatment": 24.388437301383814, 
+        "days_to_treatment_end": 55.536869789294926, 
+        "days_to_treatment_start": 62.064095623807894, 
+        "diagnoses": {
+            "submitter_id": "diagnosis_0800b9bd92"
+        }, 
+        "submitter_id": "treatment_748997fe02", 
+        "therapeutic_agents": "20de97d602", 
+        "treatment_anatomic_site": "Bone", 
+        "treatment_intent_type": "acfe916ff3", 
+        "treatment_or_therapy": "unknown", 
+        "treatment_outcome": "Partial Response", 
+        "treatment_type": "Not Allowed To Collect", 
+        "type": "treatment"
+    }, 
+    {
+        "days_to_treatment": 59.20493700358078, 
+        "days_to_treatment_end": 95.70233410412068, 
+        "days_to_treatment_start": 24.08251421579556, 
+        "diagnoses": {
+            "submitter_id": "diagnosis_8acf290c1c"
+        }, 
+        "submitter_id": "treatment_2bc03ddb0d", 
+        "therapeutic_agents": "72ba4872d1", 
+        "treatment_anatomic_site": "Parotid", 
+        "treatment_intent_type": "f6316dd4de", 
+        "treatment_or_therapy": "not reported", 
+        "treatment_outcome": "Complete Response", 
+        "treatment_type": "Not Reported", 
+        "type": "treatment"
+    }, 
+    {
+        "days_to_treatment": 77.45447680810162, 
+        "days_to_treatment_end": 38.85521486853646, 
+        "days_to_treatment_start": 17.93534543170019, 
+        "diagnoses": {
+            "submitter_id": "diagnosis_641de13f91"
+        }, 
+        "submitter_id": "treatment_f7d4dc138c", 
+        "therapeutic_agents": "ed4e0c3396", 
+        "treatment_anatomic_site": "Shoulder", 
+        "treatment_intent_type": "95b98a2e81", 
+        "treatment_or_therapy": "unknown", 
+        "treatment_outcome": "Partial Response", 
+        "treatment_type": "Unknown", 
+        "type": "treatment"
+    }
+]

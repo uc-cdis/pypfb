@@ -1,0 +1,152 @@
+[
+    {
+        "core_metadata_collections": {
+            "submitter_id": "core_metadata_collection_d82d9bee63"
+        }, 
+        "data_category": "d3a145a07e", 
+        "data_format": "5b0a0b58e7", 
+        "data_type": "152d57870f", 
+        "experimental_strategy": "bcbb302770", 
+        "file_name": "1c5c86346b", 
+        "file_size": 64, 
+        "md5sum": "e6104c7ac947aab28b90aafdeb03d8e6", 
+        "submitter_id": "submitted_somatic_mutation_b74c8cd6e9", 
+        "total_variants": 37, 
+        "type": "submitted_somatic_mutation"
+    }, 
+    {
+        "core_metadata_collections": {
+            "submitter_id": "core_metadata_collection_6f6a6d88d8"
+        }, 
+        "data_category": "4dedb7909c", 
+        "data_format": "9379d4aac0", 
+        "data_type": "56f591bdfd", 
+        "experimental_strategy": "308c3c32de", 
+        "file_name": "14e33ce479", 
+        "file_size": 93, 
+        "md5sum": "fea4450e54c9260c5f6cbaff947842dd", 
+        "submitter_id": "submitted_somatic_mutation_51a39081a4", 
+        "total_variants": 26, 
+        "type": "submitted_somatic_mutation"
+    }, 
+    {
+        "core_metadata_collections": {
+            "submitter_id": "core_metadata_collection_b229e89bbd"
+        }, 
+        "data_category": "1482f669d0", 
+        "data_format": "63657a3693", 
+        "data_type": "feab18df12", 
+        "experimental_strategy": "0f8547efc2", 
+        "file_name": "35dfd9bb20", 
+        "file_size": 88, 
+        "md5sum": "d64ebdf3d8550bc70e5e95eaa03ef4a2", 
+        "submitter_id": "submitted_somatic_mutation_9b89a83e41", 
+        "total_variants": 86, 
+        "type": "submitted_somatic_mutation"
+    }, 
+    {
+        "core_metadata_collections": {
+            "submitter_id": "core_metadata_collection_ecdb23869c"
+        }, 
+        "data_category": "48a788e359", 
+        "data_format": "de9a5f4d52", 
+        "data_type": "9bed15a005", 
+        "experimental_strategy": "ffbf26cccc", 
+        "file_name": "e8a34582a5", 
+        "file_size": 84, 
+        "md5sum": "d103a7342790d1c0b8d75cc2deebcda1", 
+        "submitter_id": "submitted_somatic_mutation_573aea8b40", 
+        "total_variants": 97, 
+        "type": "submitted_somatic_mutation"
+    }, 
+    {
+        "core_metadata_collections": {
+            "submitter_id": "core_metadata_collection_77eb3ba16c"
+        }, 
+        "data_category": "1a2229fa6e", 
+        "data_format": "521617a113", 
+        "data_type": "83c5c96579", 
+        "experimental_strategy": "9be9ecd4a2", 
+        "file_name": "0c0b13947e", 
+        "file_size": 65, 
+        "md5sum": "739d56e283a6d0b19e375190af836622", 
+        "submitter_id": "submitted_somatic_mutation_08b1e98922", 
+        "total_variants": 24, 
+        "type": "submitted_somatic_mutation"
+    }, 
+    {
+        "core_metadata_collections": {
+            "submitter_id": "core_metadata_collection_ab70047b7d"
+        }, 
+        "data_category": "5a051caa47", 
+        "data_format": "0dbd5adcd2", 
+        "data_type": "7aa19612c9", 
+        "experimental_strategy": "048103eb36", 
+        "file_name": "f0d06802b9", 
+        "file_size": 60, 
+        "md5sum": "03e13e171a533aaa9dedc1ce61e17f82", 
+        "submitter_id": "submitted_somatic_mutation_42ef58ff83", 
+        "total_variants": 96, 
+        "type": "submitted_somatic_mutation"
+    }, 
+    {
+        "core_metadata_collections": {
+            "submitter_id": "core_metadata_collection_642e7de130"
+        }, 
+        "data_category": "47a17c9bd4", 
+        "data_format": "6fba33f515", 
+        "data_type": "525ab6e9c1", 
+        "experimental_strategy": "24d9ba7bf0", 
+        "file_name": "ae6e5c2a9f", 
+        "file_size": 11, 
+        "md5sum": "e80a32d43eb5c8856f7f84644c4a671f", 
+        "submitter_id": "submitted_somatic_mutation_586608cc2b", 
+        "total_variants": 93, 
+        "type": "submitted_somatic_mutation"
+    }, 
+    {
+        "core_metadata_collections": {
+            "submitter_id": "core_metadata_collection_1e231bbebd"
+        }, 
+        "data_category": "2a003b43f2", 
+        "data_format": "23e83bd801", 
+        "data_type": "434a22a133", 
+        "experimental_strategy": "aca76193c8", 
+        "file_name": "28433c7cff", 
+        "file_size": 67, 
+        "md5sum": "2a0d4028f5b21239a4ea3aee3b53e50b", 
+        "submitter_id": "submitted_somatic_mutation_92d9f3cc24", 
+        "total_variants": 2, 
+        "type": "submitted_somatic_mutation"
+    }, 
+    {
+        "core_metadata_collections": {
+            "submitter_id": "core_metadata_collection_6538e176e7"
+        }, 
+        "data_category": "70d9d3daff", 
+        "data_format": "5eef34b45b", 
+        "data_type": "a070b8cc54", 
+        "experimental_strategy": "2965a78650", 
+        "file_name": "615eaaac75", 
+        "file_size": 16, 
+        "md5sum": "90b1896abd23946e44b8874a8d1d168c", 
+        "submitter_id": "submitted_somatic_mutation_d1eb9a6830", 
+        "total_variants": 84, 
+        "type": "submitted_somatic_mutation"
+    }, 
+    {
+        "core_metadata_collections": {
+            "submitter_id": "core_metadata_collection_dca771e087"
+        }, 
+        "data_category": "b007729d3d", 
+        "data_format": "391a0e2563", 
+        "data_type": "a43ae51461", 
+        "experimental_strategy": "540e7d656f", 
+        "file_name": "8563ce20da", 
+        "file_size": 44, 
+        "md5sum": "e816b77484e816c11c10c7c07ae0687a", 
+        "submitter_id": "submitted_somatic_mutation_91e6fef81b", 
+        "total_variants": 13, 
+        "type": "submitted_somatic_mutation"
+    }
+]

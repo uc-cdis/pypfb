@@ -1,0 +1,132 @@
+[
+    {
+        "core_metadata_collections": {
+            "submitter_id": "core_metadata_collection_d82d9bee63"
+        }, 
+        "data_category": "70df054eed", 
+        "data_format": "619f2a4c2a", 
+        "data_type": "Experimental Metadata", 
+        "file_name": "79d2fd2eb0", 
+        "file_size": 17, 
+        "md5sum": "baf84b31d85b09aeaea661ca4e068f9f", 
+        "submitter_id": "experimental_metadata_ed0e1f93ec", 
+        "type": "experimental_metadata"
+    }, 
+    {
+        "core_metadata_collections": {
+            "submitter_id": "core_metadata_collection_6f6a6d88d8"
+        }, 
+        "data_category": "e585c57356", 
+        "data_format": "1ff8ff0520", 
+        "data_type": "Experimental Metadata", 
+        "file_name": "b426762ea1", 
+        "file_size": 93, 
+        "md5sum": "62002ca9ee1bb6dfa0ff4da4f6acce70", 
+        "submitter_id": "experimental_metadata_27c478678c", 
+        "type": "experimental_metadata"
+    }, 
+    {
+        "core_metadata_collections": {
+            "submitter_id": "core_metadata_collection_b229e89bbd"
+        }, 
+        "data_category": "8382b1891f", 
+        "data_format": "86f6020021", 
+        "data_type": "Experimental Metadata", 
+        "file_name": "8cc50d7501", 
+        "file_size": 49, 
+        "md5sum": "23f2b43d29247def44da0d5e8e107d0d", 
+        "submitter_id": "experimental_metadata_132948ad44", 
+        "type": "experimental_metadata"
+    }, 
+    {
+        "core_metadata_collections": {
+            "submitter_id": "core_metadata_collection_ecdb23869c"
+        }, 
+        "data_category": "73aca32515", 
+        "data_format": "274d3b50f8", 
+        "data_type": "Experimental Metadata", 
+        "file_name": "c7cf2e880c", 
+        "file_size": 93, 
+        "md5sum": "ee68ea298b57b63aa3f25af51c03f2f9", 
+        "submitter_id": "experimental_metadata_c813c7b040", 
+        "type": "experimental_metadata"
+    }, 
+    {
+        "core_metadata_collections": {
+            "submitter_id": "core_metadata_collection_77eb3ba16c"
+        }, 
+        "data_category": "897ea11f70", 
+        "data_format": "0d436bda0f", 
+        "data_type": "Experimental Metadata", 
+        "file_name": "927aeac330", 
+        "file_size": 94, 
+        "md5sum": "2adf2360301a5efb0e8f8e13b01d3d46", 
+        "submitter_id": "experimental_metadata_fbc4522ace", 
+        "type": "experimental_metadata"
+    }, 
+    {
+        "core_metadata_collections": {
+            "submitter_id": "core_metadata_collection_ab70047b7d"
+        }, 
+        "data_category": "1e7cacb4cd", 
+        "data_format": "8f6de98304", 
+        "data_type": "Experimental Metadata", 
+        "file_name": "09dbf50eee", 
+        "file_size": 7, 
+        "md5sum": "873ff1a1a1a891dc06c9f0fcb698f528", 
+        "submitter_id": "experimental_metadata_371d61acaa", 
+        "type": "experimental_metadata"
+    }, 
+    {
+        "core_metadata_collections": {
+            "submitter_id": "core_metadata_collection_642e7de130"
+        }, 
+        "data_category": "91bc225577", 
+        "data_format": "181d94260a", 
+        "data_type": "Experimental Metadata", 
+        "file_name": "0725b0290b", 
+        "file_size": 90, 
+        "md5sum": "a41be9a0b552245a575f29790c06517c", 
+        "submitter_id": "experimental_metadata_197cad2901", 
+        "type": "experimental_metadata"
+    }, 
+    {
+        "core_metadata_collections": {
+            "submitter_id": "core_metadata_collection_1e231bbebd"
+        }, 
+        "data_category": "40cc3e102a", 
+        "data_format": "97b160a11f", 
+        "data_type": "Experimental Metadata", 
+        "file_name": "6fe5be2a4f", 
+        "file_size": 76, 
+        "md5sum": "0bbdf3a65ee567c9e6496255ef5171b9", 
+        "submitter_id": "experimental_metadata_1ebefb2cab", 
+        "type": "experimental_metadata"
+    }, 
+    {
+        "core_metadata_collections": {
+            "submitter_id": "core_metadata_collection_6538e176e7"
+        }, 
+        "data_category": "e890903dd1", 
+        "data_format": "0da2e9e686", 
+        "data_type": "Experimental Metadata", 
+        "file_name": "94cf09bbea", 
+        "file_size": 85, 
+        "md5sum": "95e1ab0a96591f4e19b2093e5c1da083", 
+        "submitter_id": "experimental_metadata_fb03569d57", 
+        "type": "experimental_metadata"
+    }, 
+    {
+        "core_metadata_collections": {
+            "submitter_id": "core_metadata_collection_dca771e087"
+        }, 
+        "data_category": "ce27c34914", 
+        "data_format": "62012a2fae", 
+        "data_type": "Experimental Metadata", 
+        "file_name": "e948292064", 
+        "file_size": 14, 
+        "md5sum": "e14e5f20817f45052676fe407917c7d3", 
+        "submitter_id": "experimental_metadata_d8be0920aa", 
+        "type": "experimental_metadata"
+    }
+]

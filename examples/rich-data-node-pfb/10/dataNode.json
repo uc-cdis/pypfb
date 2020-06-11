@@ -1,0 +1,72 @@
+[
+	{
+		   	"drs_uri": "thing",
+        	"sample_id": "samID",
+        	"subject_id": "subjID",
+        	"id": "id-thing",
+        	"submitter_id": "1"
+	},
+	{
+		   	"drs_uri": "drs://thing",
+        	"sample_id": "samID",
+        	"subject_id": "subjID",
+        	"id": "id-thing",
+        	"submitter_id": "2"
+	},
+	{
+		   	"drs_uri": "thing",
+        	"sample_id": "samID",
+        	"subject_id": "subjID",
+        	"id": "id-thing",
+        	"submitter_id": "3"
+	},
+	{
+		   	"drs_uri": "drs://thing",
+        	"sample_id": "samID",
+        	"subject_id": "subjID",
+        	"id": "id-thing",
+        	"submitter_id": "4"
+	},
+	{
+		   	"drs_uri": "thing",
+        	"sample_id": "samID",
+        	"subject_id": "subjID",
+        	"id": "id-thing",
+        	"submitter_id": "5"
+	},
+	{
+		   	"drs_uri": "drs://thing",
+        	"sample_id": "samID",
+        	"subject_id": "subjID",
+        	"id": "id-thing",
+        	"submitter_id": "6"
+	},
+	{
+		   	"drs_uri": "thing",
+        	"sample_id": "samID",
+        	"subject_id": "subjID",
+        	"id": "id-thing",
+        	"submitter_id": "7"
+	},
+	{
+		   	"drs_uri": "drs://thing",
+        	"sample_id": "samID",
+        	"subject_id": "subjID",
+        	"id": "id-thing",
+        	"submitter_id": "8"
+	},
+	{
+		   	"drs_uri": "thing",
+        	"sample_id": "samID",
+        	"subject_id": "subjID",
+        	"id": "id-thing",
+        	"submitter_id": "9"
+	},
+	{
+		   	"drs_uri": "drs://thing",
+        	"sample_id": "samID",
+        	"subject_id": "subjID",
+        	"id": "id-thing",
+        	"submitter_id": "10"
+	}
+]

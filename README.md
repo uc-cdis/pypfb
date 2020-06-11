@@ -205,6 +205,21 @@ pipenv install
     We can also view the schema of the PFB
     pfb show -i minimal_data.pfb schema
 
+### Example of rich PFB with data node
+    In the examples/rich-data-node-pfb we have an example of a rich pfb with a data node for object files
+
+    First create the PFB with schema from the json dictionary
+    pfb from -o rich-schema.avro dict standard-expanded.json
+
+    Then we put the data into the PFB
+    pfb from -o rich-data.avro json --program DEV --project test --schema pfb/rich-schema.avro 10/
+
+    We can view the data of the PFB
+    pfb show -i rich_data.pfb
+
+    We can also view the schema of the PFB
+    pfb show -i rich_data.pfb schema
+
 
 ## Examples
 

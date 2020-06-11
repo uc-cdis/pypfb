@@ -1,0 +1,192 @@
+[
+    {
+        "biomarker_signal": 69.28909957112815, 
+        "cell_count": 55, 
+        "cell_identifier": "c06b32adbf", 
+        "cell_type": "e9f5d8477c", 
+        "ck_signal": 63.99136137368696, 
+        "er_localization": "Cytoplasmic", 
+        "frame_identifier": "e443974135", 
+        "relative_cytokeratin_intensity": 52.507412647945586, 
+        "relative_er_intensity": 46.201945684894476, 
+        "relative_nuclear_intensity": 75.44584525028544, 
+        "relative_nuclear_size": 63.31973000485195, 
+        "run_name": "fcce5c57bb", 
+        "slides": {
+            "submitter_id": "slide_922d2cefa9"
+        }, 
+        "submitter_id": "slide_count_9433c29ac0", 
+        "type": "slide_count"
+    }, 
+    {
+        "biomarker_signal": 48.80766676162212, 
+        "cell_count": 42, 
+        "cell_identifier": "2123997e47", 
+        "cell_type": "09e3c700b1", 
+        "ck_signal": 94.6323444405065, 
+        "er_localization": "Nuclear", 
+        "frame_identifier": "e8de07764b", 
+        "relative_cytokeratin_intensity": 24.002405450695484, 
+        "relative_er_intensity": 26.84511931739507, 
+        "relative_nuclear_intensity": 1.1963396676712423, 
+        "relative_nuclear_size": 71.80967932787004, 
+        "run_name": "c733e750b1", 
+        "slides": {
+            "submitter_id": "slide_d501e84c81"
+        }, 
+        "submitter_id": "slide_count_f9b86fb543", 
+        "type": "slide_count"
+    }, 
+    {
+        "biomarker_signal": 24.75399667298632, 
+        "cell_count": 64, 
+        "cell_identifier": "51e8b2726f", 
+        "cell_type": "cc2438dc1b", 
+        "ck_signal": 10.984823153112567, 
+        "er_localization": "None", 
+        "frame_identifier": "0684b7c62d", 
+        "relative_cytokeratin_intensity": 14.737324765190152, 
+        "relative_er_intensity": 77.45517419628834, 
+        "relative_nuclear_intensity": 82.36014798796599, 
+        "relative_nuclear_size": 85.71903428183546, 
+        "run_name": "84b50c4d4f", 
+        "slides": {
+            "submitter_id": "slide_1385382056"
+        }, 
+        "submitter_id": "slide_count_b7ab0e759d", 
+        "type": "slide_count"
+    }, 
+    {
+        "biomarker_signal": 42.15626641183751, 
+        "cell_count": 17, 
+        "cell_identifier": "21e877a94c", 
+        "cell_type": "dda99b6ab9", 
+        "ck_signal": 77.07601537910533, 
+        "er_localization": "Cytoplasmic", 
+        "frame_identifier": "c83f7f8b24", 
+        "relative_cytokeratin_intensity": 62.601859804138456, 
+        "relative_er_intensity": 89.66402836774023, 
+        "relative_nuclear_intensity": 41.37068288447345, 
+        "relative_nuclear_size": 72.23515668075929, 
+        "run_name": "95bed5f01b", 
+        "slides": {
+            "submitter_id": "slide_cc3fab915b"
+        }, 
+        "submitter_id": "slide_count_19b645d887", 
+        "type": "slide_count"
+    }, 
+    {
+        "biomarker_signal": 26.921055666425985, 
+        "cell_count": 51, 
+        "cell_identifier": "d4974c9afd", 
+        "cell_type": "4ab0721cf2", 
+        "ck_signal": 0.40208787277067337, 
+        "er_localization": "Nuclear", 
+        "frame_identifier": "c618d7619d", 
+        "relative_cytokeratin_intensity": 3.1557588185578633, 
+        "relative_er_intensity": 78.26260352189013, 
+        "relative_nuclear_intensity": 92.42678592870436, 
+        "relative_nuclear_size": 9.809402498074949, 
+        "run_name": "d1addd34cd", 
+        "slides": {
+            "submitter_id": "slide_c9c9dc9f0e"
+        }, 
+        "submitter_id": "slide_count_6d6f3b9819", 
+        "type": "slide_count"
+    }, 
+    {
+        "biomarker_signal": 41.317947184109315, 
+        "cell_count": 52, 
+        "cell_identifier": "d390ecc67c", 
+        "cell_type": "8fd5ffb04b", 
+        "ck_signal": 29.479821550895636, 
+        "er_localization": "Cytoplasmic", 
+        "frame_identifier": "209984bbf8", 
+        "relative_cytokeratin_intensity": 15.545006014578744, 
+        "relative_er_intensity": 91.54637732510056, 
+        "relative_nuclear_intensity": 14.890557403921267, 
+        "relative_nuclear_size": 37.536678035205405, 
+        "run_name": "190dd359b9", 
+        "slides": {
+            "submitter_id": "slide_b3c3b833a2"
+        }, 
+        "submitter_id": "slide_count_65872515f8", 
+        "type": "slide_count"
+    }, 
+    {
+        "biomarker_signal": 16.92882369829357, 
+        "cell_count": 16, 
+        "cell_identifier": "efab67b80a", 
+        "cell_type": "70883d313f", 
+        "ck_signal": 69.57407738740035, 
+        "er_localization": "Not Determined", 
+        "frame_identifier": "cab930083e", 
+        "relative_cytokeratin_intensity": 94.12038827293252, 
+        "relative_er_intensity": 3.1027737266110966, 
+        "relative_nuclear_intensity": 10.032150717785571, 
+        "relative_nuclear_size": 78.40894596337935, 
+        "run_name": "0ec89c0696", 
+        "slides": {
+            "submitter_id": "slide_653be15690"
+        }, 
+        "submitter_id": "slide_count_7e4eb09bbb", 
+        "type": "slide_count"
+    }, 
+    {
+        "biomarker_signal": 79.0335281501511, 
+        "cell_count": 71, 
+        "cell_identifier": "2d89f8fdb7", 
+        "cell_type": "abc46acc81", 
+        "ck_signal": 74.2166797528784, 
+        "er_localization": "Nuclear", 
+        "frame_identifier": "a087e06aac", 
+        "relative_cytokeratin_intensity": 61.11637474421294, 
+        "relative_er_intensity": 84.68569691228505, 
+        "relative_nuclear_intensity": 1.6472156805006133, 
+        "relative_nuclear_size": 8.814234285258749, 
+        "run_name": "40a1d33aa5", 
+        "slides": {
+            "submitter_id": "slide_beb9f519ab"
+        }, 
+        "submitter_id": "slide_count_83b6440db3", 
+        "type": "slide_count"
+    }, 
+    {
+        "biomarker_signal": 14.998712382019907, 
+        "cell_count": 100, 
+        "cell_identifier": "7d922a8e5d", 
+        "cell_type": "13689fcf29", 
+        "ck_signal": 82.76034587502875, 
+        "er_localization": "Not Determined", 
+        "frame_identifier": "c8270de931", 
+        "relative_cytokeratin_intensity": 50.811138508229135, 
+        "relative_er_intensity": 7.2539872604282625, 
+        "relative_nuclear_intensity": 37.42777783139684, 
+        "relative_nuclear_size": 23.741955655114822, 
+        "run_name": "b91785aa09", 
+        "slides": {
+            "submitter_id": "slide_a03f104188"
+        }, 
+        "submitter_id": "slide_count_ef12b0a791", 
+        "type": "slide_count"
+    }, 
+    {
+        "biomarker_signal": 5.5983465144138655, 
+        "cell_count": 86, 
+        "cell_identifier": "ddcc3aa5e8", 
+        "cell_type": "c69a5135c4", 
+        "ck_signal": 71.15906881529682, 
+        "er_localization": "Both", 
+        "frame_identifier": "e1b2095b45", 
+        "relative_cytokeratin_intensity": 58.27357143988022, 
+        "relative_er_intensity": 49.58380063759802, 
+        "relative_nuclear_intensity": 40.00806511032384, 
+        "relative_nuclear_size": 85.06269142941494, 
+        "run_name": "8cbc32381e", 
+        "slides": {
+            "submitter_id": "slide_ce5f9cc9dc"
+        }, 
+        "submitter_id": "slide_count_4ccfbdc6fc", 
+        "type": "slide_count"
+    }
+]

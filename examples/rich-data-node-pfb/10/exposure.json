@@ -1,0 +1,182 @@
+[
+    {
+        "alcohol_history": "87c7f61348", 
+        "alcohol_intensity": "b7b622b8be", 
+        "bmi": 58.58692868187846, 
+        "cases": {
+            "submitter_id": "case_714cc12d26"
+        }, 
+        "cigarettes_per_day": 44.37276753354282, 
+        "height": 40.24027607928734, 
+        "pack_years_smoked": 81.18365293176925, 
+        "submitter_id": "exposure_38936d79e9", 
+        "tobacco_smoking_onset_year": 35, 
+        "tobacco_smoking_quit_year": 19, 
+        "tobacco_smoking_status": "7", 
+        "type": "exposure", 
+        "weight": 56.25575472980974, 
+        "years_smoked": 62.4408325199713
+    }, 
+    {
+        "alcohol_history": "d6099dee5f", 
+        "alcohol_intensity": "d24d86ba7d", 
+        "bmi": 29.140952067587367, 
+        "cases": {
+            "submitter_id": "case_7fe145a487"
+        }, 
+        "cigarettes_per_day": 46.33148461881608, 
+        "height": 58.34110831861039, 
+        "pack_years_smoked": 40.64959842121677, 
+        "submitter_id": "exposure_38224aad5e", 
+        "tobacco_smoking_onset_year": 17, 
+        "tobacco_smoking_quit_year": 52, 
+        "tobacco_smoking_status": "1", 
+        "type": "exposure", 
+        "weight": 64.77188567970924, 
+        "years_smoked": 64.006751310852
+    }, 
+    {
+        "alcohol_history": "ce350961fa", 
+        "alcohol_intensity": "e0f7daae32", 
+        "bmi": 46.60364860458299, 
+        "cases": {
+            "submitter_id": "case_990bc7ba84"
+        }, 
+        "cigarettes_per_day": 71.5657774486901, 
+        "height": 0.6733499525271247, 
+        "pack_years_smoked": 91.9552413142018, 
+        "submitter_id": "exposure_8d19c76bed", 
+        "tobacco_smoking_onset_year": 56, 
+        "tobacco_smoking_quit_year": 5, 
+        "tobacco_smoking_status": "5", 
+        "type": "exposure", 
+        "weight": 65.83822622201404, 
+        "years_smoked": 16.098824347645703
+    }, 
+    {
+        "alcohol_history": "2674136bba", 
+        "alcohol_intensity": "c61b4c0c79", 
+        "bmi": 97.37727065969692, 
+        "cases": {
+            "submitter_id": "case_c742366177"
+        }, 
+        "cigarettes_per_day": 61.40819361502112, 
+        "height": 55.042876295818566, 
+        "pack_years_smoked": 47.4101296498623, 
+        "submitter_id": "exposure_1498e547bb", 
+        "tobacco_smoking_onset_year": 15, 
+        "tobacco_smoking_quit_year": 58, 
+        "tobacco_smoking_status": "5", 
+        "type": "exposure", 
+        "weight": 18.01674309001049, 
+        "years_smoked": 21.786387434941556
+    }, 
+    {
+        "alcohol_history": "700f580090", 
+        "alcohol_intensity": "698bcda06b", 
+        "bmi": 21.61435807319342, 
+        "cases": {
+            "submitter_id": "case_8175e19f8e"
+        }, 
+        "cigarettes_per_day": 13.749757021252694, 
+        "height": 57.97299418112364, 
+        "pack_years_smoked": 34.82221243542115, 
+        "submitter_id": "exposure_08ae950b47", 
+        "tobacco_smoking_onset_year": 15, 
+        "tobacco_smoking_quit_year": 49, 
+        "tobacco_smoking_status": "Not Allowed To Collect", 
+        "type": "exposure", 
+        "weight": 92.73476432276377, 
+        "years_smoked": 37.90893794641396
+    }, 
+    {
+        "alcohol_history": "1533e99cee", 
+        "alcohol_intensity": "c8f6a62a08", 
+        "bmi": 14.432390189087595, 
+        "cases": {
+            "submitter_id": "case_0c64e72825"
+        }, 
+        "cigarettes_per_day": 19.246179348291783, 
+        "height": 59.749586802847, 
+        "pack_years_smoked": 27.328293010003957, 
+        "submitter_id": "exposure_47d46bc143", 
+        "tobacco_smoking_onset_year": 50, 
+        "tobacco_smoking_quit_year": 11, 
+        "tobacco_smoking_status": "3", 
+        "type": "exposure", 
+        "weight": 11.296447521746, 
+        "years_smoked": 6.9376880408560275
+    }, 
+    {
+        "alcohol_history": "f7df143d33", 
+        "alcohol_intensity": "2f1315dd0c", 
+        "bmi": 96.49646592143105, 
+        "cases": {
+            "submitter_id": "case_ddb23165f8"
+        }, 
+        "cigarettes_per_day": 93.71730594848924, 
+        "height": 70.11171246905968, 
+        "pack_years_smoked": 31.98111992864998, 
+        "submitter_id": "exposure_18bbc65098", 
+        "tobacco_smoking_onset_year": 74, 
+        "tobacco_smoking_quit_year": 72, 
+        "tobacco_smoking_status": "4", 
+        "type": "exposure", 
+        "weight": 62.044630161954295, 
+        "years_smoked": 43.54251565473526
+    }, 
+    {
+        "alcohol_history": "2b3e8bb89d", 
+        "alcohol_intensity": "d14b54237b", 
+        "bmi": 42.585839672433536, 
+        "cases": {
+            "submitter_id": "case_8ac89df5db"
+        }, 
+        "cigarettes_per_day": 14.39575582040289, 
+        "height": 25.563011951115342, 
+        "pack_years_smoked": 13.061392586849385, 
+        "submitter_id": "exposure_d8b85713b0", 
+        "tobacco_smoking_onset_year": 82, 
+        "tobacco_smoking_quit_year": 73, 
+        "tobacco_smoking_status": "Not Allowed To Collect", 
+        "type": "exposure", 
+        "weight": 35.323838520337524, 
+        "years_smoked": 44.04969425718078
+    }, 
+    {
+        "alcohol_history": "a753b57aad", 
+        "alcohol_intensity": "d498f78e05", 
+        "bmi": 97.00817534916699, 
+        "cases": {
+            "submitter_id": "case_00ad9a854a"
+        }, 
+        "cigarettes_per_day": 8.721176304882993, 
+        "height": 44.284531332991975, 
+        "pack_years_smoked": 18.900887228868722, 
+        "submitter_id": "exposure_b7d45fe7b7", 
+        "tobacco_smoking_onset_year": 49, 
+        "tobacco_smoking_quit_year": 20, 
+        "tobacco_smoking_status": "4", 
+        "type": "exposure", 
+        "weight": 94.72522969812852, 
+        "years_smoked": 63.35578133763566
+    }, 
+    {
+        "alcohol_history": "85c9557beb", 
+        "alcohol_intensity": "5b766eaad8", 
+        "bmi": 11.617375622216509, 
+        "cases": {
+            "submitter_id": "case_ecb1cf8cd9"
+        }, 
+        "cigarettes_per_day": 20.165533019789727, 
+        "height": 28.533518668449986, 
+        "pack_years_smoked": 24.12424673192405, 
+        "submitter_id": "exposure_67de0edf0f", 
+        "tobacco_smoking_onset_year": 64, 
+        "tobacco_smoking_quit_year": 43, 
+        "tobacco_smoking_status": "3", 
+        "type": "exposure", 
+        "weight": 40.777977747751905, 
+        "years_smoked": 26.60878559886487
+    }
+]
