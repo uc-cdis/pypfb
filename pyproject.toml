@@ -27,3 +27,11 @@ gdcdictionary = ">=1.2.0"
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
+
+[tool.poetry.plugins."pfb.plugins"]
+"from_gen3dict" = "pfb.importers.gen3dict"
+"from_json" = "pfb.importers.json"
+"to_gremlin" = "pfb.exporters.gremlin"
+"show" = "pfb.commands.show"
+"add" = "pfb.commands.add"
+"rename" = "pfb.commands.rename"
