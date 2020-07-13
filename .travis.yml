@@ -11,8 +11,13 @@ cache:
 - pip
 - apt
 install:
-- pip install poetry
-- poetry install
+ # Installing poetry using bootstrap script instead of pip install poetry to avoid any dependency conflicts. 
+- curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
+- source $HOME/.poetry/env
+
+- which poetry
+
+- poetry install -v
 - poetry show
 script:
 - poetry run py.test -vv --cov=pfb --cov-report xml tests
