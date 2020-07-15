@@ -56,6 +56,8 @@ DEFAULT_CONFIG = {
     "hardExcludes": [
         "th_wrapper.py",
         "thog_config.json",
+        "poetry.lock",
+        "pyproject.toml",
         "Pipfile.lock",
         ".travis.yml",
         "truffles.json",

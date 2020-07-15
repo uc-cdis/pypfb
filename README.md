@@ -34,10 +34,8 @@ a PFB file.)
 * From source code:
 
 ```bash
-pipenv install
+poetry install
 ```
-
-(Also add `--dev` for development.)
 
 
 ## Usage
