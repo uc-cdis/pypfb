@@ -22,6 +22,23 @@ def _test_schema(r):
                                 decode_enum(symbol)
 
 
+def test_from_dict_with_enum_array(runner, invoke):
+    with runner.isolated_filesystem():
+        result = invoke(
+            "from",
+            "-o",
+            "array.avro",
+            "dict",
+            "https://s3.amazonaws.com/dictionary-artifacts/bhcdictionary/master/schema.json",
+        )
+        assert result.exit_code == 0, result.output
+
+        with open("array.avro", "rb") as f:
+            r = reader(f)
+            _test_schema(r)
+            assert len(list(r)) == 1
+
+
 def test_from_dict(runner, invoke):
     with runner.isolated_filesystem():
         result = invoke(
