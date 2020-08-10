@@ -241,7 +241,14 @@ def _get_avro_type(property_name, property_type, name):
 
 
 def _array_type(property_type):
-    return {"items": property_type["items"]["type"], "type": property_type["type"]}
+    if "enum" in property_type["items"]:
+        enum = {}
+        enum["type"] = "enum"
+        enum["symbols"] = property_type["items"]["enum"]
+        enum["name"] = property_type["description"]
+        return {"items": enum, "type": property_type["type"]}
+    else:
+        return {"items": property_type["items"]["type"], "type": property_type["type"]}
 
 
 def _plain_type(property_type):

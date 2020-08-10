@@ -19,7 +19,7 @@ click = "~=7.0"
 fastavro = ">=0.21"
 python-json-logger = "~=0.1"
 PyYAML = "~=5.1"
-dictionaryutils = ">=3.0.2"
+dictionaryutils = "<=3.0.2"
 gdcdictionary = ">=1.2.0"
 
 
