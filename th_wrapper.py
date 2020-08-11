@@ -56,6 +56,8 @@ DEFAULT_CONFIG = {
     "hardExcludes": [
         "th_wrapper.py",
         "thog_config.json",
+        ".pre-commit-config.yaml",
+        ".secrets.baseline",
         "Pipfile.lock",
         ".travis.yml",
         "truffles.json",
