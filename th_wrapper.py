@@ -56,6 +56,8 @@ DEFAULT_CONFIG = {
     "hardExcludes": [
         "th_wrapper.py",
         "thog_config.json",
+        ".pre-commit-config.yaml",
+        ".secrets.baseline",
         "poetry.lock",
         "pyproject.toml",
         "Pipfile.lock",
