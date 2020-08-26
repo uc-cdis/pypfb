@@ -3,7 +3,8 @@ name = "pypi"
 url = "https://pypi.org/simple"	
 verify_ssl = true	
 
-[dev-packages]	
+[dev-packages]
+pyyaml = "~=5.3.1"
 click = "~=7.1.2"
 codacy-coverage = "*"	
 pytest = "~=3.2"	
