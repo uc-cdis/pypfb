@@ -34,10 +34,8 @@ a PFB file.)
 * From source code:
 
 ```bash
-pipenv install
+poetry install
 ```
-
-(Also add `--dev` for development.)
 
 
 ## Usage
@@ -58,7 +56,7 @@ pipenv install
 
 ### Show different parts of PFB
 
-    Usage: pfb show [OPTIONS] COMMAND [ARGS]...
+    Usage: pfb show [OPTIONS] COMMAND [ARGS] ...
 
       Show records of the PFB file.
 

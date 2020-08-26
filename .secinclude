@@ -1,5 +1,6 @@
 pfb/*
 config.yml
+poetry.lock
+pyproject.toml
 Pipfile
-setup.py
 th_wrapper.py
