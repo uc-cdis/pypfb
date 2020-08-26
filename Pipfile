@@ -4,6 +4,7 @@ url = "https://pypi.org/simple"
 verify_ssl = true	
 
 [dev-packages]
+fastavro = "~=0.24.2"
 pyyaml = "~=5.3.1"
 click = "~=7.1.2"
 codacy-coverage = "*"	
