@@ -56,7 +56,7 @@ poetry install
 
 ### Show different parts of PFB
 
-    Usage: pfb show [OPTIONS] COMMAND [ARGS] ...
+    Usage: pfb show [OPTIONS] COMMAND [ARGS]...
 
       Show records of the PFB file.
 
