@@ -4,15 +4,18 @@ url = "https://pypi.org/simple"
 verify_ssl = true	
 
 [dev-packages]
-fastavro = "~=0.24.2"
-pyyaml = "~=5.3.1"
-click = "~=7.1.2"
-codacy-coverage = "*"	
-pytest = "~=3.2"	
-pytest-cov = "~=2.5"	
-truffleHog = "*"	
-gen3git = "*"	
-more-itertools = "~=5.0"	
+codacy-coverage = "*"
+pytest = "~=3.2"
+pytest-cov = "~=2.5"
+truffleHog = "*"
+gen3git = "*"
+more-itertools = "~=5.0"
+click = "~=7.0"
+fastavro = ">=0.21"
+python-json-logger = "~=0.1"
+PyYAML = "~=5.1"
+dictionaryutils = ">=3.0.2"
+gdcdictionary = ">=1.2.0"
 
 [packages]	
 pypfb = {editable = true,extras = ["gen3"],path = "."}
