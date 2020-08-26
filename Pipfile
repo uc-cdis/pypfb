@@ -1,0 +1,15 @@
+[[source]]	
+name = "pypi"	
+url = "https://pypi.org/simple"	
+verify_ssl = true	
+
+[dev-packages]	
+codacy-coverage = "*"	
+pytest = "~=3.2"	
+pytest-cov = "~=2.5"	
+truffleHog = "*"	
+gen3git = "*"	
+more-itertools = "~=5.0"	
+
+[packages]	
+pypfb = {editable = true,extras = ["gen3"],path = "."}
