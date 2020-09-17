@@ -11,7 +11,7 @@ cache:
 - pip
 - apt
 install:
- # Installing poetry using bootstrap script instead of pip install poetry to avoid any dependency conflicts. 
+ # Installing poetry using bootstrap script instead of pip install poetry to avoid any dependency conflicts.
 - curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
 - source $HOME/.poetry/env
 
@@ -20,7 +20,7 @@ install:
 - poetry install -v
 - poetry show
 script:
-- poetry run py.test -vv --cov=pfb --cov-report xml tests
+- poetry run py.test -vv --cov=src --cov-report xml tests
 - poetry run python th_wrapper.py -w truffles.json -c thog_config.json -g file:///${PWD}/ --check
 after_script:
 - poetry run python-codacy-coverage -r coverage.xml
