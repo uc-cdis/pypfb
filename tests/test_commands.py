@@ -1,7 +1,6 @@
 import csv
 import gzip
 import json
-import yaml
 import os
 import shutil
 

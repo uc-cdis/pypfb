@@ -1,8 +1,11 @@
 import logging.config
 import os
+try:
+    from importlib.metadata import entry_points
+except ImportError:
+    from importlib_metadata import entry_points
 
 import click
-import pkg_resources
 import yaml
 
 from .reader import PFBReader
@@ -56,12 +59,8 @@ def to_command(ctx, input_file):
 
 
 # load plug-ins from entry_points
-for ep in pkg_resources.iter_entry_points("pfb.plugins"):
-    try:
-        ep.load()
-    except pkg_resources.DistributionNotFound:
-        pass
-
+for ep in entry_points().get("pfb.plugins", []):
+    ep.load()
 
 if __name__ == "__main__":
     main()
