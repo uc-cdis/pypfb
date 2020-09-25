@@ -35,9 +35,7 @@ def tsv(ctx, output):
 
 
 def _to_tsv(reader, dir_path, handlers_by_name):
-    uuids = {}
     project_ids = []
-    edges = []
     num_files = 1
 
     if not os.path.exists(dir_path):
@@ -48,11 +46,10 @@ def _to_tsv(reader, dir_path, handlers_by_name):
         name = row["name"]
         fields = fields_by_name[name]
 
-        # row_id = row["id"]
         obj = row["object"]
         # relations = row["relations"]
 
-        # get the CSV writer for this row, create one if not created
+        # get the TSV writer for this row, create one if not created
         pair = handlers_by_name.get(name)
         if pair is None:
             header_row = _make_header_row(fields)
