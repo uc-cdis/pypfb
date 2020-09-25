@@ -35,6 +35,7 @@ pfb = 'pfb.cli:main'
 "show" = "pfb.commands.show"
 "add" = "pfb.commands.add"
 "rename" = "pfb.commands.rename"
+"to_tsv" = "pfb.exporters.tsv"
 
 [build-system]
 requires = ["poetry>=0.12"]
