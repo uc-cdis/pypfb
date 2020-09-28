@@ -114,6 +114,31 @@ def test_to_gremlin(runner, invoke, path_join, test_avro):
             }
 
 
+def test_to_tsv(runner, invoke, path_join, test_avro):
+    with runner.isolated_filesystem():
+        result = invoke("to", "tsv", "./tsvs", input=test_avro)
+        assert result.exit_code == 0, result.output
+        with open(os.path.join("tsvs", "demographic.tsv"), "rt") as f:
+            result = list(csv.DictReader(f, delimiter="\t"))
+            assert len(result) == 1
+            result = result[0]
+            result = dict(result)
+            assert result == {
+                "ethnicity": "not hispanic or latino",
+                "age_at_last_follow_up_days": "18074",
+                "cause_of_death": "Not Reported",
+                "gender": "female",
+                "type": "demographic",
+                "updated_datetime": "",
+                "vital_status": "Dead",
+                "submitter_id": "demographic_duteousness_unassailing",
+                "project_id": "DEV-test",
+                "created_datetime": "",
+                "race": "Native Hawaiian or Other Pacific Islander",
+                "state": "validated",
+            }
+
+
 def test_make(invoke, path_join):
     result = invoke("make", "-i", path_join("schema", "kf.avro"), "sample")
     assert result.exit_code == 0, result.output
@@ -128,22 +153,22 @@ def test_make(invoke, path_join):
             "submitter_id": "",
             "intermediate_dimension": 0,
             "created_datetime": "",
-            "tumor_descriptor": 'Metastatic',
-            "biospecimen_anatomic_site": 'Abdomen',
-            "state": 'uploading',
-            "diagnosis_pathologically_confirmed": 'Yes',
+            "tumor_descriptor": "Metastatic",
+            "biospecimen_anatomic_site": "Abdomen",
+            "state": "uploading",
+            "diagnosis_pathologically_confirmed": "Yes",
             "project_id": "",
             "current_weight": 0,
             "age_at_event_days": 0,
             "time_between_clamping_and_freezing": 0,
             "shortest_dimension": 0,
-            "method_of_sample_procurement": 'Abdomino-perineal Resection of Rectum',
-            "tissue_type": 'Tumor',
+            "method_of_sample_procurement": "Abdomino-perineal Resection of Rectum",
+            "tissue_type": "Tumor",
             "uberon_id_anatomical_site": "",
             "days_to_sample_procurement": 0,
             "spatial_descriptor": "",
             "ncit_id_tissue_type": "",
-            "preservation_method": 'Cryopreserved',
+            "preservation_method": "Cryopreserved",
             "composition": "Blood",
             "days_to_collection": 0,
             "ncit_id_anatomical_site": "",
@@ -189,13 +214,16 @@ def test_show(invoke, test_avro):
             "age_at_last_follow_up_days": 18074,
             "vital_status": "Dead",
             "project_id": "DEV-test",
-            "ethnicity": "not hispanic or latino"
+            "ethnicity": "not hispanic or latino",
         },
         "id": "demographic_duteousness_unassailing",
         "relations": [
-            {"dst_id": "participant_metalinguistics_monofilm","dst_name": "participant"}
+            {
+                "dst_id": "participant_metalinguistics_monofilm",
+                "dst_name": "participant",
+            }
         ],
-        "name": "demographic"
+        "name": "demographic",
     }
 
     result = invoke("show", "nodes", input=test_avro)

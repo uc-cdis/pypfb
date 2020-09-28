@@ -11,7 +11,7 @@ These files start from a Gen3 data dictionary. These can be made from either jso
 
 Once we have a PFB file created from a schema we can start to add data to the file. This is done using JSON files from local directory. We create them in the style of our data-simulator https://github.com/uc-cdis/data-simulator/ Once we have them we can use PFB From JSON to import the structured json into our Serialized PFB file.
 
-At this point we have a PFB file with married schema and serialized data. Now we have a few options for modifying these PFB files. These are good options for breaking changes within the dictionary. This allows a commons operator to export the entire structured database, make modifications to fix the breaking changes, and then re import the file back to the commons. 
+At this point we have a PFB file with married schema and serialized data. Now we have a few options for modifying these PFB files. These are good options for breaking changes within the dictionary. This allows a commons operator to export the entire structured database, make modifications to fix the breaking changes, and then re import the file back to the commons.
 
 Changes that are already supported by this SDK are renames (enum and nodes) and adds of records data.
 
@@ -139,7 +139,7 @@ poetry install
       -i, --input JSON  The JSON file to add.  [default: <stdin>]
 
     Example:
-      pfb add -i new_record.json pfb.avro 
+      pfb add -i new_record.json pfb.avro
 
 ### Rename different parts of PFB (schema evolution)
 
@@ -188,6 +188,19 @@ poetry install
     Example:
       pfb to -i data.avro gremlin
 
+### Convert PFB into TSV (1 TSV per node)
+
+    Usage: pfb to [PARENT OPTIONS] tsv [OPTIONS] [OUTPUT]
+
+      Convert PFB into TSV files under [OUTPUT] for modification of data in TSV format.
+
+      The default [OUTPUT] is ./tsvs/.
+
+    Options:
+      None
+    Example:
+      pfb to -i data.avro tsv
+
 ### Example of minimal PFB
     In the examples/minimal-pfb directory we have an example of a minimal pfb that only contains submitted unaligned read data
 
@@ -207,18 +220,19 @@ poetry install
 ## Examples
 
     pfb from dict http://s3.amazonaws.com/dictionary-artifacts/kf-dictionary/1.1.0/schema.json > ./tests/schema/kf.avro
-    
+
     pfb from json ./tests/data -s ./tests/schema/kf.avro --program DEV --project test > tests/pfb-data/test.avro
 
     cat tests/pfb-data/test.avro | pfb rename node slide slide_test > tests/pfb-data/rename_test.avro
-    
+
     cat tests/pfb-data/test.avro | pfb rename enum state validated validated_test > tests/pfb-data/rename_test.avro
-    
+
     cat tests/pfb-data/test.avro | pfb show -n 1 | jq
 
     cat tests/pfb-data/test.avro | pfb show --schema | jq
 
     cat tests/pfb-data/test.avro | pfb to gremlin ./output/
+    cat tests/pfb-data/test.avro | pfb to tsv ./tsvs/
 
 
   [1]: ./doc/schema.svg
