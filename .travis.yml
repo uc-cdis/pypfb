@@ -17,6 +17,8 @@ install:
 
 - which poetry
 
+- poetry --version
+
 - poetry install -v
 - poetry show
 script:

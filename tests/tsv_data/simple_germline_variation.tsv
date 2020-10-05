@@ -1,0 +1,2 @@
+type	updated_datetime	file_name	submitter_id	file_size	file_format	created_datetime	error_type	object_id	state	project_id	file_state	experimental_strategy	data_type	state_comment	md5sum	file_url	data_format	data_category
+simple_germline_variation		unpilgrimlike_incorrupt	simple_germline_variation_eurycephalic_superimpregnated	51	slicht_buhrstone				validated	DEV-test	registered	Validation	Simple Germline Variation		707dba155d5c39385e77b01b5fd8de13	doss_configure	gVCF	Simple Nucleotide Variation

@@ -1,0 +1,2 @@
+type	disease_related	updated_datetime	created_datetime	age_at_event_days	submitter_id	state	vital_status	project_id
+outcome	Not Reported			26897	outcome_hydrocellulose_womandom	validated	Dead	DEV-test
