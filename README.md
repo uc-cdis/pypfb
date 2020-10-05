@@ -117,6 +117,23 @@ poetry install
     Example:
       pfb from -o data.avro json -s schema.avro --program DEV --project test /path/to/data/json/
 
+### Convert TSV for corresponding datadictionary to PFB
+
+    Usage: pfb from [PARENT OPTIONS] tsv [OPTIONS] [PATH]
+
+      Convert TSV files under PATH into a PFB file.
+
+    Parent Options:
+      -o, --output FILENAME  The output PFB file.  [default: <stdout>]
+
+    Options:
+      -s, --schema FILENAME  The PFB file to load the schema from.  [required]
+      --program TEXT         Name of the program.  [required]
+      --project TEXT         Name of the project.  [required]
+
+    Example:
+      pfb from -o data.avro tsv -s schema.avro --program DEV --project test /path/to/data/tsv/
+
 ### Make new blank record
 
     Usage: pfb make [OPTIONS] NAME
@@ -222,6 +239,8 @@ poetry install
     pfb from dict http://s3.amazonaws.com/dictionary-artifacts/kf-dictionary/1.1.0/schema.json > ./tests/schema/kf.avro
 
     pfb from json ./tests/data -s ./tests/schema/kf.avro --program DEV --project test > tests/pfb-data/test.avro
+
+    pfb from tsv ./tests/tsv_data -s ./tests/schema/kf.avro --program DEV --project test > tests/pfb-data/test.avro
 
     cat tests/pfb-data/test.avro | pfb rename node slide slide_test > tests/pfb-data/rename_test.avro
 
