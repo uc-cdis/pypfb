@@ -88,6 +88,39 @@ def test_from_json(runner, invoke, path_join):
                         assert obj["file_name"] == "virtuosi_conticent"
 
 
+def test_from_tsv(runner, invoke, path_join):
+    with runner.isolated_filesystem():
+        result = invoke(
+            "from",
+            "-o",
+            "output.avro",
+            "tsv",
+            path_join("tsv_data"),
+            "-s",
+            path_join("schema", "kf.avro"),
+            "--program",
+            "DEV",
+            "--project",
+            "test",
+        )
+        assert result.exit_code == 0, result.output
+        with open("output.avro", "rb") as f:
+            r = reader(f)
+            _test_schema(r)
+            data = list(r)
+            assert len(data) == 37
+            for record in data:
+                if record["name"] == "submitted_aligned_reads":
+                    obj = record["object"]
+                    if "soixantine_counterimpulse" in obj["submitter_id"]:
+                        assert decode_enum(obj["state"]) == "validated"
+                        assert decode_enum(obj["data_type"]) == "Aligned Reads"
+                        assert decode_enum(obj["data_category"]) == "Sequencing Reads"
+                        assert decode_enum(obj["file_state"]) == "registered"
+                        assert obj["file_format"] == "thumb_cotranspire"
+                        assert obj["file_name"] == "virtuosi_conticent"
+
+
 def test_to_gremlin(runner, invoke, path_join, test_avro):
     with runner.isolated_filesystem():
         result = invoke("to", "gremlin", "./output", input=test_avro)
@@ -114,7 +147,7 @@ def test_to_gremlin(runner, invoke, path_join, test_avro):
             }
 
 
-def test_to_tsv(runner, invoke, path_join, test_avro):
+def test_to_tsv(runner, invoke, test_avro):
     with runner.isolated_filesystem():
         result = invoke("to", "tsv", "./tsvs", input=test_avro)
         assert result.exit_code == 0, result.output

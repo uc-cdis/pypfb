@@ -1,0 +1,2 @@
+type	updated_datetime	created_datetime	age_at_event_days	submitter_id	observed	state	phenotype	hpo_id	project_id	snomed_id_phenotype
+phenotype			90	phenotype_colorrhaphy_endevil	Not Reported	validated	unsplayed_trekker	sapphire_scarabaei	DEV-test	brace_pterygosphenoid

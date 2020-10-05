@@ -1,0 +1,2 @@
+type	cause_of_death	updated_datetime	created_datetime	gender	submitter_id	state	race	age_at_last_follow_up_days	vital_status	project_id	ethnicity
+demographic	Not Reported			female	demographic_duteousness_unassailing	validated	Native Hawaiian or Other Pacific Islander	18074	Dead	DEV-test	not hispanic or latino
