@@ -64,9 +64,39 @@
            "$ref" : "_terms.yaml#/datetime"
         }
      },
-     "drs_uri" : {
+     "ga4gh_drs_uri" : {
         "term" : {
-           "$ref" : "_terms.yaml#/drs_uri"
+           "$ref" : "_terms.yaml#/ga4gh_drs_uri"
+        },
+        "type" : "string"
+     },
+     "study_registration" : {
+        "term" : {
+          "$ref" : "_terms.yaml#/study_registration"
+        },
+        "type" : "string"
+      },
+     "participant_id" : {
+        "term" : {
+          "$ref" : "_terms.yaml#/participant_id"
+        },
+        "type" : "string"
+     },
+     "specimen_id" : {
+        "term" : {
+          "$ref" : "_terms.yaml#/specimen_id"
+        },
+        "type" : "string"
+     },
+     "experimental_strategy" : {
+        "term" : {
+          "$ref" : "_terms.yaml#/experimental_strategy"
+        },
+        "type" : "string"
+     },
+     "study_id" : {
+        "term" : {
+          "$ref" : "_terms.yaml#/study_id"
         },
         "type" : "string"
      },
@@ -288,8 +318,23 @@
            "$ref" : "#/UUID",
            "systemAlias" : "node_id"
         },
-        "drs_uri" : {
-           "$ref" : "#/drs_uri"
+        "ga4gh_drs_uri" : {
+           "$ref" : "#/ga4gh_drs_uri"
+        },
+        "participant_id" : {
+           "$ref" : "#/participant_id"
+        },
+        "specimen_id" : {
+           "$ref" : "#/specimen_id"
+        },
+        "experimental_strategy" : {
+           "$ref" : "#/experimental_strategy"
+        },
+        "study_registration" : {
+           "$ref" : "#/study_registration"
+        },
+        "study_id" : {
+           "$ref" : "#/study_id"
         },
         "project_id" : {
            "$ref" : "#/project_id"
@@ -353,8 +398,23 @@
     "datetime" : {
        "description" : "A combination of date and time of day in the form [-]CCYY-MM-DDThh:mm:ss[Z|(+|-)hh:mm]\n"
     },
-    "drs_uri":{
+    "ga4gh_drs_uri":{
       "description": "The DRS URI of the object.\n"
+    },
+    "study_registration":{
+      "description": "External source from which the identifier included in study_id originates.\n"
+    },
+    "participant_id":{
+      "description": "Unique identifier that can be used to retrieve more information for a participant.\n"
+    },
+    "specimen_id":{
+      "description": "Unique identifier that can be used to retrieve more information for a specimen.\n"
+    },
+    "experimental_strategy":{
+      "description": "The experimental strategy used to generate the data file referred to by the ga4gh_drs_uri. (Based on GDC definition).\n"
+    },
+    "study_id":{
+      "description": "Unique identifier that can be used to retrieve more information for a study.\n"
     },
     "file_name" : {
        "description" : "The name (or part of a name) of a file (of any type).\n"
@@ -430,7 +490,12 @@
         "submitter_id",
         "file_name",
         "file_size",
-        "md5sum"
+        "md5sum",
+        "ga4gh_drs_uri",
+        "participant_id",
+        "study_registration",
+        "specimen_id",
+        "experimental_strategy"
      ],
      "submittable" : true,
      "systemProperties" : [
@@ -441,8 +506,7 @@
         "state",
         "file_state",
         "error_type",
-        "subject_id",
-        "drs_uri"
+        "subject_id"
      ],
      "title" : "File",
      "type" : "object",

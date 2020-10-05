@@ -14,6 +14,10 @@
    "state" : "uploading",
    "submitter_id" : "HG01101_cram",
    "subject_id" : "p1011554-9",
-   "drs_uri" : "drs://example.org/dg.4503/cc32d93d-a73c-4d2c-a061-26c0410e74fa",
+   "participant_id": "bbb1234",
+   "ga4gh_drs_uri" : "drs://example.org/dg.4503/cc32d93d-a73c-4d2c-a061-26c0410e74fa",
+   "study_registration" : "example.com/study_registration",
+   "study_id" : "aaa1234",
+   "specimen_id" : "spec1111",
    "updated_datetime" : "2020-01-27T14:32:19.373454+00:00"
 }
