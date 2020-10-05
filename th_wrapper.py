@@ -72,7 +72,7 @@ DEFAULT_CONFIG = {
         "examples/test.avro",
         "examples/thing.avro",
         "examples/data.avro"
-    ] + glob.glob("tests/data/*") + glob.glob("examples/"),
+    ] + glob.glob("tests/data/*") + glob.glob("examples/") + glob.glob("tests/tsv_data/"),
     "regexRules": {
         "Slack Token": "(xox[p|b|o|a]-[0-9]{12}-[0-9]{12}-[0-9]{12}-[a-z0-9]{32})",
         "RSA private key": "-----BEGIN RSA PRIVATE KEY-----",
