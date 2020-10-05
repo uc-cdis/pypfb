@@ -66,8 +66,6 @@ def _from_tsv(metadata, path, program, project):
         click.secho("{}/{}: ".format(i + 1, total), fg="blue", nl=False, err=True)
         click.secho(o, fg="white", err=True)
 
-        # with open(os.path.join(path, o + ".tsv"), "r") as f:
-        #     tsv_data = tsv.load(f)
         tsv_data = pd.read_csv(
             os.path.join(path, o + ".tsv"), delimiter="\t", index_col=1
         )
@@ -106,8 +104,5 @@ def _convert_tsv(node_name, tsv_record, program, project, link_dests):
         del vals[to_del]
 
     vals["project_id"] = "{}-{}".format(program, project)
-
-    vals["created_datetime"] = None
-    vals["updated_datetime"] = None
 
     return avro_record(node_id, node_name, vals, relations)
