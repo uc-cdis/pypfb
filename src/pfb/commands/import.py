@@ -10,24 +10,6 @@ from gen3.file import Gen3File
 
 
 @main.group()
-# @click.option(
-#     "-i",
-#     "--input",
-#     "input_file",
-#     metavar="FILENAME",
-#     type=click.File("rb"),
-#     default="-",
-#     help="Source PFB file.  [default: <stdin>]",
-# )
-# @click.option(
-#     "-o",
-#     "--output",
-#     "output_file",
-#     metavar="FILENAME",
-#     type=click.File("wb"),
-#     default="-",
-#     help="Destination PFB file.  [default: <stdout>]",
-# )
 @click.option(
     "-c",
     "--commons",
