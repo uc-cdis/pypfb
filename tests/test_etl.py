@@ -2,7 +2,7 @@ from pfb.etl.etl import ETL
 
 
 def test_etl():
-    etl = ETL("pfb-data/test.avro", "participant")
+    etl = ETL("http://localhost:9200", "", "tests/pfb-data/test.avro", "participant")
     etl.links = {
         "A_1": ["B_1", "C_1", "C_2", "B_2"],
         "B_1": ["D_1"],
