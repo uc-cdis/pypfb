@@ -1,5 +1,3 @@
-import os
-import json
 from fastavro import reader
 
 
@@ -9,6 +7,7 @@ class ETL:
         self.root_name = root_name
         self.links = {}
         self.root_node_ids = []
+        self.spanning_tree_rows = []
 
     def __iter__(self):
         pass
@@ -27,7 +26,6 @@ class ETL:
         relations = record["relations"]
         submitter_id = data["submitter_id"]
         for relation in relations:
-            # {u'dst_id': u'participant_metalinguistics_monofilm', u'dst_name': u'participant'}
             if relation["dst_id"] not in self.links:
                 self.links[relation["dst_id"]] = []
             if (
@@ -37,95 +35,63 @@ class ETL:
                 self.root_node_ids.append(relation["dst_id"])
             self.links[relation["dst_id"]].append(submitter_id)
 
-    def get_id(self, L):
-        tmp = ""
-        for l in L:
-            tmp = tmp + "\t" + l
-        return tmp
-
-    def check_and_add_candidate(self, sorted_list, voc_tree_result):
-        for l in sorted_list:
-            if l not in voc_tree_result:
-                voc_tree_result[l] = {}
-            voc_tree_result = voc_tree_result[l]
-
     def build_spanning_table(self, root_id):
-        stack = [root_id]
-        covered_node_set = {root_id.split("_")[0]}
-        results = []
-        visited_set = set()
-        while stack:
-            i = len(stack) - 1
-            while i >= 0:
-                already_visited = False
-                node_id = stack[i]
-                can_go_further = False
-                for child_id in self.links[node_id]:
-                    if child_id.split("_")[0] in covered_node_set:
-                        continue
-                    tmp = self.get_id(stack + [child_id])
-                    if tmp not in visited_set:
-                        visited_set.add(tmp)
-                        covered_node_set.add(child_id.split("_")[0])
-                        stack.append(child_id)
-                        i = len(stack) - 1
-                        can_go_further = True
-                        break
-                    else:
-                        already_visited = True
-                if not can_go_further:
-                    i = i - 1
-            if not already_visited:
-                potential = set(stack)
-                is_new = True
-                for res in results:
-                    if potential.issubset(res):
-                        is_new = False
-                        break
-                if is_new:
-                    results.append(set(stack))
-            covered_node_set.remove(stack[-1].split("_")[0])
-            stack = stack[:-1]
+        def dfs(root_id, cur_values):
+            """
+            Spanning from the root with the current node values
+            The result is the list of the nodes that can reach from the root
+            """
+            stack = [root_id]
+            visited = set()
+            visited.add(root_id)
+            while stack:
+                top = stack.pop()
+                for v in self.links.get(top, []):
+                    if v not in visited and v in cur_values:
+                        visited.add(v)
+                        stack.append(v)
+            return visited
 
-        for r in results:
-            print(r)
+        def pick_k_candidate(k, node_name_list, node_values, cur_values):
+            """
+            Pick the k-th candidate from node values
+            """
+            if k == len(node_name_list):
+                solution = dfs(root_id, set(cur_values))
+                delete_list = []
+                for r in self.spanning_tree_rows:
+                    if solution.issubset(r):
+                        return
+                    if r.issubset(solution):
+                        delete_list.append(r)
+                self.spanning_tree_rows.append(solution)
+                for element in delete_list:
+                    self.spanning_tree_rows.remove(element)
+                return
 
-    # def build_spanning_table(self, root_id):
-    #     def _dfs(node_id, results, cur_visted, visited_set, covered_node_set):
-    #         can_travel = False
-    #         for child_id in self.links[node_id]:
-    #             if child_id.split("_")[0] in covered_node_set:
-    #                 continue
-    #             if sorted(cur_visted + [child_id]) not in visited_set:
-    #                 can_travel = True
-    #                 visited_set.add(sorted(cur_visted + [child_id]))
-    #                 covered_node_set.add(child_id.split("_")[0])
-    #                 _dfs(child_id, results, cur_visted + [child_id], visited_set, covered_node_set)
-    #         if not can_travel and node_id == root_id:
-    #             results.append(cur_visted)
-    #             covered_node_set = {child_id.split("_")[0]}
-    #             cur_visted = [root_id]
+            for node_value in node_values[node_name_list[k]]:
+                pick_k_candidate(
+                    k + 1, node_name_list, node_values, cur_values + [node_value]
+                )
+
+        node_name_list = set()
+        node_values = {}
+        for k, v in self.links.items():
+            for e in [k] + v:
+                node_name = e.split("_")[0]
+                node_name_list.add(node_name)
+                if node_name not in node_values:
+                    node_values[node_name] = set()
+                node_values[node_name].add(e)
+        node_name_list = list(node_name_list)
+        cur_values = []
+        pick_k_candidate(0, node_name_list, node_values, cur_values)
 
 
 if __name__ == "__main__":
-    etl = ETL("/Users/giangbui/Projects/pypfb/tests/pfb-data/test.avro", "participant")
-    # etl.transform()
-    # import pdb; pdb.set_trace()
-    etl.links = {
-        "A_1": ["B_1", "C_1", "C_2", "B_2"],
-        "B_1": ["D_1"],
-        "D_1": ["C_1"],
-        "C_1": ["D_2", "B_3"],
-        "B_2": [],
-        "C_2": [],
-        "D_2": [],
-        "B_3": [],
-    }
-    # etl.build_spanning_table("participant_metalinguistics_monofilm")
-    etl.build_spanning_table("A_1")
-    # voc_tree_result = {}
-    # etl.check_and_add_candidate(["a", "b", "c"], voc_tree_result)
-    # etl.check_and_add_candidate(["a", "b", "d"], voc_tree_result)
-    # etl.check_and_add_candidate(["a", "b"], voc_tree_result)
-    # etl.check_and_add_candidate(["a", "b"], voc_tree_result)
-    # print(voc_tree_result)
+    etl = ETL("tests/pfb-data/test.avro", "participant")
+    etl.transform()
+    etl.build_spanning_table("participant_metalinguistics_monofilm")
+    print("=====================================================")
+    for r in etl.spanning_tree_rows:
+        print(r)
