@@ -64,14 +64,14 @@ class ETL:
             if relation["dst_id"] not in self.links:
                 self.links[relation["dst_id"]] = []
             if (
-                relation["dst_id"].split("_")[0] == self.root_name
+                self.root_name in relation["dst_id"]
                 and relation["dst_id"] not in self.root_node_ids
             ):
                 self.root_node_ids.append(relation["dst_id"])
             self.links[relation["dst_id"]].append(submitter_id)
 
     def build_spanning_table(self, root_id):
-        def dfs(root_id, chosen_node_values):
+        def dfs(root_id, chosen_node_ids):
             """
             Spanning from the root with the current node values
             The result is the list of the nodes that can reach from the root
@@ -82,17 +82,17 @@ class ETL:
             while stack:
                 top = stack.pop()
                 for v in self.links.get(top, []):
-                    if v not in visited and v in chosen_node_values:
+                    if v not in visited and v in chosen_node_ids:
                         visited.add(v)
                         stack.append(v)
             return visited
 
-        def pick_k_th_node(k, node_name_list, node_values, chosen_node_values):
+        def pick_k_th_node(k, node_name_list, node_ids, chosen_node_ids):
             """
             Pick the k-th candidate from node values
             """
             if k == len(node_name_list):
-                solution = dfs(root_id, set(chosen_node_values))
+                solution = dfs(root_id, set(chosen_node_ids))
                 delete_list = []
                 for r in self.spanning_tree_rows:
                     # ignore the spanning tree whose parent already exists
@@ -106,16 +106,13 @@ class ETL:
                     self.spanning_tree_rows.remove(element)
                 return
 
-            for node_value in node_values[node_name_list[k]]:
+            for node_value in node_ids[node_name_list[k]]:
                 pick_k_th_node(
-                    k + 1,
-                    node_name_list,
-                    node_values,
-                    chosen_node_values + [node_value],
+                    k + 1, node_name_list, node_ids, chosen_node_ids + [node_value],
                 )
 
         node_name_list = set()
-        node_values = {}
+        node_ids = {}
         for k, v in self.links.items():
             for e in [k] + v:
                 node_name = e.split("_")[0]
@@ -124,12 +121,12 @@ class ETL:
                         node_name = name
                         break
                 node_name_list.add(node_name)
-                if node_name not in node_values:
-                    node_values[node_name] = set()
-                node_values[node_name].add(e)
+                if node_name not in node_ids:
+                    node_ids[node_name] = set()
+                node_ids[node_name].add(e)
         node_name_list = list(node_name_list)
-        chosen_node_values = []
-        pick_k_th_node(0, node_name_list, node_values, chosen_node_values)
+        chosen_node_ids = []
+        pick_k_th_node(0, node_name_list, node_ids, chosen_node_ids)
 
     async def submit_data(self):
         for node_name, values in self.node_rows.items():
@@ -137,6 +134,24 @@ class ETL:
                 await self.helper.insert_document(
                     node_name, value, value["submitter_id"]
                 )
+
+        # TODO: implement batch insert
+        i = 0
+        for row in self.spanning_tree_rows:
+            await self.helper.insert_document(
+                "spanning_tree_index",
+                dict(zip(list(map(self.find_node_name, row)), row)),
+                i,
+            )
+            i += 1
+
+    def find_node_name(self, submitter_id):
+        for node_name in self.schema_node_names:
+            if node_name in submitter_id:
+                return node_name
+        raise Exception(
+            f"ERROR: the avro file is in wrong format. There is no node for {submitter_id}"
+        )
 
 
 if __name__ == "__main__":
