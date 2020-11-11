@@ -18,6 +18,7 @@ importlib_metadata = { version = "^1.3.0", python = "<3.8" }
 gdcdictionary = "^1.2.0"
 pandas = "^1.1.0"
 dictionaryutils = "^3.2.0"
+gen3 = "^2.7.0"
 
 [tool.poetry.dev-dependencies]
 codacy-coverage = "*"
@@ -38,6 +39,7 @@ pfb = 'pfb.cli:main'
 "show" = "pfb.commands.show"
 "add" = "pfb.commands.add"
 "rename" = "pfb.commands.rename"
+"import" = "pfb.commands.import"
 
 [build-system]
 requires = ["poetry>=0.12"]
