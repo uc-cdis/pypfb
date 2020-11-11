@@ -227,7 +227,8 @@ def _parse_dictionary(d):
 
 def _get_avro_type(property_name, property_type, name):
     if "type" in property_type:
-        if property_type["type"] == "array":
+        # print(property_type["type"])
+        if property_type["type"] == ["array", "null"]:
             return _array_type(property_type)
         return _plain_type(property_type["type"])
 
@@ -246,9 +247,21 @@ def _array_type(property_type):
         enum["type"] = "enum"
         enum["symbols"] = property_type["items"]["enum"]
         enum["name"] = property_type["description"]
-        return {"items": enum, "type": property_type["type"]}
+
+
+        array_type = {}
+        array_type["type"] = "array"
+        array_type["items"] = enum
+
+        full_type = ["null", array_type]
+        return full_type
     else:
-        return {"items": property_type["items"]["type"], "type": property_type["type"]}
+        array_type = {}
+        array_type["type"] = "array"
+        array_type["items"] = property_type["items"]["type"]
+
+        full_type = ["null", array_type]
+        return full_type
 
 
 def _plain_type(property_type):
