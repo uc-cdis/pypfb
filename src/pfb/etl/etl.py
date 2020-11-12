@@ -29,35 +29,29 @@ class ETL:
         self.pfbfile = pfbfile
         self.root_name = root_name
 
-        # self.schema_node_names = []
         self.links = {}
         self.root_node_ids = []
         self.spanning_tree_rows = []
         self.node_rows = {}
-        # self.schema = None
 
         self.helper = ETLHelper(base_url, access_token)
 
-    def __iter__(self):
-        pass
+    async def etl(self):
+        etl.extract()
+        etl.transform()
+        await etl.load_to_es()
 
-    def transform(self):
+    def extract(self):
         with open(self.pfbfile, "rb") as fo:
             avro_reader = reader(fo)
             # skip schema
             avro_reader.next()
-
-            # for node in self.schema["object"]["nodes"]:
-            #     self.schema_node_names.append(node["name"])
-            # self.schema_node_names = sorted(
-            #     self.schema_node_names, key=lambda x: len(x), reverse=True
-            # )
-
             # iterate each record
             for record in avro_reader:
                 self._process(record)
 
     def _process(self, record):
+        """extract links from record"""
         data = record["object"]
         if "submitter_id" not in data:
             # skip the data that does not have submitter_id
@@ -79,6 +73,88 @@ class ETL:
             self.links[(relation["dst_id"], relation["dst_name"])].append(
                 (submitter_id, record["name"])
             )
+
+    def transform(self):
+        """transform"""
+        n = 0
+        for root_id in self.root_node_ids:
+            print(f"{n}/{len(self.root_node_ids)}")
+            n = n + 1
+            self._build_spanning_table((root_id, self.root_name))
+
+    def _build_spanning_table(self, root):
+        """
+        Building a spanning table starting from the root node. A row of
+        the table demonstrates one relationship of all nodes to the root
+        """
+
+        def dfs(root, selected_nodes):
+            """
+            Spanning from the root on the tree created by the selected submitter ids
+            The result is the list of the nodes that can reach from the root
+
+            Args:
+                root(tube): tuple of (submitter_id, node_name)
+                selected_nodes(list(tube)): list of tubes of (submitter_id, node_name)
+
+            Returns:
+                visited(tube): list of (submitter_id, node_name) can be reached from the root
+            """
+
+            stack = [root]
+            visited = set()
+            visited.add(root)
+            while stack:
+                top = stack.pop()
+                for v in self.links.get(top, []):
+                    if v not in visited and v in selected_nodes:
+                        visited.add(v)
+                        stack.append(v)
+            return visited
+
+        def pick_k_th_node(k, node_name_list, node_ids, selected_nodes):
+            """
+            Pick the k-th candidate from node ids and find the largest connected component
+            that contains the root node as a potential solution
+
+            Args:
+                k(int): the control value
+                node_name_list(list): A list of node names that have paths to the root node
+                node_ids(dict): A dictionary with node names as keys and sets of their corresponding submitter_id as values
+                selected_nodes(list): list of tube(submitter_id, node_name) for keeping track the current chosen node ids
+
+            Return:
+                None
+            """
+            if k == len(node_name_list):
+                solution = dfs(root, set(selected_nodes))
+                delete_list = []
+                for r in self.spanning_tree_rows:
+                    # ignore the spanning tree whose parent already exists
+                    if solution.issubset(r):
+                        return
+                    # delete the spanning tree whose parent is about to be added
+                    if r.issubset(solution):
+                        delete_list.append(r)
+                self.spanning_tree_rows.append(solution)
+                for element in delete_list:
+                    self.spanning_tree_rows.remove(element)
+                return
+
+            for node_value in node_ids[node_name_list[k]]:
+                pick_k_th_node(
+                    k + 1,
+                    node_name_list,
+                    node_ids,
+                    selected_nodes + [(node_value, node_name_list[k])],
+                )
+
+        selected_nodes = []
+
+        # Find all related node ids that have a path to the root_id
+        related_node_ids = self.find_all_node_ids(root)
+        node_name_list = [node_name for node_name in related_node_ids]
+        pick_k_th_node(0, node_name_list, related_node_ids, selected_nodes)
 
     def find_all_node_ids(self, root):
         """
@@ -110,68 +186,9 @@ class ETL:
             result[node_name].add(submitted_id)
         return result
 
-    def build_spanning_table(self, root):
-        def dfs(root, chosen_node_ids):
-            """
-            Spanning from the root with the current node ids or submitter id
-            The result is the list of the nodes that can reach from the root
-            """
-            stack = [root]
-            visited = set()
-            visited.add(root)
-            while stack:
-                top = stack.pop()
-                for v in self.links.get(top, []):
-                    if v not in visited and v in chosen_node_ids:
-                        visited.add(v)
-                        stack.append(v)
-            return visited
+    async def load_to_es(self):
+        """submit data to es database"""
 
-        def pick_k_th_node(k, node_name_list, node_ids, chosen_node_ids):
-            """
-            Pick the k-th candidate from node ids and find the largest connected component
-            that contains the root node
-
-            Args:
-                k(int): the control value
-                node_name_list(list): the list of node names that have paths to the root node
-                node_ids(list): the list of submitter_id that have paths to the root_id
-                chose_node_ids(list): keep track the current chosen node ids
-
-            Return:
-                None
-            """
-            if k == len(node_name_list):
-                solution = dfs(root, set(chosen_node_ids))
-                delete_list = []
-                for r in self.spanning_tree_rows:
-                    # ignore the spanning tree whose parent already exists
-                    if solution.issubset(r):
-                        return
-                    # delete the spanning tree whose parent is about to be added
-                    if r.issubset(solution):
-                        delete_list.append(r)
-                self.spanning_tree_rows.append(solution)
-                for element in delete_list:
-                    self.spanning_tree_rows.remove(element)
-                return
-
-            for node_value in node_ids[node_name_list[k]]:
-                pick_k_th_node(
-                    k + 1,
-                    node_name_list,
-                    node_ids,
-                    chosen_node_ids + [(node_value, node_name_list[k])],
-                )
-
-        chosen_node_ids = []
-
-        # Find all related node ids that have a path to the root_id
-        related_node_ids = self.find_all_node_ids(root)
-        node_name_list = [node_name for node_name in related_node_ids]
-        pick_k_th_node(0, node_name_list, related_node_ids, chosen_node_ids)
-
-    async def submit_data(self):
         for node_name, values in self.node_rows.items():
             for value in values:
                 await self.helper.insert_document(
@@ -192,10 +209,4 @@ if __name__ == "__main__":
     etl = ETL(
         "http://localhost:9200", "", "./tests/pfb-data/gtexdictionary_data.avro", "case"
     )
-    etl.transform()
-    n = 0
-    for root_id in etl.root_node_ids:
-        print(f"{n}/{len(etl.root_node_ids)}")
-        n = n + 1
-        etl.build_spanning_table((root_id, etl.root_name))
-    asyncio.run(etl.submit_data())
+    asyncio.run(etl.etl())

@@ -9,7 +9,7 @@ def test_etl():
         ("D_1", "D"): [("C_1", "C")],
         ("C_1", "C"): [("D_2", "D"), ("B_3", "B")],
     }
-    etl.build_spanning_table(("A_1", "A"))
+    etl._build_spanning_table(("A_1", "A"))
     assert len(etl.spanning_tree_rows) == 6
     for r in etl.spanning_tree_rows:
         assert r in [
