@@ -11,7 +11,6 @@ import yaml
 
 from .reader import PFBReader
 from .writer import PFBWriter
-from .etl.etl import ETL
 
 default_level = logging.INFO
 config_path = "config.yml"
