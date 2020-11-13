@@ -1,5 +1,6 @@
 import logging.config
 import os
+
 try:
     from importlib.metadata import entry_points
 except ImportError:
@@ -10,6 +11,7 @@ import yaml
 
 from .reader import PFBReader
 from .writer import PFBWriter
+from .etl.etl import ETL
 
 default_level = logging.INFO
 config_path = "config.yml"

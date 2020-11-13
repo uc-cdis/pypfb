@@ -37,9 +37,9 @@ class ETL:
         self.helper = ETLHelper(base_url, access_token)
 
     async def etl(self):
-        etl.extract()
-        etl.transform()
-        await etl.load_to_es()
+        self.extract()
+        self.transform()
+        await self.load_to_es()
 
     def extract(self):
         with open(self.pfbfile, "rb") as fo:
@@ -203,10 +203,3 @@ class ETL:
                 submission_json[node_name] = node_id
             await self.helper.insert_document("spanning_tree_index", submission_json, i)
             i += 1
-
-
-if __name__ == "__main__":
-    etl = ETL(
-        "http://localhost:9200", "", "./tests/pfb-data/gtexdictionary_data.avro", "case"
-    )
-    asyncio.run(etl.etl())
