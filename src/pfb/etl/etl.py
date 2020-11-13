@@ -51,7 +51,7 @@ class ETL:
                 self._process(record)
 
     def _process(self, record):
-        """extract links from record"""
+        """extract data from record"""
         data = record["object"]
         if "submitter_id" not in data:
             # skip the data that does not have submitter_id
@@ -90,8 +90,10 @@ class ETL:
 
         def dfs(root, selected_nodes):
             """
-            Spanning from the root on the tree created by the selected submitter ids
-            The result is the list of the nodes that can reach from the root
+            Finding the connected component that containt the root
+
+            Depth first search: Starting from the root on the tree created by the selected root,
+            traveling to visit all the reachable nodes
 
             Args:
                 root(tube): tuple of (submitter_id, node_name)
@@ -118,7 +120,7 @@ class ETL:
             that contains the root node as a potential solution
 
             Args:
-                k(int): the control value
+                k(int): the control variable
                 node_name_list(list): A list of node names that have paths to the root node
                 node_ids(dict): A dictionary with node names as keys and sets of their corresponding submitter_id as values
                 selected_nodes(list): list of tube(submitter_id, node_name) for keeping track the current chosen node ids
