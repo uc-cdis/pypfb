@@ -17,6 +17,7 @@ PyYAML = "^5.3.1"
 importlib_metadata = { version = "^1.3.0", python = "<3.8" }
 gdcdictionary = "^1.2.0"
 pandas = "^1.1.0"
+aiohttp = "^3.6.3"
 dictionaryutils = "^3.2.0"
 gen3 = "^2.7.0"
 
@@ -40,6 +41,7 @@ pfb = 'pfb.cli:main'
 "add" = "pfb.commands.add"
 "rename" = "pfb.commands.rename"
 "import" = "pfb.commands.import"
+"etl" = "pfb.commands.etl"
 
 [build-system]
 requires = ["poetry>=0.12"]

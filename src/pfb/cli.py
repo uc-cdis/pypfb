@@ -1,5 +1,6 @@
 import logging.config
 import os
+
 try:
     from importlib.metadata import entry_points
 except ImportError:

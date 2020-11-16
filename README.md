@@ -218,6 +218,19 @@ poetry install
     Example:
       pfb to -i data.avro tsv
 
+### PFB ETL
+
+    Usage: pfb etl [OPTIONS] PFB
+
+      ETL PFB into ES indices
+
+    Options:
+      -u, --url URL      base es url
+      -t, --token TOKEN  access token
+      -n, --node NODE    root node for ETL
+    Example:
+      pfb etl -u http://localhost:9200  -n participant ./tests/pfb-data/test.avro
+
 ### Example of minimal PFB
     In the examples/minimal-pfb directory we have an example of a minimal pfb that only contains submitted unaligned read data
 
@@ -232,7 +245,6 @@ poetry install
 
     We can also view the schema of the PFB
     pfb show -i minimal_data.pfb schema
-
 
 ## Examples
 
