@@ -85,13 +85,17 @@ def _convert_tsv(node_name, tsv_record, program, project, link_dests):
     try:
         node_id = tsv_record["submitter_id"]
     except KeyError:
-        node_id = tsv_record["code"]
+        if node_name == "program":
+            node_id = tsv_record["dbgap_accession_number"]
+        else:
+            node_id = tsv_record["code"]
+
     vals = tsv_record
 
-    to_del = None
+    to_del = []
     for item in tsv_record:
         if type(tsv_record[item]) == dict and "submitter_id" in tsv_record[item]:
-            to_del = item
+            to_del.append(item)
             v = item
             relations.append(
                 {
@@ -99,10 +103,26 @@ def _convert_tsv(node_name, tsv_record, program, project, link_dests):
                     "dst_name": link_dests[node_name][v],
                 }
             )
+        # array typeing being passed off as string
+        if type(tsv_record[item]) == str and "[" in tsv_record[item] and "]" in tsv_record[item]:
+            arrayStrip = tsv_record[item].strip("[']")
+            vals[item] = arrayStrip.split(",")
+        
+        if ".submitter_id" in item:
+            relations.append(
+                {
+                    "dst_id": tsv_record[item],
+                    "dst_name": item.split(".")[0]
+                }
+            )
+            to_del.append(item)
 
-    if to_del in vals:
-        del vals[to_del]
+    for i in to_del:
+        if i in vals:
+            del vals[i]
 
     vals["project_id"] = "{}-{}".format(program, project)
+
+    print(vals)
 
     return avro_record(node_id, node_name, vals, relations)
