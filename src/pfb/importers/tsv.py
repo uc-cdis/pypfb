@@ -123,6 +123,4 @@ def _convert_tsv(node_name, tsv_record, program, project, link_dests):
 
     vals["project_id"] = "{}-{}".format(program, project)
 
-    print(vals)
-
     return avro_record(node_id, node_name, vals, relations)

@@ -47,29 +47,15 @@ def _to_tsv(reader, dir_path, handlers_by_name):
         name = row["name"]
         fields = fields_by_name[name]
 
-
-        # print(fields)
-
         node_index = next((index for (index, d) in enumerate(reader.metadata["nodes"]) if d["name"] == name))
-        # print("this is the node index", node_index)
-        # print(reader.metadata["nodes"][node_index]["links"])
 
         obj = row["object"]
         
 
-        if len(row["relations"]) > 0:
-            for r in row["relations"]:
-                if {"name": r["dst_name"]+".submitter_id", "type": ["null", "string"]} not in fields:
-                    fields.append({"name": r["dst_name"]+".submitter_id", "type": ["null", "string"]})
-                obj[r["dst_name"]+".submitter_id"] = r["dst_id"]
-
-        # print(row)
-        # if len(row["relations"]) > 1:
-        # if name == "submitted_unaligned_reads":
-        #     print(row["relations"])
-
-        # if "MANY" in reader.metadata["nodes"][node_index]["links"][0]["multiplicity"]:
-        # relations = row["relations"]
+        for r in row["relations"]:
+            if {"name": r["dst_name"]+".submitter_id", "type": ["null", "string"]} not in fields:
+                fields.append({"name": r["dst_name"]+".submitter_id", "type": ["null", "string"]})
+            obj[r["dst_name"]+".submitter_id"] = r["dst_id"]
 
         # get the TSV writer for this row, create one if not created
         pair = handlers_by_name.get(name)
