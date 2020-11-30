@@ -1,17 +1,17 @@
 [
     {
-        "data_category": "Simple Nucleotide Variation", 
-        "data_format": "TBI", 
-        "data_type": "Somatic Mutation Index", 
-        "file_format": "concentrativeness_pinyon", 
-        "file_name": "unforcedly_cuminoin", 
-        "file_size": 11, 
-        "file_url": "outbray_mistouch", 
-        "md5sum": "52aec44f9453af006b35e416dd6be72d", 
+        "data_category": "Simple Nucleotide Variation",
+        "data_format": "TBI",
+        "data_type": "Somatic Mutation Index",
+        "file_format": "concentrativeness_pinyon",
+        "file_name": "unforcedly_cuminoin",
+        "file_size": 11,
+        "file_url": "outbray_mistouch",
+        "md5sum": "52aec44f9453af006b35e416dd6be72d",
         "simple_somatic_mutations": {
             "submitter_id": "simple_somatic_mutation_unfatherliness_intrafusal"
-        }, 
-        "submitter_id": "somatic_mutation_index_arboreally_fingerstall", 
+        },
+        "submitter_id": "somatic_mutation_index_arboreally_fingerstall",
         "type": "somatic_mutation_index"
     }
 ]

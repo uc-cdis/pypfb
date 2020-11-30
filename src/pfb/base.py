@@ -17,9 +17,7 @@ else:
 # TODO: remove in Python 3
 def str_hook(obj):
     if PY3:
-        return {
-            k: v for k, v in obj
-        }
+        return {k: v for k, v in obj}
     return {
         k.encode("utf-8")
         if isinstance(k, unicode)
@@ -29,27 +27,33 @@ def str_hook(obj):
         for k, v in obj
     }
 
+
 def unicode_encode(matchobj):
     unicodeRep = str(hex(ord(matchobj.group(0))))[2:]
     return "_" + unicodeRep + "_"
+
 
 def unicode_decode(matchobj):
     unicodeRep = matchobj.group(0)
     unicodeRep = unicodeRep.strip("_")
 
     if len(unicodeRep) == 2:
-        unicodeRep = "\\u00"+ unicodeRep
+        unicodeRep = "\\u00" + unicodeRep
     elif len(unicodeRep) == 3:
-        unicodeRep = "\\u0"+ unicodeRep
+        unicodeRep = "\\u0" + unicodeRep
     else:
         unicodeRep = "\\u" + unicodeRep
 
     unicodeRep = unicodeRep.encode().decode("unicode_escape")
     return unicodeRep
 
+
 def encode_enum(enumValue):
-    encodedValue = re.sub("^[0-9]|[^A-Za-z0-9]", unicode_encode, enumValue, flags=re.UNICODE)
+    encodedValue = re.sub(
+        "^[0-9]|[^A-Za-z0-9]", unicode_encode, enumValue, flags=re.UNICODE
+    )
     return encodedValue
+
 
 def decode_enum(enumValue):
     decodedValue = re.sub("_[a-z0-9]+_", unicode_decode, enumValue, flags=re.UNICODE)
@@ -65,6 +69,7 @@ def is_enum(data_type):
         elif isinstance(type_, dict) and type_["type"] == "enum":
             return True
     return False
+
 
 def handle_schema_field_unicode(field, encode=True):
     method = encode_enum if encode else decode_enum

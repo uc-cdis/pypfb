@@ -127,7 +127,6 @@ def _get_ontologies_from_node(node_value):
 
         properties.append(property_json)
 
-
     return properties, node_value[1]
 
 
@@ -157,7 +156,12 @@ def _parse_dictionary(d):
                     default = property_type["default"]
                     for enum in property_type["oneOf"]:
                         if default in enum["enum"]:
-                            property_type["oneOf"].insert(0, property_type["oneOf"].pop(property_type["oneOf"].index(enum)))
+                            property_type["oneOf"].insert(
+                                0,
+                                property_type["oneOf"].pop(
+                                    property_type["oneOf"].index(enum)
+                                ),
+                            )
                             break
 
             avro_type = _get_avro_type(property_name, property_type, record_name)
@@ -247,7 +251,6 @@ def _array_type(property_type):
         enum["type"] = "enum"
         enum["symbols"] = property_type["items"]["enum"]
         enum["name"] = property_type["description"]
-
 
         array_type = {}
         array_type["type"] = "array"

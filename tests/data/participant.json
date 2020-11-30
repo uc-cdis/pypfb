@@ -1,18 +1,18 @@
 [
     {
-        "consent_type": "eyeblink_pock", 
-        "days_to_lost_to_followup": 97, 
-        "disease_type": "beestings_unshuffle", 
-        "external_id": "sundra_accersition", 
-        "family_id": "fimble_prodrome", 
-        "index_date": "First Patient Visit", 
-        "is_proband": false, 
-        "lost_to_followup": "No", 
-        "primary_site": "odontostomatous_holophrasm", 
+        "consent_type": "eyeblink_pock",
+        "days_to_lost_to_followup": 97,
+        "disease_type": "beestings_unshuffle",
+        "external_id": "sundra_accersition",
+        "family_id": "fimble_prodrome",
+        "index_date": "First Patient Visit",
+        "is_proband": false,
+        "lost_to_followup": "No",
+        "primary_site": "odontostomatous_holophrasm",
         "projects": {
             "code": "test"
-        }, 
-        "submitter_id": "participant_metalinguistics_monofilm", 
+        },
+        "submitter_id": "participant_metalinguistics_monofilm",
         "type": "participant"
     }
 ]

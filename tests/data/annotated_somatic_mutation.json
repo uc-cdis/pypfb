@@ -1,18 +1,18 @@
 [
     {
-        "data_category": "Simple Nucleotide Variation", 
-        "data_format": "VCF", 
-        "data_type": "Annotated Somatic Mutation", 
-        "experimental_strategy": "WGS", 
-        "file_format": "conamed_insinuatingly", 
-        "file_name": "womanliness_camphol", 
-        "file_size": 71, 
-        "file_url": "pharmacist_charming", 
-        "md5sum": "ede3fe87942d3047c279cccd80497c8e", 
+        "data_category": "Simple Nucleotide Variation",
+        "data_format": "VCF",
+        "data_type": "Annotated Somatic Mutation",
+        "experimental_strategy": "WGS",
+        "file_format": "conamed_insinuatingly",
+        "file_name": "womanliness_camphol",
+        "file_size": 71,
+        "file_url": "pharmacist_charming",
+        "md5sum": "ede3fe87942d3047c279cccd80497c8e",
         "somatic_annotation_workflows": {
             "submitter_id": "somatic_annotation_workflow_outgoer_cylindroconoidal"
-        }, 
-        "submitter_id": "annotated_somatic_mutation_nonimposition_superelevation", 
+        },
+        "submitter_id": "annotated_somatic_mutation_nonimposition_superelevation",
         "type": "annotated_somatic_mutation"
     }
 ]
