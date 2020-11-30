@@ -1,5 +1,6 @@
 import csv
 import os
+import json
 
 import click
 
@@ -46,8 +47,15 @@ def _to_tsv(reader, dir_path, handlers_by_name):
         name = row["name"]
         fields = fields_by_name[name]
 
+        node_index = next((index for (index, d) in enumerate(reader.metadata["nodes"]) if d["name"] == name))
+
         obj = row["object"]
-        # relations = row["relations"]
+        
+
+        for r in row["relations"]:
+            if {"name": r["dst_name"]+".submitter_id", "type": ["null", "string"]} not in fields:
+                fields.append({"name": r["dst_name"]+".submitter_id", "type": ["null", "string"]})
+            obj[r["dst_name"]+".submitter_id"] = r["dst_id"]
 
         # get the TSV writer for this row, create one if not created
         pair = handlers_by_name.get(name)
@@ -65,15 +73,16 @@ def _to_tsv(reader, dir_path, handlers_by_name):
             w = pair[1]
 
         # write data into TSV
-        row = [name]
+        data_row = [name]
         for field in fields:
             if field["name"] == "project_id":
                 project_ids.append([name, obj["project_id"]])
-                row.append(obj[field["name"]])
+                data_row.append(obj[field["name"]])
             else:
                 value = obj[field["name"]]
-                row.append(value)
-        w.writerow(row)
+                data_row.append(value)
+
+        w.writerow(data_row)
 
     return num_files
 
