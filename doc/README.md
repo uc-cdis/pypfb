@@ -47,7 +47,7 @@ record Property {
 
 In both `Node` and `Property` the `name` is the name of the field in the data model, `ontology_reference` stores the name for ontology reference (any ontology, e.g. [NCIt][2], [caDSR][3]) and `values` stores any additional field regarding ontology: URL, ontology codes, synonyms etc. Same for `Property`.
 
-In addition, inside *links* for `Node` it's important to specify the linkage for the nodes: destination and multiplicity. 
+In addition, inside *links* for `Node` it's important to specify the linkage for the nodes: destination and multiplicity.
 
 The `Link` and `Multiplicity` enum is presented below:
 ```

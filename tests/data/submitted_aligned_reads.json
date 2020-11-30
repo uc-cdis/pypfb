@@ -1,18 +1,18 @@
 [
     {
-        "data_category": "Sequencing Reads", 
-        "data_format": "BAM", 
-        "data_type": "Aligned Reads", 
-        "experimental_strategy": "miRNA-Seq", 
-        "file_format": "thumb_cotranspire", 
-        "file_name": "virtuosi_conticent", 
-        "file_size": 54, 
-        "file_url": "docility_cryophile", 
-        "md5sum": "bb1d504e1c10c2865fc67746371af516", 
+        "data_category": "Sequencing Reads",
+        "data_format": "BAM",
+        "data_type": "Aligned Reads",
+        "experimental_strategy": "miRNA-Seq",
+        "file_format": "thumb_cotranspire",
+        "file_name": "virtuosi_conticent",
+        "file_size": 54,
+        "file_url": "docility_cryophile",
+        "md5sum": "bb1d504e1c10c2865fc67746371af516",
         "read_groups": {
             "submitter_id": "read_group_ethnicon_fordless"
-        }, 
-        "submitter_id": "submitted_aligned_reads_soixantine_counterimpulse", 
+        },
+        "submitter_id": "submitted_aligned_reads_soixantine_counterimpulse",
         "type": "submitted_aligned_reads"
     }
 ]

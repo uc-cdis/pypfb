@@ -1,18 +1,18 @@
 [
     {
-        "data_category": "Simple Nucleotide Variation", 
-        "data_format": "VCF", 
-        "data_type": "Raw Simple Somatic Mutation", 
-        "experimental_strategy": "Targeted Sequencing", 
-        "file_format": "autoluminescent_drably", 
-        "file_name": "suppresser_flangeway", 
-        "file_size": 31, 
-        "file_url": "breathseller_representational", 
-        "md5sum": "ad8db633786e37e0512d0eac3f4465fd", 
+        "data_category": "Simple Nucleotide Variation",
+        "data_format": "VCF",
+        "data_type": "Raw Simple Somatic Mutation",
+        "experimental_strategy": "Targeted Sequencing",
+        "file_format": "autoluminescent_drably",
+        "file_name": "suppresser_flangeway",
+        "file_size": 31,
+        "file_url": "breathseller_representational",
+        "md5sum": "ad8db633786e37e0512d0eac3f4465fd",
         "somatic_mutation_calling_workflows": {
             "submitter_id": "somatic_mutation_calling_workflow_palingenist_hipponosological"
-        }, 
-        "submitter_id": "simple_somatic_mutation_unfatherliness_intrafusal", 
+        },
+        "submitter_id": "simple_somatic_mutation_unfatherliness_intrafusal",
         "type": "simple_somatic_mutation"
     }
 ]

@@ -1,17 +1,17 @@
 [
     {
-        "data_category": "Clinical", 
-        "data_format": "FoundationOne XML", 
-        "data_type": "Clinical Supplement", 
-        "file_format": "unique_pholidote", 
-        "file_name": "allelotropic_mogigraphy", 
-        "file_size": 43, 
-        "file_url": "magnificent_Marmota", 
-        "md5sum": "1d230fab20a1b294c684d86f467adfd5", 
+        "data_category": "Clinical",
+        "data_format": "FoundationOne XML",
+        "data_type": "Clinical Supplement",
+        "file_format": "unique_pholidote",
+        "file_name": "allelotropic_mogigraphy",
+        "file_size": 43,
+        "file_url": "magnificent_Marmota",
+        "md5sum": "1d230fab20a1b294c684d86f467adfd5",
         "participants": {
             "submitter_id": "participant_metalinguistics_monofilm"
-        }, 
-        "submitter_id": "clinical_supplement_perfectibilist_benzenediazonium", 
+        },
+        "submitter_id": "clinical_supplement_perfectibilist_benzenediazonium",
         "type": "clinical_supplement"
     }
 ]

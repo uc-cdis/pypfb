@@ -1,22 +1,22 @@
 [
     {
-        "number_proliferating_cells": 46, 
-        "percent_eosinophil_infiltration": 43.535869509449256, 
-        "percent_granulocyte_infiltration": 25.823740935822435, 
-        "percent_inflam_infiltration": 49.10303880403274, 
-        "percent_lymphocyte_infiltration": 78.00685453516878, 
-        "percent_monocyte_infiltration": 37.651373726260275, 
-        "percent_necrosis": 14.024021278092336, 
-        "percent_neutrophil_infiltration": 38.15681391877309, 
-        "percent_normal_cells": 65.04683458872496, 
-        "percent_stromal_cells": 49.893629002587815, 
-        "percent_tumor_cells": 36.14829256463076, 
-        "percent_tumor_nuclei": 0.7140067502868108, 
+        "number_proliferating_cells": 46,
+        "percent_eosinophil_infiltration": 43.535869509449256,
+        "percent_granulocyte_infiltration": 25.823740935822435,
+        "percent_inflam_infiltration": 49.10303880403274,
+        "percent_lymphocyte_infiltration": 78.00685453516878,
+        "percent_monocyte_infiltration": 37.651373726260275,
+        "percent_necrosis": 14.024021278092336,
+        "percent_neutrophil_infiltration": 38.15681391877309,
+        "percent_normal_cells": 65.04683458872496,
+        "percent_stromal_cells": 49.893629002587815,
+        "percent_tumor_cells": 36.14829256463076,
+        "percent_tumor_nuclei": 0.7140067502868108,
         "samples": {
             "submitter_id": "sample_Wagnerism_buccally"
-        }, 
-        "section_location": "macraucheniid_schizomycete", 
-        "submitter_id": "slide_Epimedium_particularism", 
+        },
+        "section_location": "macraucheniid_schizomycete",
+        "submitter_id": "slide_Epimedium_particularism",
         "type": "slide"
     }
 ]

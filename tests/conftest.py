@@ -31,5 +31,5 @@ def invoke(runner):
 
 @pytest.fixture
 def test_avro(path_join):
-    with open(path_join("pfb-data", "test.avro"), 'rb') as f:
+    with open(path_join("pfb-data", "test.avro"), "rb") as f:
         return f.read()
