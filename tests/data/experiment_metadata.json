@@ -1,17 +1,17 @@
 [
     {
-        "data_category": "Raw Sequencing Data", 
-        "data_format": "SRA XML", 
-        "data_type": "Experiment Metadata", 
-        "file_format": "aeneolithic_connexive", 
-        "file_name": "interproduce_aftercrop", 
-        "file_size": 34, 
-        "file_url": "incumbrancer_arteriagra", 
-        "md5sum": "35a29e18f78f905383b75146fb02a5a2", 
+        "data_category": "Raw Sequencing Data",
+        "data_format": "SRA XML",
+        "data_type": "Experiment Metadata",
+        "file_format": "aeneolithic_connexive",
+        "file_name": "interproduce_aftercrop",
+        "file_size": 34,
+        "file_url": "incumbrancer_arteriagra",
+        "md5sum": "35a29e18f78f905383b75146fb02a5a2",
         "read_groups": {
             "submitter_id": "read_group_ethnicon_fordless"
-        }, 
-        "submitter_id": "experiment_metadata_Russophobe_matai", 
+        },
+        "submitter_id": "experiment_metadata_Russophobe_matai",
         "type": "experiment_metadata"
     }
 ]

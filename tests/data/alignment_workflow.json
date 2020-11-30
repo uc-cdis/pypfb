@@ -2,13 +2,13 @@
     {
         "submitted_aligned_reads_files": {
             "submitter_id": "submitted_aligned_reads_soixantine_counterimpulse"
-        }, 
-        "submitter_id": "alignment_workflow_Valencia_nonsymbolic", 
-        "type": "alignment_workflow", 
-        "workflow_end_datetime": "integument_Fritillaria", 
-        "workflow_link": "claviculus_heterometabolic", 
-        "workflow_start_datetime": "tottering_apocentricity", 
-        "workflow_type": "STAR 2-Pass", 
+        },
+        "submitter_id": "alignment_workflow_Valencia_nonsymbolic",
+        "type": "alignment_workflow",
+        "workflow_end_datetime": "integument_Fritillaria",
+        "workflow_link": "claviculus_heterometabolic",
+        "workflow_start_datetime": "tottering_apocentricity",
+        "workflow_type": "STAR 2-Pass",
         "workflow_version": "unpersuaded_plecopterous"
     }
 ]

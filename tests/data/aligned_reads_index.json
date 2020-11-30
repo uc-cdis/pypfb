@@ -1,17 +1,17 @@
 [
     {
-        "data_category": "Sequencing Reads", 
-        "data_format": "BAI", 
-        "data_type": "Aligned Reads Index", 
-        "file_format": "indult_occlusor", 
-        "file_name": "windermost_Pyrales", 
-        "file_size": 82, 
-        "file_url": "antiascetic_supersaturate", 
-        "md5sum": "7fb000a91eb9ff8cfb385316440a3030", 
+        "data_category": "Sequencing Reads",
+        "data_format": "BAI",
+        "data_type": "Aligned Reads Index",
+        "file_format": "indult_occlusor",
+        "file_name": "windermost_Pyrales",
+        "file_size": 82,
+        "file_url": "antiascetic_supersaturate",
+        "md5sum": "7fb000a91eb9ff8cfb385316440a3030",
         "submitted_aligned_reads_files": {
             "submitter_id": "submitted_aligned_reads_soixantine_counterimpulse"
-        }, 
-        "submitter_id": "aligned_reads_index_pedology_saccharobacillus", 
+        },
+        "submitter_id": "aligned_reads_index_pedology_saccharobacillus",
         "type": "aligned_reads_index"
     }
 ]

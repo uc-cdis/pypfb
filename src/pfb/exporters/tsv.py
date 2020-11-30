@@ -47,15 +47,28 @@ def _to_tsv(reader, dir_path, handlers_by_name):
         name = row["name"]
         fields = fields_by_name[name]
 
-        node_index = next((index for (index, d) in enumerate(reader.metadata["nodes"]) if d["name"] == name))
+        node_index = next(
+            (
+                index
+                for (index, d) in enumerate(reader.metadata["nodes"])
+                if d["name"] == name
+            )
+        )
 
         obj = row["object"]
-        
 
         for r in row["relations"]:
-            if {"name": r["dst_name"]+".submitter_id", "type": ["null", "string"]} not in fields:
-                fields.append({"name": r["dst_name"]+".submitter_id", "type": ["null", "string"]})
-            obj[r["dst_name"]+".submitter_id"] = r["dst_id"]
+            if {
+                "name": r["dst_name"] + ".submitter_id",
+                "type": ["null", "string"],
+            } not in fields:
+                fields.append(
+                    {
+                        "name": r["dst_name"] + ".submitter_id",
+                        "type": ["null", "string"],
+                    }
+                )
+            obj[r["dst_name"] + ".submitter_id"] = r["dst_id"]
 
         # get the TSV writer for this row, create one if not created
         pair = handlers_by_name.get(name)

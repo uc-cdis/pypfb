@@ -104,16 +104,17 @@ def _convert_tsv(node_name, tsv_record, program, project, link_dests):
                 }
             )
         # array typeing being passed off as string
-        if type(tsv_record[item]) == str and "[" in tsv_record[item] and "]" in tsv_record[item]:
+        if (
+            type(tsv_record[item]) == str
+            and "[" in tsv_record[item]
+            and "]" in tsv_record[item]
+        ):
             arrayStrip = tsv_record[item].strip("[']")
             vals[item] = arrayStrip.split(",")
-        
+
         if ".submitter_id" in item:
             relations.append(
-                {
-                    "dst_id": tsv_record[item],
-                    "dst_name": item.split(".")[0]
-                }
+                {"dst_id": tsv_record[item], "dst_name": item.split(".")[0]}
             )
             to_del.append(item)
 

@@ -1,18 +1,18 @@
 [
     {
-        "data_category": "Biospecimen", 
-        "data_format": "SVS", 
-        "data_type": "Slide Image", 
-        "experimental_strategy": "Diagnostic Slide", 
-        "file_format": "warrambool_neutralist", 
-        "file_name": "ardassine_disentomb", 
-        "file_size": 51, 
-        "file_url": "urling_polydymite", 
-        "md5sum": "fccec1dcace3fa0569746a9b895b87f9", 
+        "data_category": "Biospecimen",
+        "data_format": "SVS",
+        "data_type": "Slide Image",
+        "experimental_strategy": "Diagnostic Slide",
+        "file_format": "warrambool_neutralist",
+        "file_name": "ardassine_disentomb",
+        "file_size": 51,
+        "file_url": "urling_polydymite",
+        "md5sum": "fccec1dcace3fa0569746a9b895b87f9",
         "slides": {
             "submitter_id": "slide_Epimedium_particularism"
-        }, 
-        "submitter_id": "slide_image_horsemanship_chalybite", 
+        },
+        "submitter_id": "slide_image_horsemanship_chalybite",
         "type": "slide_image"
     }
 ]

@@ -2,17 +2,17 @@
     {
         "alignment_workflows": {
             "submitter_id": "alignment_workflow_Valencia_nonsymbolic"
-        }, 
-        "data_category": "Sequencing Reads", 
-        "data_format": "sandless_paenula", 
-        "data_type": "Aligned Reads Metrics", 
-        "experimental_strategy": "WXS", 
-        "file_format": "Janos_becharm", 
-        "file_name": "disthrall_sortably", 
-        "file_size": 68, 
-        "file_url": "pigful_grudgery", 
-        "md5sum": "613faacf3e709c00b93a69a1479edc6c", 
-        "submitter_id": "aligned_reads_metric_cutaneal_actinodrome", 
+        },
+        "data_category": "Sequencing Reads",
+        "data_format": "sandless_paenula",
+        "data_type": "Aligned Reads Metrics",
+        "experimental_strategy": "WXS",
+        "file_format": "Janos_becharm",
+        "file_name": "disthrall_sortably",
+        "file_size": 68,
+        "file_url": "pigful_grudgery",
+        "md5sum": "613faacf3e709c00b93a69a1479edc6c",
+        "submitter_id": "aligned_reads_metric_cutaneal_actinodrome",
         "type": "aligned_reads_metric"
     }
 ]
