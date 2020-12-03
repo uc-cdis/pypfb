@@ -65,7 +65,6 @@ class ETLHelper:
     async def check_index_exist(self, index):
         session = ETLHelper.get_session()
         async with session.get(f"{self.base_url}/{index}", headers=self.headers,) as r:
-            r.raise_for_status()
             if r.status == 200:
                 return True
             return False

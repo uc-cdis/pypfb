@@ -2,7 +2,9 @@ from pfb.etl.etl import ETL
 
 
 def test_etl():
-    etl = ETL("http://localhost:9200", "", "tests/pfb-data/test.avro", "participant")
+    etl = ETL(
+        "http://localhost:9200", "", "tests/pfb-data/test.avro", "participant", "./test"
+    )
 
     etl.extract()
     etl.transform()
@@ -69,7 +71,9 @@ def test_etl():
 
 
 def test_etl2():
-    etl = ETL("http://localhost:9200", "", "tests/pfb-data/test.avro", "participant")
+    etl = ETL(
+        "http://localhost:9200", "", "tests/pfb-data/test.avro", "participant", "./test"
+    )
     etl.links = {
         ("A_1", "A"): [("B_1", "B"), ("C_1", "C"), ("C_2", "C"), ("B_2", "B")],
         ("B_1", "B"): [("D_1", "D")],
