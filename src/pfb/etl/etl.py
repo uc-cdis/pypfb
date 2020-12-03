@@ -102,6 +102,7 @@ class ETL:
             await ETLHelper.close_session()
 
     async def preliminary_check(self):
+        """preliminary check"""
         index_exist = await self.helper.check_index_exist(self.root_name)
         if index_exist:
             print(
