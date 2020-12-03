@@ -1,6 +1,41 @@
 import asyncio
 from fastavro import reader
 from aiohttp import ClientSession
+from collections import OrderedDict
+import yaml
+from yaml import CLoader as Loader
+
+
+MAPPING_INDEX_DEF = {
+    "settings": {
+        "index": {
+            "number_of_shards": 1,
+            "number_of_replicas": 0,
+            "analysis": {
+                "tokenizer": {
+                    "ngram_tokenizer": {
+                        "type": "ngram",
+                        "min_gram": 2,
+                        "max_gram": 20,
+                        "token_chars": ["letter", "digit"],
+                    }
+                },
+                "analyzer": {
+                    "ngram_analyzer": {
+                        "type": "custom",
+                        "tokenizer": "ngram_tokenizer",
+                        "filter": ["lowercase"],
+                    },
+                    "search_analyzer": {
+                        "type": "custom",
+                        "tokenizer": "keyword",
+                        "filter": "lowercase",
+                    },
+                },
+            },
+        }
+    }
+}
 
 
 class ETLHelper:
@@ -14,25 +49,33 @@ class ETLHelper:
             "Authorization": f"Bearer {access_token}",
         }
 
-    async def insert_document(self, index, document, id):
+    async def insert_document(self, url, document):
         """Asynchronous insert document to elasticsearch"""
-        url = f"{self.base_url}/{index}/_doc/{id}"
+        # url = f"{self.base_url}/{index}/{type}/{id}"
         async with ClientSession() as session:
             async with session.put(url, json=document, headers=self.headers,) as r:
-                r.raise_for_status()
+                try:
+                    r.raise_for_status()
+                except:
+                    msg = await r.json()
+                    print(msg)
+                    raise
 
 
 class ETL:
-    def __init__(self, base_url, access_token, pfbfile, root_name):
+    def __init__(self, base_url, access_token, pfbfile, root_name, etl_mapping):
         self.base_url = base_url
         self.access_token = access_token
         self.pfbfile = pfbfile
         self.root_name = root_name
+        self.etl_mapping = (
+            etl_mapping  # "/Users/giangbui/Projects/pypfb/tests/etl_mapping.yaml"
+        )
 
         self.links = {}
         self.root_node_ids = []
         self.spanning_tree_rows = []
-        self.node_rows = {}
+        self.node_rows = OrderedDict()
 
         self.helper = ETLHelper(base_url, access_token)
 
@@ -57,8 +100,8 @@ class ETL:
             # skip the data that does not have submitter_id
             return
         if record["name"] not in self.node_rows:
-            self.node_rows[record["name"]] = []
-        self.node_rows[record["name"]].append(data)
+            self.node_rows[record["name"]] = OrderedDict()
+        self.node_rows[record["name"]][data["submitter_id"]] = data
         relations = record["relations"]
         submitter_id = data["submitter_id"]
         for relation in relations:
@@ -169,7 +212,7 @@ class ETL:
             result(dict): group all submitter_id by the node name as the key
         """
         queue = [root]
-        visited = {}
+        visited = OrderedDict()
         idx = 0
         while idx < len(queue):
             submitter_id, node_name = queue[idx]
@@ -181,7 +224,7 @@ class ETL:
                     queue.append((node_id, node_name))
             idx += 1
 
-        result = {}
+        result = OrderedDict()
         for submitted_id, node_name in visited.keys():
             if node_name not in result:
                 result[node_name] = set()
@@ -189,19 +232,221 @@ class ETL:
         return result
 
     async def load_to_es(self):
-        """submit data to es database"""
+        """
+        (Pdb) etl_mapping["mappings"][0]["props"] = [{'name': 'submitter_id'}, {'name': 'site'}, {'name': 'cohort_id'}]
+        (Pdb) etl_mapping["mappings"][0]["flatten_props"] = [{'node': 'demographic', 'props': [{'name': 'gender'}, {'name': 'race'}, {'name': 'ethnicity'}, {'name': 'weight'}, {'name': 'hispanic_subgroup'}]}]
+        (Pdb) etl_mapping["mappings"][0]["aggregated_props"]
+        [{'name': 'cigar_amount', 'node': 'exposure', 'fn': 'avg'}, {'name': 'age_at_hdl1', 'node': 'lab_result', 'fn': 'max'}, {'name': '_lab_result_count', 'path': 'lab_result', 'fn': 'count'}]
+        (Pdb)
+        """
+        with open(self.etl_mapping, "r") as fopen:
+            etl_mapping = yaml.load(fopen, Loader=Loader)
 
-        for node_name, values in self.node_rows.items():
-            for value in values:
+        assert (
+            self.root_name == etl_mapping["mappings"][0]["root"]
+        ), f"The root of the ETL config file does not match"
+        related_nodes = {self.root_name}
+
+        for element in etl_mapping["mappings"][0].get("flatten_props", []):
+            related_nodes.add(element["node"])
+
+        for element in etl_mapping["mappings"][0].get("aggregated_props", []):
+            related_nodes.add(element["node"])
+
+        root_mapping = {}
+
+        for row in self.spanning_tree_rows:
+            row_related_nodes = set([node_name for _, node_name in row])
+            if not related_nodes.issubset(row_related_nodes):
+                continue
+            for element in row:
+                if element[1] != self.root_name:
+                    continue
+                if element[0] in root_mapping:
+                    root_mapping[element[0]].append(row)
+                else:
+                    root_mapping[element[0]] = [row]
+
+        is_first_submission = True
+        for root_submitter_id, related_nodes in root_mapping.items():
+            submission_json = {}
+            aggregation_data = []
+            for related_node in related_nodes:
+                for node_props in etl_mapping["mappings"][0].get("props", []):
+                    submission_json.update(
+                        self._build_root_props(node_props, related_node)
+                    )
+                for node_props in etl_mapping["mappings"][0].get("flatten_props", []):
+                    submission_json.update(
+                        self._build_flatten_json(node_props, related_node)
+                    )
+                for node_props in etl_mapping["mappings"][0].get(
+                    "aggregated_props", []
+                ):
+                    aggregation_data.append(
+                        self._build_aggregated_json(node_props, related_node)
+                    )
+
+            for element in aggregation_data:
+                for field, info in element.items():
+                    # element = {field: (value, fn)}
+                    if info[0] is None:
+                        continue
+                    if info[1] == "max":
+                        submission_json[field] = (
+                            max(submission_json[field], info[0])
+                            if field in submission_json
+                            else info[0]
+                        )
+                    if info[1] == "min":
+                        submission_json[field] = (
+                            min(submission_json[field], info[0])
+                            if field in submission_json
+                            else info[0]
+                        )
+                    if info[1] == "avg":
+                        submission_json[field] = (
+                            (
+                                submission_json[field][0] + info[0],
+                                submission_json[field][1] + 1,
+                            )
+                            if field in submission_json
+                            else (info[0], 1)
+                        )
+                    if info[1] == "count":
+                        pass
+
+            for k, v in submission_json.items():
+                if isinstance(v, tuple):
+                    submission_json[k] = v[0] * 1.0 / v[1]
+
+            if is_first_submission:
+                import pdb
+
+                pdb.set_trace()
+                mapping_config = self.generate_mapping_def(submission_json)
                 await self.helper.insert_document(
-                    node_name, value, value["submitter_id"]
+                    f"{self.base_url}/{self.root_name}", mapping_config
                 )
 
-        # TODO: implement batch insertion
-        i = 0
+            await self.helper.insert_document(
+                f"{self.base_url}/{self.root_name}/{self.root_name}/{root_submitter_id}",
+                submission_json,
+            )
+            is_first_submission = False
+
+    def _build_root_props(self, node_props, related_node):
+        """
+        {'name': 'submitter_id'}
+
+        """
+        res = {}
+        for element in related_node:
+            if element[1] == self.root_name:
+                res[node_props["name"]] = self.node_rows[self.root_name][element[0]][
+                    node_props["name"]
+                ]
+        return res
+
+    def _build_flatten_json(self, node_props, related_node):
+        """
+        node_props = {'node': 'demographic', 'props': [{'name': 'gender'}, {'name': 'race'}, {'name': 'ethnicity'}, {'name': 'weight'}, {'name': 'hispanic_subgroup'}]}
+        related_node = {('medication_locustelle_uninterlarded', 'medication'), ('demographic_strickless_johannite', 'demographic'), ('socio_demo_questionnaire_dysprosia_quadrigamist', 'socio_demo_questionnaire'), ('physical_activity_questionnaire_gote_hemihedral', 'physical_activity_questionnaire'), ('body_storage_stolist_ptyalolith', 'body_storage'), ('carotid_ultrasound_test_resultative_redbone', 'carotid_ultrasound_test'), ('lab_result_pneumonolysis_fantastic', 'lab_result'), ('exposure_tailorization_Toda', 'exposure'), ('primary_history_unbanked_camphory', 'primary_history'), ('death_record_enfigure_Millettia', 'death_record'), ('case_oyster_oranger', 'case'), ('blood_pressure_test_enwallow_stim', 'blood_pressure_test'), ('electrocardiogram_test_squidgy_paradigmatic', 'electrocardiogram_test'), ('medical_history_Hibernian_bozo', 'medical_history'), ('cardiac_mri_yezzy_lenticel', 'cardiac_mri'), ('phenotype_subintroduce_quadrinucleate', 'phenotype'), ('cardiac_ct_scan_redistributer_colza', 'cardiac_ct_scan'), ('psychosocial_questionnaire_mix_kilt', 'psychosocial_questionnaire')}
+        """
+        res = {}
+        node_name = node_props["node"]
+        props = node_props["props"]
+        for element in related_node:
+            if element[1] == node_props["node"]:
+                data = self.node_rows[node_name][element[0]]
+                for prop in props:
+                    res[prop["name"]] = data[prop["name"]]
+        return res
+
+    def _build_aggregated_json(self, node_props, related_node):
+        """
+        node_props = {'name': 'cigar_amount', 'node': 'exposure', 'fn': 'avg'}
+        related_node = {('medication_locustelle_uninterlarded', 'medication'), ('demographic_strickless_johannite', 'demographic'), ('socio_demo_questionnaire_dysprosia_quadrigamist', 'socio_demo_questionnaire'), ('physical_activity_questionnaire_gote_hemihedral', 'physical_activity_questionnaire'), ('body_storage_stolist_ptyalolith', 'body_storage'), ('carotid_ultrasound_test_resultative_redbone', 'carotid_ultrasound_test'), ('lab_result_pneumonolysis_fantastic', 'lab_result'), ('exposure_tailorization_Toda', 'exposure'), ('primary_history_unbanked_camphory', 'primary_history'), ('death_record_enfigure_Millettia', 'death_record'), ('case_oyster_oranger', 'case'), ('blood_pressure_test_enwallow_stim', 'blood_pressure_test'), ('electrocardiogram_test_squidgy_paradigmatic', 'electrocardiogram_test'), ('medical_history_Hibernian_bozo', 'medical_history'), ('cardiac_mri_yezzy_lenticel', 'cardiac_mri'), ('phenotype_subintroduce_quadrinucleate', 'phenotype'), ('cardiac_ct_scan_redistributer_colza', 'cardiac_ct_scan'), ('psychosocial_questionnaire_mix_kilt', 'psychosocial_questionnaire')}
+        """
+        res = {}
+        node_name = node_props["node"]
+        field = node_props["name"]
+        fn = node_props["fn"]
+        if fn == "count":
+            return res
+        for element in related_node:
+            if element[1] == node_props["node"]:
+                data = self.node_rows[node_name][element[0]]
+                res[field] = (data[field], fn)
+        return res
+
+    def generate_mapping_def(self, submission_json):
+        result = {}
+        for key, value in submission_json.items():
+            _type = None
+            if isinstance(value, str):
+                _type = "keyword"
+            elif isinstance(value, int):
+                _type = "integer"
+            elif isinstance(value, float):
+                _type = "float"
+            if not _type:
+                _type = "keyword"
+            result[key] = {
+                "type": _type,
+                "fields": {
+                    "analyzed": {
+                        "type": "text",
+                        "analyzer": "ngram_analyzer",
+                        "search_analyzer": "search_analyzer",
+                        "term_vector": "with_positions_offsets",
+                    }
+                },
+            }
+
+        mapping_json = MAPPING_INDEX_DEF
+        mapping_json["mappings"] = {self.root_name: {"properties": result}}
+
+        return mapping_json
+
+    def generate_mapping_def_for_main_index(self):
+        mapping_json = MAPPING_INDEX_DEF
+        result = {}
+        n = 0
         for row in self.spanning_tree_rows:
-            submission_json = {}
+            n = n + 1
+
+            m = 0
             for (node_id, node_name) in row:
-                submission_json[node_name] = node_id
-            await self.helper.insert_document("spanning_tree_index", submission_json, i)
-            i += 1
+                for key, value in self.node_rows[node_name][node_id].items():
+                    key = f"{node_name}_{key}"
+                    if key in result:
+                        continue
+                    _type = None
+                    if isinstance(value, str):
+                        _type = "keyword"
+                    elif isinstance(value, int):
+                        _type = "integer"
+                    elif isinstance(value, float):
+                        _type = "integer"
+                    elif isinstance(value, bool):
+                        _type = "integer"
+                    if not _type:
+                        _type = "keyword"
+                    if not _type:
+                        continue
+                    if _type == "keyword":
+                        result[key] = {
+                            "type": _type,
+                            "fields": {
+                                "analyzed": {
+                                    "type": "text",
+                                    "analyzer": "ngram_analyzer",
+                                    "search_analyzer": "search_analyzer",
+                                    "term_vector": "with_positions_offsets",
+                                }
+                            },
+                        }
+                    else:
+                        result[key] = {"type": _type}
+        return result

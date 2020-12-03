@@ -27,8 +27,17 @@ from ..etl.etl import ETL
     default="-",
     help="root node for ETL",
 )
+@click.option(
+    "-m",
+    "--map",
+    "etl_mapping",
+    metavar="MAP",
+    type=str,
+    default="-",
+    help="ETL mapping config",
+)
 @click.argument("path", required=True, metavar="PFB", type=str)
-def etl(url, access_token, node, path):
+def etl(url, access_token, node, path, etl_mapping):
     """ETL the PFB file"""
-    etl = ETL(url, access_token, path, node)
+    etl = ETL(url, access_token, path, node, etl_mapping)
     asyncio.run(etl.etl())
