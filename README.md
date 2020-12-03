@@ -228,8 +228,9 @@ poetry install
       -u, --url URL      base es url
       -t, --token TOKEN  access token
       -n, --node NODE    root node for ETL
+      -m, ---elt_mapping ETL mapping file
     Example:
-      pfb etl -u http://localhost:9200  -n participant ./tests/pfb-data/test.avro
+      pfb etl -u http://localhost:9200  -n case -m ./tests/etl/etl_mapping.yaml ./tests/pfb-data/gtexdictionary_data.avro
 
 ### Example of minimal PFB
     In the examples/minimal-pfb directory we have an example of a minimal pfb that only contains submitted unaligned read data
