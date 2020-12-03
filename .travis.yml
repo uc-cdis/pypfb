@@ -34,6 +34,7 @@ deploy:
   skip_cleanup: true
   script: poetry publish -n -vv -r testpypi || true
   on:
+    python: 3.6
     repo: uc-cdis/pypfb
     tags: false
     all_branches: true
@@ -43,6 +44,7 @@ deploy:
   skip_cleanup: true
   script: poetry publish -n -vv
   on:
+    python: 3.6
     repo: uc-cdis/pypfb
     tags: true
 env:
