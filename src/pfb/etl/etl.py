@@ -68,9 +68,7 @@ class ETL:
         self.access_token = access_token
         self.pfbfile = pfbfile
         self.root_name = root_name
-        self.etl_mapping = (
-            etl_mapping  # "/Users/giangbui/Projects/pypfb/tests/etl_mapping.yaml"
-        )
+        self.etl_mapping = etl_mapping
 
         self.links = {}
         self.root_node_ids = []
