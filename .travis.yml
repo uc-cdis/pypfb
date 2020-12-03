@@ -1,25 +1,22 @@
 dist: xenial
 language: python
 python:
-- "3.6"
-- "3.7"
-- "3.8"
+- '3.6'
+- '3.7'
+- '3.8'
 matrix:
   allow_failures:
-    - python: "3.8"
+  - python: '3.8'
 cache:
 - pip
 - apt
-install:
- # Installing poetry using bootstrap script instead of pip install poetry to avoid any dependency conflicts.
-- curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
+before_install:
+- curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
 - source $HOME/.poetry/env
-
 - which poetry
-
 - poetry --version
-
-- poetry install -v
+install:
+- poetry install -vv
 - poetry show
 script:
 - poetry run py.test -vv --cov=src --cov-report xml tests
@@ -27,22 +24,32 @@ script:
 after_script:
 - poetry run python-codacy-coverage -r coverage.xml
 before_deploy:
-- sed -i.bak "s/=get_version()/='$TRAVIS_TAG'/g" setup.py
-- cat setup.py
+- poetry config repositories.testpypi https://test.pypi.org/legacy/
+- poetry config pypi-token.testpypi $PYPI_API_TOKEN
+- poetry config pypi-token.pypi $PYPI_PROD_API_TOKEN
+- poetry build
 deploy:
-  provider: pypi
-  user: uc-ctds
-  skip_existing: true
+# test pypi deployment on branches that are not master
+- provider: script
   skip_cleanup: true
+  script: poetry publish -n -vv -r testpypi || true
   on:
-    python: 3.7
+    repo: uc-cdis/pypfb
+    tags: false
+    all_branches: true
+    condition: "$TRAVIS_BRANCH != master"
+# real pypi deployment on tags on master
+- provider: script
+  skip_cleanup: true
+  script: poetry publish -n -vv
+  on:
     repo: uc-cdis/pypfb
     tags: true
-  password:
-    secure: k7G4W34hr5jC/9OfGljEV3cTKomObKWAsw1PHJQgDwHgF1ZjrP5P4KzELNhenngs6ujVogc5ExNqlnvN7/cZF9wECCemIgyq36T/ZEstOLfyww+iP3kjEscDXC1GUnQIfdNkdvm9nPaoM/HXQogXy3vgMXvnaDWxzzZcERwvc00Q5cUHVquYDwpfybGXkWrfvctinAO5EeBGS0Lb0oP9sKoWcrSWu2etL4KE7kmifTYNCPnphMyhSS7BgUaPJszQZq0ywczvkk4VVybouFbvjtj0mowIXiATjV+mN6PXPdpcMdDzmGe3jbmBBgC5AwV34mTA10NzHOY0i5GyIAwEIgrK3ioC6YNUdk/BcYht+VBXHQrnYPJaIYwC7Ly1XbXWhdHA2nvknBKNKeIzRIn2CfXVvzNleTqE0AiPia8oQYzSBNttm8rGTy+ImE983NuQCif4WAi4kr7lTX5MxIGqpImjCBF5XPMmWKslDgZ/6sBsdTocronDNpQi1TpnZfOCKDbQPgIheGgQF9/yWuCnxXdxB9YJP1p9HeZMIqPyfojgEGDyuXnFGtiLQ179Vuo9hC9gAd1QF6zHsKn7xGRAUHYpriPz5cGuQNVMl3BoinNvHSwBSIAmsbbhk98PadJQSnTMcfzLsQPQnifoTtX76ReJYQjGLy8a8Ai7cXBrIno=
-after_deploy:
-- poetry run gen3git release
 env:
   global:
   - PIPENV_IGNORE_VIRTUALENVS=1
-  - secure: JNYL+kdqriNWUzqchEUOrApgZes/6JYxpmKR84EoxFg4tWukCaCypUSa6cqU3FUhv1tQRDZc+h6gMqmVK/DsoLrbPSioWwVDlX0t92m9zBupcYbsiUk68tkHNDag5Ks8oUlk6VYtygHDtLmkA3abADrEgCv/Wh+enofZd4mjRly2p2dcOmsT34t+7eBiQe9rwtsoWyLqiPmgDN+HzlAI+q/aSojpuZpN+wO29k3jNCUBG8ulwORFc9B0pKrDcWSjm/4m5DaZTxYzA4cbDHr1Xtlpinm4JLj9vIPnNwO8hGNsqdNSIMszBs/ovhGvyfajn4mgtDD58UnfIquiYJYHgazBjdFIQ8A5FZewROs67OKRR7pw2weJ8RxbWylCZSbuETiDzGPSAPDNTDgX41tonXFjLCWSRaQGbe/NE1IKauZ+etaZ+asqPfTGDzHE7gAy3EIML+p6YG5FCKyKWna3wywAns2j40Ovh6guj8RNF+ikfL5Q6YipXWRLZD3JJPtVqQV6k0N3CfE5+Z8PTTkuBQNfvtobo3EosMnJBmZTIcEc7jBh+LPt3Hl+oROpL80SrMhMbnbMygFZbznAM7wriODlYjJ/thj6L/jIqc+x/dc5azz0yC7EDFEOVixRR3O0MlUfb79Uskp90RcQvr91HHKJCCYFkeuLFLqgi2Vecs4=
+  - secure: kfcy2VT1IVmFqKqB4sx6yvZWM/aVldn6ZVTMKxXRCmcUcj2BC2x3gTttjRCRiVtCNIhSPwftsiqFy9jyGft/ylFXeN97vzZJu4oWYLGj/JFm2undiwQ/bC66NZUJUaQsn6SVZ3nsn4V9wMV4iW1ySrdTr/8M5//bOy5BjWRTNN8AZ1yH0p4BLAsA1umvmo5bcXMeHUJpXs0iSRZe1yO1CI+0gfIPz2MdbzJUN3surr4OCvkbYD/zpeznV5eXbDrrHN1WoAybKRYA/I6WpvoV5YU0z8PShNVRkxZRNWjctF2sZnO/n5fGUMEF7qxIOaGbfIHtVDD4jbaZsDKo7RRlME8G0wSskonyK9tAVK0TFHCmwnPz8D77ZwhKkxB+zvNvbgrSgoAiQ+6kfoMiOJP+QQEMqxWApRLeFtDRolMc34JVJO3DdTNuRiB8R46XPxtDJCTwKmYjiv56Tfbr+BHvCphysV0+4pmUQYZPyIkxOAsjPzBW37vUgnoWdUu0oAstMxX1hF7rshBnX7LuYD4owCFdIjpW9TYeQpHU1XvrGW3yM50XRMu5wjbOy6nOGBGh+WTA6JgkusH1Q3HgPcfYPsHdCjw5xmInBZuO3FiujXIw9VEYYA8dcMXC1zAwgs0P9x4vwmq3CNUCSdbmOOsO62yvGnf9GFW7KIpDdJksVh8=
+  - secure: GOV8qXHCRQwLX6YbxldiRTHS/FmEp4I5xmu80Rm0mUiYCp07LgyP4nIqaCIBmq6qIrMggfa6D6/s5mFSaoD9P81/XSqz6EHg1Lca2/bRlXygA+KATxmqwT9Lk68htpLnh2uLq1nU84p+MsdFUw1CcAXgeevvBIed6iJUk5jWdOexR4clOwg5t/PZnDi3t9WFUmt0N0EjtYx9sP3xSajovg8n1y+SLzmiUfW7ckjB+K2iN9MH4PhkwfILNrj17ynaJgKs4ggFjWAOB4GNq6JFB16t1IZ0y3GyLKTSQFEtnL8SoiKlKKyEgd+pEsNhPpHpUzd157NJGILnihMxnyy657rMbyGEflvF8Y9JNRjs0OFGLro25sKXcePzTPJJnr4CZ0MyI2lg51ykR23In7tX7+hwDQm2YR3iC1LttK/iatItAtKLqDxgewoRfKmsDkZitofHMSdbg8Gmr0fd3COGdE6I0tfz5HAQS6y+MGi1+SiEHRigtwLdO+ADPaqMaBqhKYYY34S5BSew5Ge8AiRv/VOgii1p3Yfox+1uJtol58Cdzvb45OMkGo621pD/GJaxjxeNK9+7RqoUe7ULXUD9vHHqpCefWowtD6EAWSE0FZYuEloh0i6g4l7F/LJIS7ArSrFGUHJKCmJSypjkukvMCecO8xW9ewg94OBG5DAWvjI=
+after_deploy:
+- pip install gen3git
+- gen3git release
