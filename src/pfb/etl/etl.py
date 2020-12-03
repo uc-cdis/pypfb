@@ -41,6 +41,8 @@ MAPPING_INDEX_DEF = {
 class ETLHelper:
     """ Asynchronous file helper class"""
 
+    session = None
+
     def __init__(self, base_url, access_token):
         self.base_url = base_url
         self.token = access_token
@@ -49,17 +51,31 @@ class ETLHelper:
             "Authorization": f"Bearer {access_token}",
         }
 
+    @classmethod
+    def get_session(cls):
+        if cls.session is None:
+            cls.session = ClientSession()
+        return cls.session
+
+    @classmethod
+    def close_session(cls):
+        if cls.session is not None:
+            return cls.session.close()
+
+    async def check_index_exist(self, index):
+        session = ETLHelper.get_session()
+        async with session.get(f"{self.base_url}/{index}", headers=self.headers,) as r:
+            r.raise_for_status()
+            if r.status == 200:
+                return True
+            return False
+
     async def insert_document(self, url, document):
         """Asynchronous insert document to elasticsearch"""
         # url = f"{self.base_url}/{index}/{type}/{id}"
-        async with ClientSession() as session:
-            async with session.put(url, json=document, headers=self.headers,) as r:
-                try:
-                    r.raise_for_status()
-                except:
-                    msg = await r.json()
-                    print(msg)
-                    raise
+        session = ETLHelper.get_session()
+        async with session.put(url, json=document, headers=self.headers,) as r:
+            r.raise_for_status()
 
 
 class ETL:
@@ -78,9 +94,21 @@ class ETL:
         self.helper = ETLHelper(base_url, access_token)
 
     async def etl(self):
-        self.extract()
-        self.transform()
-        await self.load_to_es()
+        try:
+            await self.preliminary_check()
+            self.extract()
+            self.transform()
+            await self.load_to_es()
+        finally:
+            await ETLHelper.close_session()
+
+    async def preliminary_check(self):
+        index_exist = await self.helper.check_index_exist(self.root_name)
+        if index_exist:
+            print(
+                f"The index of {self.root_name} already exists. Please delete it to continue"
+            )
+            exit(1)
 
     def extract(self):
         with open(self.pfbfile, "rb") as fo:
@@ -117,9 +145,12 @@ class ETL:
 
     def transform(self):
         """transform"""
-        n = 0
+        n = 1
         for root_id in self.root_node_ids:
-            print(f"{n}/{len(self.root_node_ids)}")
+            if n % 10 == 0 or n == len(self.root_node_ids):
+                print(
+                    f"Progress: solve {n}/{len(self.root_node_ids)} spanning tree sub-problems"
+                )
             n = n + 1
             self._build_spanning_table((root_id, self.root_name))
 
@@ -272,17 +303,17 @@ class ETL:
             for related_node in related_nodes:
                 for node_props in etl_mapping["mappings"][0].get("props", []):
                     submission_json.update(
-                        self._build_root_props(node_props, related_node)
+                        self._get_root_props(node_props, related_node)
                     )
                 for node_props in etl_mapping["mappings"][0].get("flatten_props", []):
                     submission_json.update(
-                        self._build_flatten_json(node_props, related_node)
+                        self._get_flatten_props(node_props, related_node)
                     )
                 for node_props in etl_mapping["mappings"][0].get(
                     "aggregated_props", []
                 ):
                     aggregation_data.append(
-                        self._build_aggregated_json(node_props, related_node)
+                        self._get_aggregation_props(node_props, related_node)
                     )
 
             for element in aggregation_data:
@@ -319,12 +350,9 @@ class ETL:
                     submission_json[k] = v[0] * 1.0 / v[1]
 
             if is_first_submission:
-                import pdb
-
-                pdb.set_trace()
-                mapping_config = self.generate_mapping_def(submission_json)
+                indexd_template = self.create_index_template(submission_json)
                 await self.helper.insert_document(
-                    f"{self.base_url}/{self.root_name}", mapping_config
+                    f"{self.base_url}/{self.root_name}", indexd_template
                 )
 
             await self.helper.insert_document(
@@ -333,9 +361,24 @@ class ETL:
             )
             is_first_submission = False
 
-    def _build_root_props(self, node_props, related_node):
+    def _get_root_props(self, node_props, related_node):
         """
-        {'name': 'submitter_id'}
+        Get ETL config root props and compute their values
+
+        Args:
+            node_props(dict): root props from etl mapping config
+            {
+                'name': 'submitter_id'
+            }
+
+            related_node(dict): the node_ids contributing to the value of the root props
+            {
+                ("medication_locustelle_uninterlarded", "medication"),
+                ("demographic_strickless_johannite", "demographic"),
+            }
+
+        Returns:
+            res(dict): {root_prop: value}
 
         """
         res = {}
@@ -346,11 +389,34 @@ class ETL:
                 ]
         return res
 
-    def _build_flatten_json(self, node_props, related_node):
+    def _get_flatten_props(self, node_props, related_node):
         """
-        node_props = {'node': 'demographic', 'props': [{'name': 'gender'}, {'name': 'race'}, {'name': 'ethnicity'}, {'name': 'weight'}, {'name': 'hispanic_subgroup'}]}
-        related_node = {('medication_locustelle_uninterlarded', 'medication'), ('demographic_strickless_johannite', 'demographic'), ('socio_demo_questionnaire_dysprosia_quadrigamist', 'socio_demo_questionnaire'), ('physical_activity_questionnaire_gote_hemihedral', 'physical_activity_questionnaire'), ('body_storage_stolist_ptyalolith', 'body_storage'), ('carotid_ultrasound_test_resultative_redbone', 'carotid_ultrasound_test'), ('lab_result_pneumonolysis_fantastic', 'lab_result'), ('exposure_tailorization_Toda', 'exposure'), ('primary_history_unbanked_camphory', 'primary_history'), ('death_record_enfigure_Millettia', 'death_record'), ('case_oyster_oranger', 'case'), ('blood_pressure_test_enwallow_stim', 'blood_pressure_test'), ('electrocardiogram_test_squidgy_paradigmatic', 'electrocardiogram_test'), ('medical_history_Hibernian_bozo', 'medical_history'), ('cardiac_mri_yezzy_lenticel', 'cardiac_mri'), ('phenotype_subintroduce_quadrinucleate', 'phenotype'), ('cardiac_ct_scan_redistributer_colza', 'cardiac_ct_scan'), ('psychosocial_questionnaire_mix_kilt', 'psychosocial_questionnaire')}
+        Get ETL config flatten props and compute their values
+
+        Args:
+            node_props(dict): flatten props from etl mapping config
+            {
+                "node": "demographic",
+                "props": [
+                    {"name": "gender"},
+                    {"name": "race"},
+                    {"name": "ethnicity"},
+                    {"name": "weight"},
+                    {"name": "hispanic_subgroup"},
+                ],
+            }
+
+            related_node(dict): the node_ids contributing to the value of flatten props
+            {
+                ("medication_locustelle_uninterlarded", "medication"),
+                ("demographic_strickless_johannite", "demographic"),
+            }
+
+        Returns:
+            res(dict): {flatten_prop: value}
+
         """
+
         res = {}
         node_name = node_props["node"]
         props = node_props["props"]
@@ -361,10 +427,26 @@ class ETL:
                     res[prop["name"]] = data[prop["name"]]
         return res
 
-    def _build_aggregated_json(self, node_props, related_node):
+    def _get_aggregation_props(self, node_props, related_node):
         """
-        node_props = {'name': 'cigar_amount', 'node': 'exposure', 'fn': 'avg'}
-        related_node = {('medication_locustelle_uninterlarded', 'medication'), ('demographic_strickless_johannite', 'demographic'), ('socio_demo_questionnaire_dysprosia_quadrigamist', 'socio_demo_questionnaire'), ('physical_activity_questionnaire_gote_hemihedral', 'physical_activity_questionnaire'), ('body_storage_stolist_ptyalolith', 'body_storage'), ('carotid_ultrasound_test_resultative_redbone', 'carotid_ultrasound_test'), ('lab_result_pneumonolysis_fantastic', 'lab_result'), ('exposure_tailorization_Toda', 'exposure'), ('primary_history_unbanked_camphory', 'primary_history'), ('death_record_enfigure_Millettia', 'death_record'), ('case_oyster_oranger', 'case'), ('blood_pressure_test_enwallow_stim', 'blood_pressure_test'), ('electrocardiogram_test_squidgy_paradigmatic', 'electrocardiogram_test'), ('medical_history_Hibernian_bozo', 'medical_history'), ('cardiac_mri_yezzy_lenticel', 'cardiac_mri'), ('phenotype_subintroduce_quadrinucleate', 'phenotype'), ('cardiac_ct_scan_redistributer_colza', 'cardiac_ct_scan'), ('psychosocial_questionnaire_mix_kilt', 'psychosocial_questionnaire')}
+        Get ETL config aggregation props and compute their values
+
+        Args:
+            node_props(dict): flatten props from etl mapping config
+                {
+                    "name": "cigar_amount",
+                    "node": "exposure",
+                    "fn": "avg"
+                }
+
+            related_node(dict): the node_ids contributing to the value of aggregation props
+            {
+                ("medication_locustelle_uninterlarded", "medication"),
+                ("demographic_strickless_johannite", "demographic"),
+            }
+
+        Returns:
+            res(dict): {aggregation_prop: (value, [avg|max|min|count])}
         """
         res = {}
         node_name = node_props["node"]
@@ -378,7 +460,8 @@ class ETL:
                 res[field] = (data[field], fn)
         return res
 
-    def generate_mapping_def(self, submission_json):
+    def create_index_template(self, submission_json):
+        """ Create index template"""
         result = {}
         for key, value in submission_json.items():
             _type = None
@@ -406,45 +489,3 @@ class ETL:
         mapping_json["mappings"] = {self.root_name: {"properties": result}}
 
         return mapping_json
-
-    def generate_mapping_def_for_main_index(self):
-        mapping_json = MAPPING_INDEX_DEF
-        result = {}
-        n = 0
-        for row in self.spanning_tree_rows:
-            n = n + 1
-
-            m = 0
-            for (node_id, node_name) in row:
-                for key, value in self.node_rows[node_name][node_id].items():
-                    key = f"{node_name}_{key}"
-                    if key in result:
-                        continue
-                    _type = None
-                    if isinstance(value, str):
-                        _type = "keyword"
-                    elif isinstance(value, int):
-                        _type = "integer"
-                    elif isinstance(value, float):
-                        _type = "integer"
-                    elif isinstance(value, bool):
-                        _type = "integer"
-                    if not _type:
-                        _type = "keyword"
-                    if not _type:
-                        continue
-                    if _type == "keyword":
-                        result[key] = {
-                            "type": _type,
-                            "fields": {
-                                "analyzed": {
-                                    "type": "text",
-                                    "analyzer": "ngram_analyzer",
-                                    "search_analyzer": "search_analyzer",
-                                    "term_vector": "with_positions_offsets",
-                                }
-                            },
-                        }
-                    else:
-                        result[key] = {"type": _type}
-        return result
