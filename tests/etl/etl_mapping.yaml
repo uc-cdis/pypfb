@@ -1,0 +1,26 @@
+mappings:
+  - name: etl
+    doc_type: case
+    root: case
+    props:
+      - name: submitter_id
+      - name: site
+      - name: cohort_id
+    flatten_props:
+      - node: demographic
+        props:
+          - name: gender
+          - name: race
+          - name: ethnicity
+          - name: weight
+          - name: hispanic_subgroup
+    aggregated_props:
+      - name: cigar_amount
+        node: exposure
+        fn: avg
+      - name: age_at_hdl1
+        node: lab_result
+        fn: max
+      - name: _lab_result_count
+        node: lab_result
+        fn: count
