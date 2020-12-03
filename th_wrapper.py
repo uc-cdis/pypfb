@@ -64,6 +64,7 @@ DEFAULT_CONFIG = {
         ".travis.yml",
         "truffles.json",
         "tests/pfb-data/test.avro",
+        "tests/pfb-data/gtexdictionary_data.avro",
         "tests/schema/kf.avro",
         "examples/data.avro",
         "examples/data_enum.avro",
