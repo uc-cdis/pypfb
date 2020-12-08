@@ -20,6 +20,7 @@ pandas = "^1.1.0"
 aiohttp = "^3.6.3"
 dictionaryutils = "^3.2.0"
 gen3 = "<4.0.0"
+google-cloud-bigquery = "^2.5.0"
 
 [tool.poetry.dev-dependencies]
 codacy-coverage = "*"
@@ -35,6 +36,7 @@ pfb = 'pfb.cli:main'
 "from_gen3dict" = "pfb.importers.gen3dict"
 "from_json" = "pfb.importers.json"
 "from_tsv" = "pfb.importers.tsv"
+"to_bigquery" = "pfb.exporters.bigquery"
 "to_gremlin" = "pfb.exporters.gremlin"
 "to_tsv" = "pfb.exporters.tsv"
 "show" = "pfb.commands.show"
