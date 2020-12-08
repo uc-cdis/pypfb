@@ -88,3 +88,30 @@ def metadata(ctx, name):
         else:
             json.dump(reader.metadata, sys.stdout)
             sys.stdout.write("\n")
+
+
+@show.command(short_help="Show the quick stats of the PFB file.")
+@click.argument("name", metavar="NODE", required=False)
+@click.pass_context
+def stats(ctx, name):
+    """Show the stats of the nodes in the PFB file.
+
+    the whole stats will be shown.
+    """
+    with ctx.obj["reader"] as reader:
+        stats = {}
+        edges = 0
+        for r in reader:
+            if r["name"] in stats:
+                stats[r["name"]] += 1
+            else:
+                stats[r["name"]] = 1
+
+            edges += len(r["relations"])
+
+        sys.stdout.write("Total number of nodes: " + str(len(stats)) + "\n")
+
+        sys.stdout.write("Total number of edges: " + str(edges) + "\n")
+
+        for key in stats:
+            sys.stdout.write(key + ": " + str(stats[key]) + "\n")
