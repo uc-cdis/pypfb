@@ -1,5 +1,3 @@
-import os
-
 from google.cloud import bigquery as bq
 
 import click
@@ -68,7 +66,8 @@ def _to_bigquery(reader, dir_path, handlers_by_name):
                         "type": ["null", "string"],
                     }
                 )
-                obj[rel_name] = r["dst_id"]
+            obj[rel_name] = r["dst_id"]
+            obj["parent_type"] = r["dst_name"]
 
         # get the bq table for this row, create one if not created
         t = handlers_by_name.get(name)
