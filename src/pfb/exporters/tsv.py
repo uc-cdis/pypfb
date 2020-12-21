@@ -59,7 +59,8 @@ def _to_tsv(reader, dir_path, handlers_by_name):
         obj = row["object"]
 
         for r in row["relations"]:
-            rel_name = r["dst_name"] + "_ref_id"
+            #rel_name = r["dst_name"] + "_ref_id"
+            rel_name = "parent_id"
             if {
                 "name": rel_name,
                 "type": ["null", "string"],
@@ -70,7 +71,14 @@ def _to_tsv(reader, dir_path, handlers_by_name):
                         "type": ["null", "string"],
                     }
                 )
+                fields.append(
+                    {
+                        "name": "parent_type",
+                        "type": ["null", "string"],
+                    }
+                )
             obj[rel_name] = r["dst_id"]
+            obj["parent_type"] = r["dst_name"]
 
         # get the TSV writer for this row, create one if not created
         pair = handlers_by_name.get(name)

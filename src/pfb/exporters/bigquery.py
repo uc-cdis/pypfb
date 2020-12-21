@@ -50,7 +50,8 @@ def _to_bigquery(reader, dir_path, handlers_by_name):
 
         for r in row["relations"]:
 
-            rel_name = r["dst_name"] + "_ref_id"
+            #rel_name = r["dst_name"] + "_ref_id"
+            rel_name = "parent_id"
             if {
                 "name": rel_name,
                 "type": ["null", "string"],
@@ -61,7 +62,13 @@ def _to_bigquery(reader, dir_path, handlers_by_name):
                         "type": ["null", "string"],
                     }
                 )
-            obj[rel_name] = r["dst_id"]
+                fields.append(
+                    {
+                        "name": "parent_type",
+                        "type": ["null", "string"],
+                    }
+                )
+                obj[rel_name] = r["dst_id"]
 
         # get the bq table for this row, create one if not created
         t = handlers_by_name.get(name)
