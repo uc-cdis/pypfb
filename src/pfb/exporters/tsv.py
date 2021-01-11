@@ -92,6 +92,11 @@ def _to_tsv(reader, dir_path, handlers_by_name):
                 project_ids.append([name, obj["project_id"]])
                 data_row.append(obj[field["name"]])
             else:
+                # adding logic for multi-sample records that contain either project.submitter_id or samplie.submitter_id
+                if field["name"] == "sample.submitter_id" or field["name"] == "project.submitter_id":
+                    if field["name"] not in obj:
+                        continue
+
                 value = obj[field["name"]]
                 data_row.append(value)
 
