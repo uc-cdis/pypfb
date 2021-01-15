@@ -1,16 +1,38 @@
 # Portable Format for Biomedical Data
 
+**PFB** is a serialization file format designed to store bio-medical data, as well as metadata. The format is built on top [**Avro**][1] to make it fast, extensible and interoperable between different systems.
+
 - [Portable Format for Biomedical Data](#portable-format-for-biomedical-data)
-  - [What is PFB?](#what-is-pfb)
+  - [What is an Avro File?](#what-is-an-avro-file)
+  - [What is a PFB File?](#what-is-a-pfb-file)
+  - [Vanilla Avro vs PFB](#vanilla-avro-vs-pfb)
   - [Schema](#schema)
     - [Types](#types)
       - [Enum](#enum)
         - [Future implementation:](#future-implementation)
   - [Example](#example)
 
-## What is PFB?
+### What is an Avro File?
 
-**PFB** is the serialization file format designed to store bio-medical data, as well as metadata. The format is built on top [**Avro**][1] to make it fast, extensible and interoperable between different systems.
+A file with data records (JSON) and a schema (JSON) to describe each data record. Avro files can be serialized into a binary format and compressed.
+
+Read more about [Avro](https://Avro.apache.org/docs/current/spec.html).
+
+### What is a PFB File?
+
+A PFB file is special kind of Avro file, suitable for capturing and reconstructing biomedical relational data.
+
+A PFB file is an Avro file with a particular Avro schema that represents a relational database. We call this schema the [PFB Schema](#schema).
+
+The data in a PFB file contains a list of JSON objects called PFB Entity objects. There are 2 types of PFB Entities. One (Metadata) captures information about the relational database and the other (Table Row) captures a row of data from a particular table in the database.
+
+The data records in a PFB file are produced by transforming the original data from a relational database into PFB Entity objects. Each PFB Entity object conforms to its Avro schema.
+
+### Vanilla Avro vs PFB
+
+Let's say a client receives an Avro file. It reads in the Avro data. Now a client has the Avro schema and all of the data that conforms to that schema in a big JSON blob. It can do what it wants. Maybe it wants to construct some data input forms. It has everything it needs to do this since the schema has all of the entities, attributes, and types for those attributes defined.
+
+Now what happens if the client wants to reconstruct a relational database from the data? How does it know what tables to create, and what the relationships are between those tables? Which relationships are required vs not? This is one of the problems PFB addresses.
 
 ## Schema
 
