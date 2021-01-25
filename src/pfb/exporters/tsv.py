@@ -35,6 +35,8 @@ def tsv(ctx, output):
     click.secho(output, fg="white", err=True, bold=True)
 
 
+node_submitter_ids = {}
+
 def _to_tsv(reader, dir_path, handlers_by_name):
     project_ids = []
     num_files = 1
@@ -57,18 +59,55 @@ def _to_tsv(reader, dir_path, handlers_by_name):
 
         obj = row["object"]
 
+
+        if "submitter_id" in obj:
+            if row["name"] not in node_submitter_ids:
+                node_submitter_ids[row["name"]] = []
+            node_submitter_ids[row["name"]].append(obj["submitter_id"])
+
+        
+
+
         for r in row["relations"]:
+            # print(r)
             if {
-                "name": r["dst_name"] + ".submitter_id",
+                "name": r["dst_name"] + ".id",
                 "type": ["null", "string"],
             } not in fields:
                 fields.append(
                     {
-                        "name": r["dst_name"] + ".submitter_id",
+                        "name": r["dst_name"] + ".id",
                         "type": ["null", "string"],
                     }
                 )
-            obj[r["dst_name"] + ".submitter_id"] = r["dst_id"]
+
+            obj[r["dst_name"] + ".id"] = r["dst_id"]
+            
+            parent_node = r["dst_name"]
+
+            if parent_node in node_submitter_ids:
+                if {
+                    "name": r["dst_name"] + ".submitter_id",
+                    "type": ["null", "string"],
+                } not in fields:
+                    fields.append(
+                        {
+                            "name": r["dst_name"] + ".submitter_id",
+                            "type": ["null", "string"],
+                        }
+                    )
+
+                obj[parent_node + ".submitter_id"] = "null"
+
+                for i in node_submitter_ids[parent_node]:
+                    if i in obj["submitter_id"]:
+                        obj[parent_node + ".submitter_id"] = i
+                        break
+
+
+
+
+
 
         # get the TSV writer for this row, create one if not created
         pair = handlers_by_name.get(name)
@@ -93,10 +132,9 @@ def _to_tsv(reader, dir_path, handlers_by_name):
                 data_row.append(obj[field["name"]])
             else:
                 # adding logic for multi-sample records that contain either project.submitter_id or samplie.submitter_id
-                if field["name"] == "sample.submitter_id" or field["name"] == "project.submitter_id":
+                if field["name"] == "sample.id" or field["name"] == "project.id":
                     if field["name"] not in obj:
                         continue
-
                 value = obj[field["name"]]
                 data_row.append(value)
 
