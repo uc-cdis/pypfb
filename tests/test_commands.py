@@ -161,7 +161,7 @@ def test_to_tsv(runner, invoke, test_avro):
                 "age_at_last_follow_up_days": "18074",
                 "cause_of_death": "Not Reported",
                 "gender": "female",
-                "participant.submitter_id": "participant_metalinguistics_monofilm",
+                "participants.id": "participant_metalinguistics_monofilm",
                 "type": "demographic",
                 "updated_datetime": "",
                 "vital_status": "Dead",
@@ -170,6 +170,8 @@ def test_to_tsv(runner, invoke, test_avro):
                 "created_datetime": "",
                 "race": "Native Hawaiian or Other Pacific Islander",
                 "state": "validated",
+                "participants.submitter_id": "null",
+                "id": "demographic_duteousness_unassailing"
             }
 
 

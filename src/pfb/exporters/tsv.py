@@ -35,6 +35,8 @@ def tsv(ctx, output):
     click.secho(output, fg="white", err=True, bold=True)
 
 
+node_submitter_ids = {}
+
 def _to_tsv(reader, dir_path, handlers_by_name):
     project_ids = []
     num_files = 1
@@ -45,6 +47,7 @@ def _to_tsv(reader, dir_path, handlers_by_name):
     fields_by_name = {node["name"]: node["fields"] for node in reader.schema}
     for row in reader:
         name = row["name"]
+        record_id = row["id"]
         fields = fields_by_name[name]
 
         node_index = next(
@@ -57,18 +60,69 @@ def _to_tsv(reader, dir_path, handlers_by_name):
 
         obj = row["object"]
 
+
+        if "submitter_id" in obj:
+            node_submitter_ids[record_id] = obj["submitter_id"]
+
+        if {
+            "name": "id",
+            "type": ["null", "string"],
+        } not in fields:
+            fields.append(
+                {
+                    "name": "id",
+                    "type": ["null", "string"],
+                }
+            )
+
+        obj["id"] = record_id
+
+
         for r in row["relations"]:
+            parent_node = r["dst_name"]
+            parent_id = r["dst_id"]
+
+            for node in reader.metadata["nodes"]:
+                if node["name"] == name:
+                    for link in node["links"]:
+                        if link["dst"] == parent_node:
+                            plural_parent = link["name"]
             if {
-                "name": r["dst_name"] + ".submitter_id",
+                "name": plural_parent + ".id",
                 "type": ["null", "string"],
             } not in fields:
                 fields.append(
                     {
-                        "name": r["dst_name"] + ".submitter_id",
+                        "name": plural_parent + ".id",
                         "type": ["null", "string"],
                     }
                 )
-            obj[r["dst_name"] + ".submitter_id"] = r["dst_id"]
+
+            obj[plural_parent + ".id"] = r["dst_id"]
+            
+
+            
+            if {
+                "name": plural_parent + ".submitter_id",
+                "type": ["null", "string"],
+            } not in fields:
+                fields.append(
+                    {
+                        "name": plural_parent + ".submitter_id",
+                        "type": ["null", "string"],
+                    }
+                )
+
+            if parent_id in node_submitter_ids:
+                obj[plural_parent + ".submitter_id"] = node_submitter_ids[parent_id]
+            else:
+                obj[plural_parent + ".submitter_id"] = "null"
+
+
+        if "sample" in node_submitter_ids:
+            print(node_submitter_ids["sample"])
+
+
 
         # get the TSV writer for this row, create one if not created
         pair = handlers_by_name.get(name)
@@ -93,10 +147,9 @@ def _to_tsv(reader, dir_path, handlers_by_name):
                 data_row.append(obj[field["name"]])
             else:
                 # adding logic for multi-sample records that contain either project.submitter_id or samplie.submitter_id
-                if field["name"] == "sample.submitter_id" or field["name"] == "project.submitter_id":
+                if field["name"] == "samples.id" or field["name"] == "projects.id" or field["name"] == "samples.submitter_id" or field["name"] == "projects.submitter_id":
                     if field["name"] not in obj:
                         continue
-
                 value = obj[field["name"]]
                 data_row.append(value)
 
