@@ -30,6 +30,7 @@ jobs:
       - name: "Upgrade to Python3"
         uses: cclauss/Upgrade-to-Python3@master
       - name: Install Gen3 release-helper
+        uses: frolvlad/alpine-python3@latest
         run: |
           pip install wheel
           python --version
