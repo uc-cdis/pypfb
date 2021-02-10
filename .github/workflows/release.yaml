@@ -27,10 +27,10 @@ jobs:
         with:
           current-version: ${{ steps.previoustag.outputs.tag }}
           version-fragment: 'bug'
-      - name: "Upgrade to Python3"
-        uses: cclauss/Upgrade-to-Python3@master
       - name: Install Gen3 release-helper
-        uses: frolvlad/alpine-python3@latest
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
         run: |
           pip install wheel
           python --version
