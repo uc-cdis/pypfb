@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     if: contains( github.event.pull_request.labels.*.name, 'release')
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2.3.4
       - name: 'Get Previous tag'
         id: previoustag
         uses: "WyriHaximus/github-action-get-previous-tag@master"
@@ -37,7 +37,7 @@ jobs:
           python -m gen3git --github-access-token ${{ secrets.GEN3_GITHUB_TOKEN }} --from-tag ${{ steps.previoustag.outputs.tag }} gen --markdown
           cat release_notes.md
       - name: Create release
-        uses: ncipollo/release-action@v2.3.4
+        uses: ncipollo/release-action@v1
         with:
           tag: ${{ steps.bump_version.outputs.next-version }}
           artifacts: "release.tar.gz,foo/*.txt"
