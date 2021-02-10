@@ -30,6 +30,7 @@ jobs:
       - name: Install Gen3 release-helper
         run: |
           pip install wheel
+          python --version
           pip install --user --editable git+https://github.com/uc-cdis/release-helper.git@fix/logging_GITHUB_REMOTE#egg=gen3git
           python -m gen3git --github-access-token ${{ secrets.GEN3_GITHUB_TOKEN }} tag ${{ steps.bump_version.outputs.next-version }}
           python -m gen3git --github-access-token ${{ secrets.GEN3_GITHUB_TOKEN }} --from-tag ${{ steps.previoustag.outputs.tag }} release
