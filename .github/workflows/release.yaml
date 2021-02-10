@@ -27,10 +27,11 @@ jobs:
         with:
           current-version: ${{ steps.previoustag.outputs.tag }}
           version-fragment: 'bug'
-      - name: Install Gen3 release-helper
+      - name: Install python 3
         uses: actions/setup-python@v2
         with:
           python-version: '3.8'
+      - name: Install Gen3 release-helper$
         run: |
           pip install wheel
           python --version
