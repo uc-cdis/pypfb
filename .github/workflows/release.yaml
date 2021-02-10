@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     if: contains( github.event.pull_request.labels.*.name, 'release')
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v1
       - name: 'Get Previous tag'
         id: previoustag
         uses: "WyriHaximus/github-action-get-previous-tag@master"
@@ -27,7 +27,10 @@ jobs:
         with:
           current-version: ${{ steps.previoustag.outputs.tag }}
           version-fragment: 'bug'
+      - name: "Upgrade to Python3"
+        uses: cclauss/Upgrade-to-Python3@master
       - name: Install Gen3 release-helper
+        uses: frolvlad/alpine-python3@latest
         run: |
           pip install wheel
           python --version
