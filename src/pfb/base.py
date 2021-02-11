@@ -87,6 +87,17 @@ def handle_schema_field_unicode(field, encode=True):
                     continue
                 symbols.append(method(symbol))
             t["symbols"] = symbols
+        elif isinstance(t, dict) and t["type"] == "array":
+            if isinstance(t["items"], dict) and t["items"]["type"] == "enum":
+                is_enum = True
+                symbols = []
+                for symbol in t["items"]["symbols"]:
+                    if symbol == None:
+                        continue
+                    symbols.append(method(symbol))
+                if "name" in t["items"]:
+                    t["items"]["name"] = method(t["items"]["name"])
+                t["items"]["symbols"] = symbols
     default = field.get("default")
     if is_enum_ and default:
         field["default"] = method(default)
