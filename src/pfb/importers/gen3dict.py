@@ -152,6 +152,9 @@ def _parse_dictionary(d):
 
             # Need to reorder the property_types so the default value is a part of the first list of enums as per avro spec
             if "default" in property_type:
+                if "type" in property_type:
+                    if isinstance(property_type["default"], bool):
+                        property_type["type"].append(property_type["type"].pop(0))
                 if "oneOf" in property_type:
                     default = property_type["default"]
                     for enum in property_type["oneOf"]:
