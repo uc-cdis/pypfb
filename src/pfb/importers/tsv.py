@@ -1,14 +1,14 @@
 from __future__ import absolute_import
 
 import glob
-import pandas as pd
 import os
+import csv
 
 import click
 
-from ..base import avro_record
-from ..cli import from_command
-from ..reader import PFBReader
+from pfb.base import avro_record
+from pfb.cli import from_command
+from pfb.reader import PFBReader
 
 
 @from_command.command("tsv", short_help="Convert TSV files into a PFB file.")
@@ -66,18 +66,37 @@ def _from_tsv(metadata, path, program, project):
         click.secho("{}/{}: ".format(i + 1, total), fg="blue", nl=False, err=True)
         click.secho(o, fg="white", err=True)
 
-        tsv_data = pd.read_csv(
-            os.path.join(path, o + ".tsv"), delimiter="\t", index_col=1
+        tsv_data = list(
+            csv.DictReader(open(os.path.join(path, o + ".tsv")), delimiter="\t")
         )
-        tsv_data = tsv_data.where(pd.notnull(tsv_data), None).to_dict(orient="records")
 
         node_name = o
 
         if isinstance(tsv_data, dict):
             tsv_data = [tsv_data]
         for tsv_record in tsv_data:
+            for k, v in tsv_record.items():
+                tsv_record[k] = convert_types(v)
             record = _convert_tsv(node_name, tsv_record, program, project, link_dests)
             yield record
+
+
+def convert_types(val):
+    if val is None or val.strip() == "":
+        return None
+    if val.lower() == "false":
+        return False
+    if val.lower() == "true":
+        return True
+    try:
+        v = float(val)
+        # for fields that require type long
+        if int(v) == v:
+            v = int(v)
+        return v
+    except ValueError:
+        pass
+    return val
 
 
 def _convert_tsv(node_name, tsv_record, program, project, link_dests):
@@ -103,7 +122,7 @@ def _convert_tsv(node_name, tsv_record, program, project, link_dests):
                     "dst_name": link_dests[node_name][v],
                 }
             )
-        # array typeing being passed off as string
+        # array typing being passed off as string
         if (
             type(tsv_record[item]) == str
             and "[" in tsv_record[item]
