@@ -50,7 +50,7 @@ def unicode_decode(matchobj):
 
 def encode_enum(enumValue):
     encodedValue = re.sub(
-        "^[0-9]|[^A-Za-z0-9]", unicode_encode, enumValue, flags=re.UNICODE
+        "^[0-9]|[^A-Za-z0-9]", unicode_encode, str(enumValue), flags=re.UNICODE
     )
     return encodedValue
 
