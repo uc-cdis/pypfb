@@ -80,6 +80,7 @@ def _to_tsv(reader, dir_path, handlers_by_name):
                     for link in node["links"]:
                         if link["dst"] == parent_node:
                             plural_parent = link["name"]
+                        # already in plural form
                         elif link["name"] == parent_node:
                             plural_parent = parent_node
             if {

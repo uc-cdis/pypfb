@@ -6,9 +6,9 @@ import csv
 
 import click
 
-from pfb.base import avro_record
-from pfb.cli import from_command
-from pfb.reader import PFBReader
+from ..base import avro_record
+from ..cli import from_command
+from ..reader import PFBReader
 
 
 @from_command.command("tsv", short_help="Convert TSV files into a PFB file.")
