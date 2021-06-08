@@ -256,6 +256,7 @@ def _get_avro_type(property_name, property_type, name):
 
     return None
 
+
 def _required_array_type(property_type):
     end_array_type = {}
     end_array_type["type"] = "array"

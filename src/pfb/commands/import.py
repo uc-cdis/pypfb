@@ -71,7 +71,10 @@ def run(ctx):
 
         data = {
             "Action": "import",
-            "input": {"guid": ctx.obj["guid"], "db": ctx.obj["database_name"],},
+            "input": {
+                "guid": ctx.obj["guid"],
+                "db": ctx.obj["database_name"],
+            },
         }
 
         sower_url = ctx.obj["data_commons"] + "/job/dispatch"

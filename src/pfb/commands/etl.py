@@ -7,7 +7,13 @@ from ..etl.etl import ETL
 
 @main.command(short_help="ETL")
 @click.option(
-    "-u", "--url", "url", metavar="URL", type=str, default="-", help="base es url",
+    "-u",
+    "--url",
+    "url",
+    metavar="URL",
+    type=str,
+    default="-",
+    help="base es url",
 )
 @click.option(
     "-t",

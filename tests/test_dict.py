@@ -20,6 +20,7 @@ def _test_schema(r):
                             for symbol in type_["symbols"]:
                                 decode_enum(symbol)
 
+
 def test_from_dict_niaid(runner, invoke):
     with runner.isolated_filesystem():
         result = invoke(
@@ -36,6 +37,7 @@ def test_from_dict_niaid(runner, invoke):
             _test_schema(r)
             assert len(list(r)) == 1
 
+
 def test_from_dict_bhc(runner, invoke):
     with runner.isolated_filesystem():
         result = invoke(
@@ -51,6 +53,7 @@ def test_from_dict_bhc(runner, invoke):
             r = reader(f)
             _test_schema(r)
             assert len(list(r)) == 1
+
 
 def test_from_dict_gtex(runner, invoke):
     with runner.isolated_filesystem():
@@ -68,6 +71,7 @@ def test_from_dict_gtex(runner, invoke):
             _test_schema(r)
             assert len(list(r)) == 1
 
+
 def test_from_dict_genomel(runner, invoke):
     with runner.isolated_filesystem():
         result = invoke(
@@ -83,6 +87,7 @@ def test_from_dict_genomel(runner, invoke):
             r = reader(f)
             _test_schema(r)
             assert len(list(r)) == 1
+
 
 def test_from_dict_kf(runner, invoke):
     with runner.isolated_filesystem():
@@ -100,6 +105,7 @@ def test_from_dict_kf(runner, invoke):
             _test_schema(r)
             assert len(list(r)) == 1
 
+
 def test_from_dict_acct(runner, invoke):
     with runner.isolated_filesystem():
         result = invoke(
@@ -115,6 +121,7 @@ def test_from_dict_acct(runner, invoke):
             r = reader(f)
             _test_schema(r)
             assert len(list(r)) == 1
+
 
 def test_from_dict_charlie(runner, invoke):
     with runner.isolated_filesystem():
@@ -132,6 +139,7 @@ def test_from_dict_charlie(runner, invoke):
             _test_schema(r)
             assert len(list(r)) == 1
 
+
 def test_from_dict_canine(runner, invoke):
     with runner.isolated_filesystem():
         result = invoke(
@@ -147,6 +155,7 @@ def test_from_dict_canine(runner, invoke):
             r = reader(f)
             _test_schema(r)
             assert len(list(r)) == 1
+
 
 def test_from_dict_covid19(runner, invoke):
     with runner.isolated_filesystem():
@@ -164,6 +173,7 @@ def test_from_dict_covid19(runner, invoke):
             _test_schema(r)
             assert len(list(r)) == 1
 
+
 def test_from_dict_bhc(runner, invoke):
     with runner.isolated_filesystem():
         result = invoke(
@@ -179,6 +189,7 @@ def test_from_dict_bhc(runner, invoke):
             r = reader(f)
             _test_schema(r)
             assert len(list(r)) == 1
+
 
 def test_from_dict_bpa(runner, invoke):
     with runner.isolated_filesystem():
@@ -196,6 +207,7 @@ def test_from_dict_bpa(runner, invoke):
             _test_schema(r)
             assert len(list(r)) == 1
 
+
 def test_from_dict_midrc(runner, invoke):
     with runner.isolated_filesystem():
         result = invoke(
@@ -211,6 +223,7 @@ def test_from_dict_midrc(runner, invoke):
             r = reader(f)
             _test_schema(r)
             assert len(list(r)) == 1
+
 
 def test_from_dict_flu(runner, invoke):
     with runner.isolated_filesystem():
@@ -228,6 +241,7 @@ def test_from_dict_flu(runner, invoke):
             _test_schema(r)
             assert len(list(r)) == 1
 
+
 def test_from_dict_heal(runner, invoke):
     with runner.isolated_filesystem():
         result = invoke(
@@ -243,6 +257,7 @@ def test_from_dict_heal(runner, invoke):
             r = reader(f)
             _test_schema(r)
             assert len(list(r)) == 1
+
 
 def test_from_dict_ibdgc(runner, invoke):
     with runner.isolated_filesystem():
@@ -260,6 +275,7 @@ def test_from_dict_ibdgc(runner, invoke):
             _test_schema(r)
             assert len(list(r)) == 1
 
+
 def test_from_dict_tcga(runner, invoke):
     with runner.isolated_filesystem():
         result = invoke(
@@ -275,6 +291,7 @@ def test_from_dict_tcga(runner, invoke):
             r = reader(f)
             _test_schema(r)
             assert len(list(r)) == 1
+
 
 def test_from_dict_jcoin(runner, invoke):
     with runner.isolated_filesystem():
@@ -292,6 +309,7 @@ def test_from_dict_jcoin(runner, invoke):
             _test_schema(r)
             assert len(list(r)) == 1
 
+
 def test_from_dict_microbiome(runner, invoke):
     with runner.isolated_filesystem():
         result = invoke(
@@ -308,6 +326,7 @@ def test_from_dict_microbiome(runner, invoke):
             _test_schema(r)
             assert len(list(r)) == 1
 
+
 def test_from_dict_tb(runner, invoke):
     with runner.isolated_filesystem():
         result = invoke(
@@ -323,6 +342,7 @@ def test_from_dict_tb(runner, invoke):
             r = reader(f)
             _test_schema(r)
             assert len(list(r)) == 1
+
 
 def test_from_dict_va(runner, invoke):
     with runner.isolated_filesystem():

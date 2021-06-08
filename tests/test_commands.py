@@ -154,7 +154,7 @@ def test_to_tsv(runner, invoke, test_avro):
                 "race": "Native Hawaiian or Other Pacific Islander",
                 "state": "validated",
                 "participants.submitter_id": "null",
-                "id": "demographic_duteousness_unassailing"
+                "id": "demographic_duteousness_unassailing",
             }
 
 
