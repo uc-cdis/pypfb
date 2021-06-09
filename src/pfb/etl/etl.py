@@ -4,7 +4,7 @@ from aiohttp import ClientSession
 
 
 class ETLHelper:
-    """ Asynchronous file helper class"""
+    """Asynchronous file helper class"""
 
     def __init__(self, base_url, access_token):
         self.base_url = base_url
@@ -18,7 +18,11 @@ class ETLHelper:
         """Asynchronous insert document to elasticsearch"""
         url = f"{self.base_url}/{index}/_doc/{id}"
         async with ClientSession() as session:
-            async with session.put(url, json=document, headers=self.headers,) as r:
+            async with session.put(
+                url,
+                json=document,
+                headers=self.headers,
+            ) as r:
                 r.raise_for_status()
 
 

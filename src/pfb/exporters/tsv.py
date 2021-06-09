@@ -64,9 +64,15 @@ def _to_tsv(reader, dir_path, handlers_by_name):
         if "submitter_id" in obj:
             node_submitter_ids[record_id] = obj["submitter_id"]
 
-        if {"name": "id", "type": ["null", "string"],} not in fields:
+        if {
+            "name": "id",
+            "type": ["null", "string"],
+        } not in fields:
             fields.append(
-                {"name": "id", "type": ["null", "string"],}
+                {
+                    "name": "id",
+                    "type": ["null", "string"],
+                }
             )
 
         obj["id"] = record_id
@@ -88,7 +94,10 @@ def _to_tsv(reader, dir_path, handlers_by_name):
                 "type": ["null", "string"],
             } not in fields:
                 fields.append(
-                    {"name": plural_parent + ".id", "type": ["null", "string"],}
+                    {
+                        "name": plural_parent + ".id",
+                        "type": ["null", "string"],
+                    }
                 )
 
             obj[plural_parent + ".id"] = r["dst_id"]

@@ -1,5 +1,6 @@
 import click
 from dictionaryutils import DataDictionary, dictionary
+import json
 
 from ..cli import from_command
 
@@ -234,9 +235,17 @@ def _parse_dictionary(d):
 
 def _get_avro_type(property_name, property_type, name):
     if "type" in property_type:
-        # print(property_type["type"])
+        if property_type["type"] == "array":
+            # this is for when a type is required in a dictionary and is an array type
+            return _required_array_type(property_type)
         if property_type["type"] == ["array", "null"]:
             return _array_type(property_type)
+        if "number" in property_type["type"]:
+            return ["null", "float"]
+        if property_type["type"] == "number":
+            return "float"
+        if property_type["type"] == "integer":
+            return "int"
         return _plain_type(property_type["type"])
 
     if "enum" in property_type:
@@ -248,12 +257,23 @@ def _get_avro_type(property_name, property_type, name):
     return None
 
 
+def _required_array_type(property_type):
+    end_array_type = {}
+    end_array_type["type"] = "array"
+    if property_type["items"]:
+        end_array_type["items"] = property_type["items"]["type"]
+    return end_array_type
+
+
 def _array_type(property_type):
     if "enum" in property_type["items"]:
         enum = {}
         enum["type"] = "enum"
         enum["symbols"] = property_type["items"]["enum"]
-        enum["name"] = property_type["description"]
+        if "description" in property_type:
+            enum["name"] = property_type["description"]
+        else:
+            enum["name"] = property_type["termDef"][0]["term"]
 
         array_type = {}
         array_type["type"] = "array"
@@ -264,6 +284,12 @@ def _array_type(property_type):
     else:
         array_type = {}
         array_type["type"] = "array"
+        # specific for midrc data dictionary
+        if property_type["items"]["type"] == "number":
+            property_type["items"]["type"] = "float"
+        # specific for jcoin data dictionary
+        if property_type["items"]["type"] == "integer":
+            property_type["items"]["type"] = "int"
         array_type["items"] = property_type["items"]["type"]
 
         full_type = ["null", array_type]
