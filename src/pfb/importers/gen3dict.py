@@ -241,9 +241,9 @@ def _get_avro_type(property_name, property_type, name):
         if property_type["type"] == ["array", "null"]:
             return _array_type(property_type)
         if "number" in property_type["type"]:
-            return ["null", "int"]
+            return ["null", "float"]
         if property_type["type"] == "number":
-            return "int"
+            return "float"
         if property_type["type"] == "integer":
             return "int"
         return _plain_type(property_type["type"])
@@ -286,7 +286,7 @@ def _array_type(property_type):
         array_type["type"] = "array"
         # specific for midrc data dictionary
         if property_type["items"]["type"] == "number":
-            property_type["items"]["type"] = "int"
+            property_type["items"]["type"] = "float"
         # specific for jcoin data dictionary
         if property_type["items"]["type"] == "integer":
             property_type["items"]["type"] = "int"
