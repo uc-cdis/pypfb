@@ -23,7 +23,7 @@ jobs:
         run: git checkout master
       - name: Bump release version
         id: bump_version
-        uses: christian-draeger/increment-semantic-version@1.0.0
+        uses: christian-draeger/increment-semantic-version@1.0.2
         with:
           current-version: ${{ steps.previoustag.outputs.tag }}
           version-fragment: 'bug'
