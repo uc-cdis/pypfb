@@ -267,3 +267,7 @@ poetry install
 
 
   [1]: ./doc/schema.svg
+
+## Reporting issues
+
+Issues relating to the PFB format should be reported to [url]. Issues relating to this Python library should be reported to [url].
