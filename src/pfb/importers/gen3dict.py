@@ -4,7 +4,7 @@ import json
 
 from ..cli import from_command
 
-_AVRO_TYPES = {"integer": "long", "number": "float"}
+_AVRO_TYPES = {"integer": "long", "number": "float", "int": "long"}
 
 
 @from_command.command(
@@ -242,10 +242,12 @@ def _get_avro_type(property_name, property_type, name):
             return _array_type(property_type)
         if "number" in property_type["type"]:
             return ["null", "float"]
+        if "int" in property_type["type"]:
+            return ["null", "long"]
         if property_type["type"] == "number":
             return "float"
         if property_type["type"] == "integer":
-            return "int"
+            return "long"
         return _plain_type(property_type["type"])
 
     if "enum" in property_type:
@@ -289,7 +291,7 @@ def _array_type(property_type):
             property_type["items"]["type"] = "float"
         # specific for jcoin data dictionary
         if property_type["items"]["type"] == "integer":
-            property_type["items"]["type"] = "int"
+            property_type["items"]["type"] = "long"
         array_type["items"] = property_type["items"]["type"]
 
         full_type = ["null", array_type]

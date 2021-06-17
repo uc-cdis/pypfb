@@ -233,7 +233,13 @@ class PFBWriter(PFBBase):
                     to_update = {}
                     for field, value in list(obj.items()):
                         if value is not None and self.is_encode(name, field):
-                            obj[field] = encode_enum(value)
+                            if isinstance(value, list):
+                                # this is needed to not encode list brackets
+                                obj[field] = []
+                                for element in value:
+                                    obj[field].append(encode_enum(element))
+                            else:
+                                obj[field] = encode_enum(value)
                     obj.update(to_update)
                     yield record
 

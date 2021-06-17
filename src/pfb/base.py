@@ -68,6 +68,13 @@ def is_enum(data_type):
             data_type.extend(type_)
         elif isinstance(type_, dict) and type_["type"] == "enum":
             return True
+        elif (
+            isinstance(type_, dict)
+            and type_["type"] == "array"
+            and isinstance(type_["items"], dict)
+            and type_["items"]["type"] == "enum"
+        ):
+            return True
     return False
 
 
