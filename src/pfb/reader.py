@@ -13,6 +13,7 @@ class PFBReader(PFBBase):
         rv = super(PFBReader, self).__enter__()
         self._reader = reader(self._file_obj)
         schema = []
+        self.set_encoded_schema(self._reader.writer_schema)
         for f in self._reader.writer_schema["fields"]:
             if f["name"] == "object":
                 it = iter(f["type"])
