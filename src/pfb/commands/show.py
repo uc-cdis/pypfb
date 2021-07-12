@@ -70,7 +70,9 @@ def schema(ctx, name):
             sys.stdout.write("\n")
 
 
-@show.command(short_help="Show the encoded schema of the PFB file usually for java avro validation.")
+@show.command(
+    short_help="Show the encoded schema of the PFB file usually for java avro validation."
+)
 @click.argument("name", metavar="NODE", required=False)
 @click.pass_context
 def encoded_schema(ctx, name):
