@@ -123,6 +123,7 @@ class PFBBase(object):
         self._is_encode = None
         self._schema = None
         self._metadata = None
+        self._encoded_schema = None
 
     def __enter__(self):
         self._file_obj = (
@@ -153,6 +154,9 @@ class PFBBase(object):
 
     def set_schema(self, schema):
         self._schema = schema
+
+    def set_encoded_schema(self, encoded_schema):
+        self._encoded_schema = encoded_schema
 
     def set_metadata(self, metadata):
         self._metadata = metadata
