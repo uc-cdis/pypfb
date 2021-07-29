@@ -34,23 +34,19 @@ def unicode_encode(matchobj):
 
 
 def unicode_decode(matchobj):
-    try:
-        unicodeRep = matchobj.group(0)
-        unicodeRep = unicodeRep.strip("_")
+    unicodeRep = matchobj.group(0)
+    unicodeRep = unicodeRep.strip("_")
 
-        if len(unicodeRep) == 2:
-            unicodeRep = "\\u00" + unicodeRep
-        elif len(unicodeRep) == 3:
-            unicodeRep = "\\u0" + unicodeRep
-        else:
-            unicodeRep = "\\u" + unicodeRep
+    if len(unicodeRep) == 2:
+        unicodeRep = "\\u00" + unicodeRep
+    elif len(unicodeRep) == 3:
+        unicodeRep = "\\u0" + unicodeRep
+    else:
+        unicodeRep = "\\u" + unicodeRep
 
-        unicodeRep = unicodeRep.encode().decode("unicode_escape")
-        return unicodeRep
-    except Exception as e:
-        import sys
+    unicodeRep = unicodeRep.encode().decode("unicode_escape")
+    return unicodeRep
 
-        raise Exception(repr(e) + " happens with {}".format(matchobj.group(0)))
 
 
 def encode_enum(enumValue):
@@ -61,7 +57,7 @@ def encode_enum(enumValue):
 
 
 def decode_enum(enumValue):
-    decodedValue = re.sub("_[a-z0-9]+_", unicode_decode, enumValue, flags=re.UNICODE)
+    decodedValue = re.sub("_[a-f0-9]{2,}_", unicode_decode, enumValue, flags=re.UNICODE)
     return decodedValue
 
 
