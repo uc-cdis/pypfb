@@ -56,7 +56,7 @@ def encode_enum(enumValue):
 
 
 def decode_enum(enumValue):
-    decodedValue = re.sub("_[a-z0-9]+_", unicode_decode, enumValue, flags=re.UNICODE)
+    decodedValue = re.sub("_[a-f0-9]{2,}_", unicode_decode, enumValue, flags=re.UNICODE)
     return decodedValue
 
 
