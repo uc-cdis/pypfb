@@ -40,7 +40,7 @@ node_submitter_ids = {}
 
 def _to_tsv(reader, dir_path, handlers_by_name):
     project_ids = []
-    num_files = 1
+    num_files = 0
 
     if not os.path.exists(dir_path):
         os.mkdir(dir_path)
