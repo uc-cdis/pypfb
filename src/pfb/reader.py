@@ -37,7 +37,13 @@ class PFBReader(PFBBase):
         to_update = {}
         for name, value in list(obj.items()):
             if value and self.is_encode(rv["name"], name):
-                to_update[name] = decode_enum(value)
+                if isinstance(value,list):
+                    thing = []
+                    for val in value:
+                        thing.append(decode_enum(val))
+                    to_update[name] = thing
+                else:
+                    to_update[name] = decode_enum(value)
         obj.update(to_update)
         return rv
 
