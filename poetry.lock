@@ -196,11 +196,11 @@ dev = ["tox", "bump2version (<1)", "sphinx (<2)", "importlib-metadata (<3)", "im
 
 [[package]]
 name = "dictionaryutils"
-version = "3.4.2"
+version = "3.4.3"
 description = "Python wrapper and metaschema for datadictionary."
 category = "main"
 optional = false
-python-versions = ">=3.6,<=3.8"
+python-versions = ">=3.6,<=3.9"
 
 [package.dependencies]
 cdislogging = ">=1.0.0,<2.0.0"
@@ -210,11 +210,11 @@ requests = ">=2.18,<3.0"
 
 [[package]]
 name = "drsclient"
-version = "0.1.4"
+version = "0.1.5"
 description = "GA4GH DRS Client"
 category = "main"
 optional = false
-python-versions = ">=3.6,<4.0"
+python-versions = ">=3.6,<=3.9"
 
 [package.dependencies]
 asyncio = ">=3.4.3,<4.0.0"
@@ -435,7 +435,7 @@ format = ["rfc3987", "strict-rfc3339", "webcolors"]
 
 [[package]]
 name = "more-itertools"
-version = "8.12.0"
+version = "8.13.0"
 description = "More routines for operating on iterables, beyond itertools"
 category = "dev"
 optional = false
@@ -752,8 +752,8 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 
 [metadata]
 lock-version = "1.1"
-python-versions = ">=3.6,<=3.8"
-content-hash = "b7d3b1320d004558550ef412fb527f9039ea86600b38596f3fbb561cefa156ec"
+python-versions = ">=3.6,<=3.9"
+content-hash = "d788fb876f1a10078452325f4796597cd4666bc3340f78896ef8e53e4e48ff87"
 
 [metadata.files]
 aiohttp = [
@@ -992,10 +992,10 @@ deprecated = [
     {file = "Deprecated-1.2.13.tar.gz", hash = "sha256:43ac5335da90c31c24ba028af536a91d41d53f9e6901ddb021bcc572ce44e38d"},
 ]
 dictionaryutils = [
-    {file = "dictionaryutils-3.4.2.tar.gz", hash = "sha256:8fe277e206dbf386a351dd0c1b3c5ea4544cc40fd94c36e09ad5ddf17585642b"},
+    {file = "dictionaryutils-3.4.3.tar.gz", hash = "sha256:7d76603e9485491e3ddfbdb3cd1566989ae15c2e7b827a2e26eba59524c32270"},
 ]
 drsclient = [
-    {file = "drsclient-0.1.4.tar.gz", hash = "sha256:315f7ed7bc75348d33a3ac28c8c0efda03850f32a6abca4b5b69d4b73fb50c92"},
+    {file = "drsclient-0.1.5.tar.gz", hash = "sha256:11e5c4bb859185fcec845652ba517efaa0c6a3ffd976757b090e227783eb0f69"},
 ]
 fastavro = [
     {file = "fastavro-1.4.1-cp36-cp36m-macosx_10_14_x86_64.whl", hash = "sha256:3f99237de0f853f083a0f9929f54155b408a5c4b04fcfa8c59e589aa853f2111"},
@@ -1192,8 +1192,8 @@ jsonschema = [
     {file = "jsonschema-2.5.1.zip", hash = "sha256:9088494da4c74497a7a27842ae4ca9c3355b5f7754121edc440463eaf020f079"},
 ]
 more-itertools = [
-    {file = "more-itertools-8.12.0.tar.gz", hash = "sha256:7dc6ad46f05f545f900dd59e8dfb4e84a4827b97b3cfecb175ea0c7d247f6064"},
-    {file = "more_itertools-8.12.0-py3-none-any.whl", hash = "sha256:43e6dd9942dffd72661a2c4ef383ad7da1e6a3e968a927ad7a6083ab410a688b"},
+    {file = "more-itertools-8.13.0.tar.gz", hash = "sha256:a42901a0a5b169d925f6f217cd5a190e32ef54360905b9c39ee7db5313bfec0f"},
+    {file = "more_itertools-8.13.0-py3-none-any.whl", hash = "sha256:c5122bffc5f104d37c1626b8615b511f3427aa5389b94d61e5ef8236bfbc3ddb"},
 ]
 multidict = [
     {file = "multidict-5.2.0-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:3822c5894c72e3b35aae9909bef66ec83e44522faf767c0ad39e0e2de11d3b55"},
