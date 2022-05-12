@@ -9,7 +9,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.6,<=3.9"
+python = ">=3.6.1,<3.10"
 click = "^7.1.2"
 fastavro = "<=1.4.1"
 python-json-logger = "^0.1.11"
@@ -19,6 +19,7 @@ gdcdictionary = "^1.2.0"
 aiohttp = "^3.6.3"
 dictionaryutils = "^3.4.3"
 gen3 = "^4.2.0"
+pandas = ">=1.0.0"
 
 [tool.poetry.dev-dependencies]
 codacy-coverage = "*"
