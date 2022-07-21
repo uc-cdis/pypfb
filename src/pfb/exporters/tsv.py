@@ -143,7 +143,7 @@ def _to_tsv(reader, dir_path, handlers_by_name):
                 ):
                     if field["name"] not in obj:
                         continue
-                value = obj[field["name"]]
+                value = obj[field["name"]] if field["name"] in obj else None 
                 data_row.append(value)
 
         w.writerow(data_row)
