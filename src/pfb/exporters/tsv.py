@@ -45,7 +45,35 @@ def _to_tsv(reader, dir_path, handlers_by_name):
     if not os.path.exists(dir_path):
         os.mkdir(dir_path)
 
+    # Extract the relations information from the metadata and build a dictionary out of it with the information necessary to build the header
+    # eg: {"lab": {"case": {"id": "cases.id", "submitter_id": "cases.submitter_id"}}, "other node": {"other node parent link": {"id":"...", "submiter_id: "..."}}, ... }
+    relations_by_node = {}
+    for node in reader.metadata["nodes"]:
+        if node["name"] not in relations_by_node:
+            relations_by_node[node["name"]] = {}
+
+        for link in node["links"]:
+            if link["dst"] not in relations_by_node[node["name"]]:
+                relations_by_node[node["name"]][link["dst"]] = {}
+
+            name_id = link["name"] + ".id"
+            if "id" not in relations_by_node[node["name"]][link["dst"]]:
+                relations_by_node[node["name"]][link["dst"]]["id"] = name_id
+            name_submitter_id = link["name"] + ".submitter_id"
+            if "submitter_id" not in relations_by_node[node["name"]][link["dst"]]:
+                relations_by_node[node["name"]][link["dst"]]["submitter_id"] = name_submitter_id
+
+
     fields_by_name = {node["name"]: node["fields"] for node in reader.schema}
+
+    # Add the relation fields to the lis of fields by node
+    for node_name, links in relations_by_node.items():
+        for linked_node_name, linked_values in links.items():
+            for attr_name, attr_value in linked_values.items():
+                if {'name': attr_value, 'type': ['null', 'string'],} not in fields_by_name[node_name]:
+                    fields_by_name[node_name].append({'name': attr_value, 'type': ['null', 'string'],})
+
+
     for row in reader:
         name = row["name"]
         record_id = row["id"]
@@ -75,39 +103,14 @@ def _to_tsv(reader, dir_path, handlers_by_name):
             parent_node = r["dst_name"]
             parent_id = r["dst_id"]
 
-            for node in reader.metadata["nodes"]:
-                if node["name"] == name:
-                    for link in node["links"]:
-                        if link["dst"] == parent_node:
-                            plural_parent = link["name"]
-                        # already in plural form
-                        elif link["name"] == parent_node:
-                            plural_parent = parent_node
-            if {
-                "name": plural_parent + ".id",
-                "type": ["null", "string"],
-            } not in fields:
-                fields.append(
-                    {"name": plural_parent + ".id", "type": ["null", "string"],}
-                )
+            if relations_by_node[name][parent_node]["id"]:
+                obj[relations_by_node[name][parent_node]["id"]] = r["dst_id"]
 
-            obj[plural_parent + ".id"] = r["dst_id"]
-
-            if {
-                "name": plural_parent + ".submitter_id",
-                "type": ["null", "string"],
-            } not in fields:
-                fields.append(
-                    {
-                        "name": plural_parent + ".submitter_id",
-                        "type": ["null", "string"],
-                    }
-                )
-
-            if parent_id in node_submitter_ids:
-                obj[plural_parent + ".submitter_id"] = node_submitter_ids[parent_id]
-            else:
-                obj[plural_parent + ".submitter_id"] = "null"
+            if relations_by_node[name][parent_node]["submitter_id"]:
+                if parent_id in node_submitter_ids:
+                    obj[relations_by_node[name][parent_node]["submitter_id"]] = node_submitter_ids[parent_id]
+                else:
+                    obj[relations_by_node[name][parent_node]["submitter_id"]] = "null"
 
         if "sample" in node_submitter_ids:
             print(node_submitter_ids["sample"])
