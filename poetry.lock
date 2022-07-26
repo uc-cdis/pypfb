@@ -275,7 +275,7 @@ PyYAML = ">=5.1,<6.0"
 
 [[package]]
 name = "gen3"
-version = "4.11.3"
+version = "4.12.0"
 description = "Gen3 CLI and Python SDK"
 category = "main"
 optional = false
@@ -826,7 +826,7 @@ typing-extensions = ">=3.7.4"
 
 [[package]]
 name = "urllib3"
-version = "1.26.10"
+version = "1.26.11"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
 category = "main"
 optional = false

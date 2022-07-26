@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pypfb"
-version = "0.5.22"
+version = "0.5.21"
 description = "Python SDK for PFB format"
 authors = ["CTDS UChicago <cdis@uchicago.edu>"]
 license = "Apache-2.0"
