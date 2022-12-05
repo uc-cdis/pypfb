@@ -1,0 +1,105 @@
+digraph G {
+  node [
+    shape = "record"
+  ]
+
+  Multiplicity [
+    label = "{\<\<enumeration\>\>\l
+      Multiplicity|
+      ONE_TO_ONE\l
+      ONE_TO_MANY\l
+      MANY_TO_ONE\l
+      MANY_TO_MANY\l}"
+  ]
+
+  Gender [
+    label = "{\<\<enumeration\>\>\l
+      Gender|
+      Male\l
+      Female\l
+      Unknown\l
+      Other\l
+      Unspecified\l
+      Not Reported\l}"
+  ]
+
+  Vital_Status [
+    label = "{\<\<enumeration\>\>\l
+      Vital_Status|
+      Alive\l
+      Dead\l
+      Unknown\l
+      Not Reported\l}"
+  ]
+
+  Multiplicity -> Gender[style=invis];
+  Gender -> Vital_Status[style=invis];
+
+//  { Multiplicity; Vital_Status; Gender } -> Property[style=invis];
+//  Gender -> Vital_Status[style=invis];
+//  Vital_Status -> Demographic[style=invis];
+//  { Gender; Vital_Status } -> Demographic[style=invis];
+
+  Property [
+    label = "{Property|
+      + name : string\l
+      + ontology_reference : string\l
+      + values : map\<string\>\l}"
+  ]
+
+  Link [
+    label = "{Link|
+      + multiplicity : Multiplicity\l
+      + dst : string\l}"
+  ]
+
+  "Node" [
+    label = "{Node|
+      + name : string\l
+      + ontology_reference : string\l
+      + values : map\<string\>\l
+      + links : array\<Link\>\l
+      + properties : array\<Property\>\l}"
+  ]
+
+//  Multiplicity -> Link[style=invis];
+  Metadata [
+    label = "{Metadata|
+      + nodes : array\<Node\>\l
+      + misc : map\<string\>\l}"
+  ]
+
+  Demographic [
+    label = "{Demographic|
+      + project_id : string\l
+      + gender : Gender\l
+      + vital_status : Vital_Status\l}"
+  ]
+
+  Relation [
+    label = "{Relation|
+      + dst_id : string\l
+      + dst_name : string\l}"
+  ]
+
+  Entity [
+    label = "{Entity|
+      + id : union\{null, \"string\"\}\l
+      + name : string\l
+      + object : union\{\"Metadata\", \"Demographic\"\}\l
+      + relations : array\<Relation\>\l}"
+  ]
+
+  PFB [
+    label = "{PFB|
+      + array\<Entity\>\l}"
+  ]
+
+  Property -> "Node"[taillabel = "0..*",arrowhead = "odiamond"]
+  Link -> "Node"[taillabel = "0..*  ",arrowhead = "odiamond"]
+  "Node" -> Metadata[taillabel = "0..* ",arrowhead = "odiamond"]
+  Demographic -> Entity[taillabel = "1",arrowhead = "odiamond"]
+  Metadata -> Entity[taillabel = "1  ",arrowhead = "odiamond"]
+  Relation -> Entity[taillabel = "  0..*      ",arrowhead = "odiamond"]
+  Entity -> PFB[taillabel = "1..*",arrowhead = "odiamond"]
+}
