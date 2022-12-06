@@ -1,20 +1,19 @@
 ---
 
 layout: home
+title: Portable Format for Biomedical Data
 ---
 
-# Portable Format for Biomedical Data
-
-- [Portable Format for Biomedical Data](#portable-format-for-biomedical-data)
-  - [Overview](#overview)
-  - [Introduction](#introduction)
-      - [Vanilla Avro vs PFB](#vanilla-avro-vs-pfb)
-  - [PFB Principles](#principles)
-      - [Schema](#schema)
-        - [Types](#types)
-          - [Enum](#enum)
-            - [Future implementation:](#future-implementation)
-  - [Example](#example)
+- [Overview](#overview)
+- [Introduction](#introduction)
+  - [Vanilla Avro vs PFB](#vanilla-avro-vs-pfb)
+- [PFB Principles](#principles)
+  - [Schema](#schema)
+    - [Node](#node)
+    - [Property](#property)
+    - [Link](#link)
+    - [Types](#types)
+- [Examples](#example)
 
 
 # Overview
@@ -33,7 +32,7 @@ License URL: https://github.com/uc-cdis/pypfb/blob/master/LICENSE
 
 ## Requirements
 
-Some fields in the specification of PFB will be used with a term **MUST**, **REQUIRED**, and **SHALL**. These correspond to the following in [RFC2119](https://www.ietf.org/rfc/rfc2119.txt) 
+Fields in the specification of PFB may be used with a term **MUST**, **REQUIRED**, or **SHALL**. These correspond to the following in [RFC2119](https://www.ietf.org/rfc/rfc2119.txt) 
 
 <br>
 
