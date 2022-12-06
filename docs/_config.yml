@@ -17,8 +17,6 @@ title: PFB
 email: mlukowski@uchicago.edu
 description: >- # this means to ignore newlines until "baseurl:"
         PFB is developed by the Center for Translational Data Science at the University of Chicago
-baseurl: "" # the subpath of your site, e.g. /blog
-url: "" # the base hostname & protocol for your site, e.g. http://example.com
 
 # Build settings
 markdown: kramdown
