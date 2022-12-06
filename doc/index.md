@@ -1,3 +1,8 @@
+---
+
+layout: home
+---
+
 # Portable Format for Biomedical Data
 
 **PFB** is a serialization file format designed to store bio-medical data, as well as metadata. The format is built on top [**Avro**][1] to make it fast, extensible and interoperable between different systems.
@@ -105,3 +110,5 @@ The Avro IDL for this schema is located in [`sample.avdl`][16].
   [3]: https://cdebrowser.nci.nih.gov/cdebrowserClient/cdeBrowser.html#/search
   [4]: ./schema.svg
   [16]: ./sample.avdl
+
+
