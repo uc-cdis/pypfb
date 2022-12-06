@@ -11,8 +11,6 @@ cache:
 - apt
 before_install:
 - pip install poetry
-- source $HOME/.poetry/env
-- which poetry
 - poetry --version
 install:
 - poetry install -vv
