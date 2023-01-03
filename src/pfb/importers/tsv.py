@@ -112,13 +112,16 @@ def get_type_from_schema(schema, node, field):
     field_type = None
     for f in nodes["fields"]:
         if f["name"] == field:
-            if f["type"][1] == "null":
-                field_type = f["type"][0]
-            else:
-                if isinstance(f["type"][1], dict):
-                    return "enum"
+            # usually the first type is "null" to allow for empty values
+            # the second value is the type that the field should conform to. i.e. string, number
+            for t in f["type"]:
+                if t == "null":
+                    continue
                 else:
-                    field_type = f["type"][1]
+                    if isinstance(t, dict):
+                        field_type = "enum"
+                    else:
+                        field_type = t
 
     return field_type
 
