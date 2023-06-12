@@ -122,6 +122,8 @@ def get_type_from_schema(schema, node, field):
                         field_type = "enum"
                     else:
                         field_type = t
+        if field_type:
+            break
 
     return field_type
 
@@ -150,8 +152,7 @@ def _convert_tsv(node_name, tsv_record, program, project, link_dests):
                     "dst_name": link_dests[node_name][v],
                 }
             )
-            print("this is dst_id: ", tsv_record[item]["submitter_id"])
-            print("this is the dst_name: ", link_dests[node_name][v])
+            
         # array typing being passed off as string
         if (
             type(tsv_record[item]) == str
@@ -167,9 +168,6 @@ def _convert_tsv(node_name, tsv_record, program, project, link_dests):
             )
             to_del.append(item)
     
-    for i in relations:
-        if i["dst_id"] == None:
-            i["dst_id"] = "timing"
 
     for i in to_del:
         if i in vals:
