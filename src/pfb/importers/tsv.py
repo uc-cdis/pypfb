@@ -43,7 +43,7 @@ def from_tsv(ctx, path, schema, program, project):
             with PFBReader(schema) as reader:
                 writer.copy_schema(reader)
 
-            writer.write(_from_tsv(writer.metadata, path, program, project))
+            writer.write(_from_tsv(writer.metadata, writer.schema, path, program, project))
     except Exception:
         click.secho("Failed!", fg="red", bold=True, err=True)
         raise
@@ -51,7 +51,7 @@ def from_tsv(ctx, path, schema, program, project):
         click.secho("Done!", fg="green", err=True, bold=True)
 
 
-def _from_tsv(metadata, path, program, project):
+def _from_tsv(metadata, schema, path, program, project):
     link_dests = {
         node["name"]: {link["name"]: link["dst"] for link in node["links"]}
         for node in metadata["nodes"]
@@ -76,27 +76,57 @@ def _from_tsv(metadata, path, program, project):
             tsv_data = [tsv_data]
         for tsv_record in tsv_data:
             for k, v in tsv_record.items():
-                tsv_record[k] = convert_types(v)
+                field_type = get_type_from_schema(schema, node_name, k)
+                tsv_record[k] = convert_types(v, field_type)
             record = _convert_tsv(node_name, tsv_record, program, project, link_dests)
             yield record
 
 
-def convert_types(val):
-    if val is None or val.strip() == "":
+def convert_types(val, field_type):
+    if field_type == "string" or field_type == "enum":
+        if val is None or val.strip() == "":
+            return None
+        return str(val)
+    elif field_type == "float":
+        return float(val)
+    elif field_type == "integer" or field_type == "long":
+        return int(val)
+    elif field_type == "boolean":
+        if val.lower() == "false":
+            return False
+        if val.lower() == "true":
+            return True
+    else:
+        # finally if the type doesn't match any case then we return the supplied value
+        return val
+
+def get_type_from_schema(schema, node, field):
+    nodes = None
+    for n in schema:
+        if n["name"] == node:
+            nodes = n
+            break
+    if nodes == None:
         return None
-    if val.lower() == "false":
-        return False
-    if val.lower() == "true":
-        return True
-    try:
-        v = float(val)
-        # for fields that require type long
-        if int(v) == v:
-            v = int(v)
-        return v
-    except ValueError:
-        pass
-    return val
+
+    field_type = None
+    for f in nodes["fields"]:
+        if f["name"] == field:
+            # usually the first type is "null" to allow for empty values
+            # the second value is the type that the field should conform to. i.e. string, number
+            for t in f["type"]:
+                if t == "null":
+                    continue
+                else:
+                    if isinstance(t, dict):
+                        field_type = "enum"
+                    else:
+                        field_type = t
+        if field_type:
+            break
+
+    return field_type
+
 
 
 def _convert_tsv(node_name, tsv_record, program, project, link_dests):
@@ -122,6 +152,7 @@ def _convert_tsv(node_name, tsv_record, program, project, link_dests):
                     "dst_name": link_dests[node_name][v],
                 }
             )
+            
         # array typing being passed off as string
         if (
             type(tsv_record[item]) == str
@@ -136,6 +167,7 @@ def _convert_tsv(node_name, tsv_record, program, project, link_dests):
                 {"dst_id": tsv_record[item], "dst_name": item.split(".")[0]}
             )
             to_del.append(item)
+    
 
     for i in to_del:
         if i in vals:

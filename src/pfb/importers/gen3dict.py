@@ -286,14 +286,21 @@ def _array_type(property_type):
     else:
         array_type = {}
         array_type["type"] = "array"
-        # specific for midrc data dictionary
-        if property_type["items"]["type"] == "number":
-            property_type["items"]["type"] = "float"
-        # specific for jcoin data dictionary
-        if property_type["items"]["type"] == "integer":
-            property_type["items"]["type"] = "long"
-        array_type["items"] = property_type["items"]["type"]
 
+        if "type" not in property_type["items"]:
+            # specific rule for jcoin array of "one of" enums
+            # to-do encode whole array that we can have multiple types in the same array i.e. string and int
+            if "oneOf" in property_type["items"]:
+                property_type["items"]["type"] = "string"
+        else:
+            # specific for midrc data dictionary
+            if property_type["items"]["type"] == "number":
+                property_type["items"]["type"] = "float"
+            # specific for jcoin data dictionary
+            if property_type["items"]["type"] == "integer":
+                property_type["items"]["type"] = "long"
+
+        array_type["items"] = property_type["items"]["type"]
         full_type = ["null", array_type]
         return full_type
 

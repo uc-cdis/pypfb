@@ -49,7 +49,7 @@ class ETL:
         with open(self.pfbfile, "rb") as fo:
             avro_reader = reader(fo)
             # skip schema
-            avro_reader.next()
+            next(avro_reader)
             # iterate each record
             for record in avro_reader:
                 self._process(record)
