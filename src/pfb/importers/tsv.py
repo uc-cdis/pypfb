@@ -88,6 +88,8 @@ def convert_types(val, field_type):
             return None
         return str(val)
     elif field_type == "float":
+        if val is None or val.strip() == "" or val.strip() == "null" or val.strip() == "Null":
+            return None
         return float(val)
     elif field_type == "integer" or field_type == "long":
         return int(val)
