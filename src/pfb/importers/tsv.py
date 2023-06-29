@@ -43,7 +43,9 @@ def from_tsv(ctx, path, schema, program, project):
             with PFBReader(schema) as reader:
                 writer.copy_schema(reader)
 
-            writer.write(_from_tsv(writer.metadata, writer.schema, path, program, project))
+            writer.write(
+                _from_tsv(writer.metadata, writer.schema, path, program, project)
+            )
     except Exception:
         click.secho("Failed!", fg="red", bold=True, err=True)
         raise
@@ -88,7 +90,12 @@ def convert_types(val, field_type):
             return None
         return str(val)
     elif field_type == "float":
-        if val is None or val.strip() == "" or val.strip() == "null" or val.strip() == "Null":
+        if (
+            val is None
+            or val.strip() == ""
+            or val.strip() == "null"
+            or val.strip() == "Null"
+        ):
             return None
         return float(val)
     elif field_type == "integer" or field_type == "long":
@@ -101,6 +108,7 @@ def convert_types(val, field_type):
     else:
         # finally if the type doesn't match any case then we return the supplied value
         return val
+
 
 def get_type_from_schema(schema, node, field):
     nodes = None
@@ -130,7 +138,6 @@ def get_type_from_schema(schema, node, field):
     return field_type
 
 
-
 def _convert_tsv(node_name, tsv_record, program, project, link_dests):
     relations = []
     try:
@@ -154,12 +161,13 @@ def _convert_tsv(node_name, tsv_record, program, project, link_dests):
                     "dst_name": link_dests[node_name][v],
                 }
             )
-            
+
         # array typing being passed off as string
         if (
             type(tsv_record[item]) == str
-            and "[" in tsv_record[item]
-            and "]" in tsv_record[item]
+            and len(tsv_record[item]) > 0
+            and tsv_record[item][0] == "["
+            and tsv_record[item][-1] == "]"
         ):
             arrayStrip = tsv_record[item].strip("[']")
             vals[item] = arrayStrip.split(",")
@@ -169,7 +177,6 @@ def _convert_tsv(node_name, tsv_record, program, project, link_dests):
                 {"dst_id": tsv_record[item], "dst_name": item.split(".")[0]}
             )
             to_del.append(item)
-    
 
     for i in to_del:
         if i in vals:
