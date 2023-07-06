@@ -6,6 +6,14 @@ import click
 
 from ..cli import to_command
 
+plural_parents = {
+    "subjects":"subject",
+    "timings": "timing",
+    "persons": "person",
+    "programs": "program",
+    "projects": "project"
+}
+
 
 @to_command.command("tsv", short_help="Convert PFB to tsv.")
 @click.argument("output", default="./tsvs/", type=click.Path(file_okay=False))
@@ -102,6 +110,9 @@ def _to_tsv(reader, dir_path, handlers_by_name):
         for r in row["relations"]:
             parent_node = r["dst_name"]
             parent_id = r["dst_id"]
+
+            if parent_node in plural_parents:
+                parent_node = plural_parents[parent_node]
 
             if relations_by_node[name][parent_node]["id"]:
                 obj[relations_by_node[name][parent_node]["id"]] = r["dst_id"]
