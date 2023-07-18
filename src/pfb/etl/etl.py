@@ -205,7 +205,7 @@ class ETL:
         i = 0
         for row in self.spanning_tree_rows:
             submission_json = {}
-            for (node_id, node_name) in row:
+            for node_id, node_name in row:
                 submission_json[node_name] = node_id
             await self.helper.insert_document("spanning_tree_index", submission_json, i)
             i += 1
