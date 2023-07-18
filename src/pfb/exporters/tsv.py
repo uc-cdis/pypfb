@@ -6,7 +6,7 @@ import click
 
 from ..cli import to_command
 
-plural_parents = {
+PLURAL_PARENTS = {
     "subjects": "subject",
     "timings": "timing",
     "persons": "person",
@@ -125,8 +125,8 @@ def _to_tsv(reader, dir_path, handlers_by_name):
             parent_node = r["dst_name"]
             parent_id = r["dst_id"]
 
-            if parent_node in plural_parents:
-                parent_node = plural_parents[parent_node]
+            if parent_node in PLURAL_PARENTS:
+                parent_node = PLURAL_PARENTS[parent_node]
 
             if relations_by_node[name][parent_node]["id"]:
                 obj[relations_by_node[name][parent_node]["id"]] = r["dst_id"]
