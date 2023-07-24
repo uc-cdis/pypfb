@@ -6,6 +6,14 @@ import click
 
 from ..cli import to_command
 
+PLURAL_PARENTS = {
+    "subjects": "subject",
+    "timings": "timing",
+    "persons": "person",
+    "programs": "program",
+    "projects": "project",
+}
+
 
 @to_command.command("tsv", short_help="Convert PFB to tsv.")
 @click.argument("output", default="./tsvs/", type=click.Path(file_okay=False))
@@ -61,8 +69,9 @@ def _to_tsv(reader, dir_path, handlers_by_name):
                 relations_by_node[node["name"]][link["dst"]]["id"] = name_id
             name_submitter_id = link["name"] + ".submitter_id"
             if "submitter_id" not in relations_by_node[node["name"]][link["dst"]]:
-                relations_by_node[node["name"]][link["dst"]]["submitter_id"] = name_submitter_id
-
+                relations_by_node[node["name"]][link["dst"]][
+                    "submitter_id"
+                ] = name_submitter_id
 
     fields_by_name = {node["name"]: node["fields"] for node in reader.schema}
 
@@ -70,9 +79,16 @@ def _to_tsv(reader, dir_path, handlers_by_name):
     for node_name, links in relations_by_node.items():
         for linked_node_name, linked_values in links.items():
             for attr_name, attr_value in linked_values.items():
-                if {'name': attr_value, 'type': ['null', 'string'],} not in fields_by_name[node_name]:
-                    fields_by_name[node_name].append({'name': attr_value, 'type': ['null', 'string'],})
-
+                if {
+                    "name": attr_value,
+                    "type": ["null", "string"],
+                } not in fields_by_name[node_name]:
+                    fields_by_name[node_name].append(
+                        {
+                            "name": attr_value,
+                            "type": ["null", "string"],
+                        }
+                    )
 
     for row in reader:
         name = row["name"]
@@ -92,9 +108,15 @@ def _to_tsv(reader, dir_path, handlers_by_name):
         if "submitter_id" in obj:
             node_submitter_ids[record_id] = obj["submitter_id"]
 
-        if {"name": "id", "type": ["null", "string"],} not in fields:
+        if {
+            "name": "id",
+            "type": ["null", "string"],
+        } not in fields:
             fields.append(
-                {"name": "id", "type": ["null", "string"],}
+                {
+                    "name": "id",
+                    "type": ["null", "string"],
+                }
             )
 
         obj["id"] = record_id
@@ -103,12 +125,17 @@ def _to_tsv(reader, dir_path, handlers_by_name):
             parent_node = r["dst_name"]
             parent_id = r["dst_id"]
 
+            if parent_node in PLURAL_PARENTS:
+                parent_node = PLURAL_PARENTS[parent_node]
+
             if relations_by_node[name][parent_node]["id"]:
                 obj[relations_by_node[name][parent_node]["id"]] = r["dst_id"]
 
             if relations_by_node[name][parent_node]["submitter_id"]:
                 if parent_id in node_submitter_ids:
-                    obj[relations_by_node[name][parent_node]["submitter_id"]] = node_submitter_ids[parent_id]
+                    obj[
+                        relations_by_node[name][parent_node]["submitter_id"]
+                    ] = node_submitter_ids[parent_id]
                 else:
                     obj[relations_by_node[name][parent_node]["submitter_id"]] = "null"
 
@@ -146,7 +173,7 @@ def _to_tsv(reader, dir_path, handlers_by_name):
                 ):
                     if field["name"] not in obj:
                         continue
-                value = obj[field["name"]] if field["name"] in obj else None 
+                value = obj[field["name"]] if field["name"] in obj else None
                 data_row.append(value)
 
         w.writerow(data_row)
