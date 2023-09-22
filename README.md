@@ -5,6 +5,8 @@ Python SDK to create, explore and modify PFB (Portable Format for Biomedical Dat
 
 ## PyPFB Overview
 
+> For more details, see the [Portable Format for Biomedical Data](/docs/detailed_pfb_doc.md) document.
+
 PyPFB is a python sdk to create, explore, and modify PFB (Portable Format for Bioinformatics) files.
 
 These files start from a Gen3 data dictionary. These can be made from either json hosted on a cloud storage service, like s3, or from a local directory. See PyPFB From Schema for an example.
