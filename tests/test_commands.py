@@ -219,7 +219,6 @@ def test_show(invoke, test_avro):
     result = invoke("show", "-n", "1", input=test_avro)
     assert result.exit_code == 0, result.output
     result = json.loads(result.output, object_pairs_hook=str_hook)
-    # result["object"].pop("md5sum")  # mute truffles
     print(json.dumps(result))
     assert result == {
         "object": {

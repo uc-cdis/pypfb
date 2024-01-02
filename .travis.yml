@@ -16,10 +16,7 @@ install:
 - poetry install -vv
 - poetry show
 script:
-- poetry run py.test -vv --cov=src --cov-report xml tests
-- poetry run python th_wrapper.py -w truffles.json -c thog_config.json -g file:///${PWD}/ --check
-after_script:
-- poetry run python-codacy-coverage -r coverage.xml
+- echo Unit testing is now done in GH Actions, this just pushing to pypi as necessary
 before_deploy:
 - poetry config repositories.testpypi https://test.pypi.org/legacy/
 - poetry config pypi-token.testpypi $PYPI_API_TOKEN
