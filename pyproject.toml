@@ -22,7 +22,6 @@ dictionaryutils = { git = "https://github.com/uc-cdis/dictionaryutils.git", bran
 gen3 = "^4.11.3"
 
 [tool.poetry.dev-dependencies]
-codacy-coverage = "*"
 pytest = "~=6.2.5"
 pytest-cov = "~=2.5"
 gen3git = "*"

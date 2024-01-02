@@ -406,24 +406,6 @@ files = [
 colorama = {version = "*", markers = "platform_system == \"Windows\""}
 
 [[package]]
-name = "codacy-coverage"
-version = "1.3.11"
-description = "Codacy coverage reporter for Python"
-optional = false
-python-versions = "*"
-files = [
-    {file = "codacy-coverage-1.3.11.tar.gz", hash = "sha256:b94651934745c638a980ad8d67494077e60f71e19e29aad1c275b66e0a070cbc"},
-    {file = "codacy_coverage-1.3.11-py2.py3-none-any.whl", hash = "sha256:d8a1ce56b0dd156d6b1de14fa6217d32ec86097902f08a17ff2f95ba27264474"},
-]
-
-[package.dependencies]
-requests = ">=2.9.1"
-
-[package.extras]
-dev = ["check-manifest"]
-test = ["coverage", "nosetests"]
-
-[[package]]
 name = "colorama"
 version = "0.4.6"
 description = "Cross-platform colored terminal text."
@@ -1995,4 +1977,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9, <4"
-content-hash = "1a0357bc50bd9b9ead75ebfa5fa483b3925311dbf0b20778cd6a536787d06ac3"
+content-hash = "8abaee653ccd4b0b53acd01399f42973e9c5920422fffdb57014a551d00bff29"
