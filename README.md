@@ -268,4 +268,4 @@ poetry install
     cat tests/pfb-data/test.avro | pfb to tsv ./tsvs/
 
 
-  [1]: ./doc/schema.svg
+  [1]: ./docs/schema.svg
