@@ -170,8 +170,12 @@ class PFBBase(object):
                     fields[field["name"]] = is_enum(field["type"])
 
     def is_encode(self, node_name, field_name):
-        self.prepare_encode_cache()
-        return self._is_encode[node_name].get(field_name, False)
+        try:
+            self.prepare_encode_cache()
+            encode_node_info = self._is_encode[node_name]
+            return encode_node_info.get(field_name, False)
+        except Exception as e:
+            print(e)
 
     def make_empty_record(self, node_name):
         values = {}

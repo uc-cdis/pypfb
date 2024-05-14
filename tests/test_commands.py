@@ -1,14 +1,16 @@
 import csv
 import gzip
+import io
 import json
 import os
 import shutil
 
 from fastavro import reader
-
+from pfb.writer import PFBWriter
 from pfb.base import decode_enum, encode_enum, str_hook
-
-
+from pfb.importers.gen3dict import _from_dict
+from pfb.reader import PFBReader
+from pfb.importers.json import _convert_json, _from_json
 def _test_schema(r):
     for node in r.writer_schema["fields"][2]["type"]:
         if node["name"] == "experiment_metadata":
@@ -36,6 +38,7 @@ def test_from_dict(runner, invoke):
             r = reader(f)
             _test_schema(r)
             assert len(list(r)) == 1
+
 
 
 def test_from_json(runner, invoke, path_join):

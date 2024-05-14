@@ -22,7 +22,6 @@ if os.path.exists(config_path):
 else:
     logging.basicConfig(level=default_level)
 
-
 @click.group()
 def main():
     """PFB: Portable Format for Biomedical Data."""

@@ -1,7 +1,7 @@
 import itertools
 import json
 import sys
-
+import os
 import click
 
 from ..cli import main
@@ -39,16 +39,19 @@ def show(ctx, input_file, limit):
                 json.dump(r, sys.stdout)
                 sys.stdout.write("\n")
 
+from contextlib import ExitStack
 
 @show.command()
 @click.pass_context
 def nodes(ctx):
     """Show all the node names in the PFB file."""
-    with ctx.obj["reader"] as reader:
-        for node in reader.schema:
-            sys.stdout.write(node["name"])
-            sys.stdout.write("\n")
-
+    try:
+        with ctx.obj["reader"] as reader:
+            for node in reader.schema:
+                sys.stdout.write(node["name"])
+                sys.stdout.write("\n")
+    except StopIteration:
+        sys.stdout.write("Iteration exhausted!")
 
 @show.command(short_help="Show the schema of the PFB file.")
 @click.argument("name", metavar="NODE", required=False)

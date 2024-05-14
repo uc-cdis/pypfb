@@ -232,7 +232,9 @@ class PFBWriter(PFBBase):
 
                     to_update = {}
                     for field, value in list(obj.items()):
-                        if value is not None and self.is_encode(name, field):
+                        exists = value is not None
+                        name_and_field_encoded = self.is_encode(name, field)
+                        if exists and name_and_field_encoded:
                             if isinstance(value, list):
                                 # this is needed to not encode list brackets
                                 obj[field] = []
@@ -242,8 +244,9 @@ class PFBWriter(PFBBase):
                                 obj[field] = encode_enum(value)
                     obj.update(to_update)
                     yield record
-
-        writer(self._file_obj, make_avro_schema(self.schema), _iter())
+        avro_schema = make_avro_schema(self.schema)
+        iter_list = _iter()
+        writer(self._file_obj, avro_schema, iter_list)
 
     def rename_node(self, name_from, name_to):
         if type(name_from) == bytes:

@@ -70,7 +70,7 @@ DEFAULT_CONFIG = {
         "examples/data_update.avro",
         "examples/gdc.avro",
         "examples/test.avro",
-        "examples/thing.avro",
+        "examples/ref_file_schema.avro",
         "examples/data.avro",
     ]
     + glob.glob("tests/data/*")
