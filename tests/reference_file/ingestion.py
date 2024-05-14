@@ -1,20 +1,34 @@
-def make_schema():
-    # result = invoke(
-    #     "from",
-    #     "-o",
-    #     "minimal_schema.avro",
-    #     "dict",
-    #     url)
+import os
+import json
+from pfb.writer import PFBWriter
+from pfb.importers.gen3dict import _from_dict
+from pfb.reader import PFBReader
+from pfb.importers.json import _convert_json, _from_json
+from fastavro import reader
+from tests.test_commands import test_schema
 
-    url = "https://s3.amazonaws.com/dictionary-artifacts/gtexdictionary/4.4.3/schema.json"
-    file_path = "reference_file/minimal_schema.avro"
 
-    try:
-        writer_pre = PFBWriter(file_path)
-        with writer_pre as writer:
-            output = _from_dict(writer, url)
-    except Exception as e:
-        print("Exception: ", str(e))
+def test_example_bdc_schema(runner):
+    """
+    mimics
+    invoke("from", "-o", "minimal_schema.avro", "dict", "<url>")
+    """
+    with runner.isolated_filesystem():
+        url = "https://s3.amazonaws.com/dictionary-artifacts/gtexdictionary/4.4.3/schema.json"
+        file_path = "schema_example.avro"
+        try:
+            writer_pre = PFBWriter(file_path)
+            with writer_pre as writer:
+                _from_dict(writer, url)
+                with open(file_path, "rb") as output_file:
+                    r = reader(output_file)
+                    entity = r.writer_schema["entity"]
+                    # test_schema(r)
+                    assert entity == "Entity"
+        except Exception as e:
+            print("Exception: ", str(e))
+
+
 
 def make_file():
     # result = invoke(
@@ -43,14 +57,6 @@ def make_file():
     except Exception as e:
         print("Exception: ", str(e))
 
-def show_file(invoke):
-    result = invoke(
-        "show",
-        "-i",
-        "./minimal_data.avro.old",
-        "nodes"
-    )
-    return result
 
 def test_thing():
     print("\n")
@@ -119,19 +125,27 @@ def test_pfb_import(runner, invoke, path_join):
         print("Done!")
     print("result")
 
-def test_pfb_nodes(runner, invoke, path_join):
-    # pfb from -o minimal_schema.avro dict minimal_file.json
-    # pfb from -o minimal_data.avro.old json -s minimal_schema.avro --program DEV --project test sample_file_json/
-    # file_path = "./pfb-data/ref_file/ref_file_schema.avro"
-    # make_schema()
-    # make_file()
-    # result = show_file(invoke)
-    schema_location = "minimal_data.avro.old"
-    # question: why does hardcoding schema location work, but just doing the command throw an error?
+
+def test_reference_file_nodes(runner, invoke, path_join):
+    """
+    mimics the command
+    invoke("show", "-i", "./minimal_data.avro.old", "nodes")
+    """
+    schema_location = "./minimal_data.avro"
     try:
         with PFBReader(schema_location) as d_reader:
             for node in d_reader.schema:
-                sys.stdout.write(node["name"])
-                sys.stdout.write("\n")
+                print(node["name"])
+    except FileNotFoundError:
+        print("File not found!")
     except StopIteration:
         print("\nIteration exhausted!")
+    except Exception as e:
+        print("Unrecognized exception: ", e)
+
+# pfb from -o minimal_schema.avro dict minimal_file.json
+# pfb from -o minimal_data.avro.old json -s minimal_schema.avro --program DEV --project test sample_file_json/
+# file_path = "./pfb-data/ref_file/ref_file_schema.avro"
+# make_schema()
+# make_file()
+# result = show_file(invoke)
