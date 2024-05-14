@@ -5,7 +5,7 @@ from pfb.importers.gen3dict import _from_dict
 from pfb.reader import PFBReader
 from pfb.importers.json import _convert_json, _from_json
 from fastavro import reader
-from tests.test_commands import test_schema
+import glob
 
 
 def test_example_bdc_schema(runner):
@@ -29,22 +29,22 @@ def test_example_bdc_schema(runner):
             print("Exception: ", str(e))
 
 
-
-def make_file():
-    # result = invoke(
-    #     "from",
-    #     "-o",
-    #     "minimal_data.avro.old",
-    #     "json",
-    #     "-s",
-    #     "minimal_schema.avro",
-    #     "--program",
-    #     "DEV",
-    #     "--project",
-    #     "test",
-    #     "./pfb-data/ref_file/json"
-    # )
-    output_location = "minimal_data.avro.old"
+def test_creating_file():
+    """
+    mimics
+    result = invoke(
+        "from", "-o",
+        "example_reference_file.avro",
+        "json",
+        "-s",
+        "minimal_schema.avro",
+        "--program",
+        "DEV",
+        "--project",
+        "test",
+        "./json")
+    """
+    output_location = "./output/example_reference_file.avro"
     schema_location = "minimal_schema.avro"
     location_of_json_data_to_import = "./pfb-data/ref_file/json"
 
@@ -54,20 +54,17 @@ def make_file():
             with PFBReader(schema_location) as reader_e:
                 writer.copy_schema(reader_e)
             writer.write(_from_json(writer.metadata, location_of_json_data_to_import, "DEV", "test"))
+            with PFBReader(output_location) as output_reader:
+                # todo: what am i testing here?
+                print(output_reader)
     except Exception as e:
         print("Exception: ", str(e))
 
 
-def test_thing():
-    print("\n")
-    print("test")
-
-
-import sys
-import glob
-
-
 def from_json(metadata, path, program, project):
+    """
+    stolen from elsewhere
+    """
     link_dests = {
         node["name"]: {link["name"]: link["dst"] for link in node["links"]}
         for node in metadata["nodes"]
@@ -95,35 +92,31 @@ def from_json(metadata, path, program, project):
 
 
 def test_pfb_import(runner, invoke, path_join):
-    # result = invoke(
-    #     "from",
-    #     "-o",
-    #     "minimal_data.avro",
-    #     "json",
-    #     "-s",
-    #     "./minimal_schema.avro",
-    #     "--program",
-    #     "NSRR",
-    #     "--project",
-    #     "CFS",
-    #     "./pfb-data/ref_file/json/"
-    # )
-
+    """
+    mimics
+    invoke(
+        "from",
+        "-o",
+        "./output/example_reference_file.avro",
+        "json",
+        "-s",
+        "./minimal_schema.avro",
+        "--program",
+        "NSRR",
+        "--project",
+        "CFS",
+        "json/")
+    """
     try:
         with PFBWriter("reference_file/minimal_data.avro") as writer:
             with PFBReader("reference_file/minimal_schema.avro") as avro_reader:
-                print("abc")
                 writer.copy_schema(avro_reader)
             data_from_json = from_json(writer.metadata, "./pfb-data/ref_file/json/", "NSRR", "CFS")
             for entry in data_from_json:
                 writer.write(entry)
-            # writer.write(data_from_json)
     except Exception as e:
         print("Failed! -> ", e)
         raise
-    else:
-        print("Done!")
-    print("result")
 
 
 def test_reference_file_nodes(runner, invoke, path_join):
@@ -142,10 +135,3 @@ def test_reference_file_nodes(runner, invoke, path_join):
         print("\nIteration exhausted!")
     except Exception as e:
         print("Unrecognized exception: ", e)
-
-# pfb from -o minimal_schema.avro dict minimal_file.json
-# pfb from -o minimal_data.avro.old json -s minimal_schema.avro --program DEV --project test sample_file_json/
-# file_path = "./pfb-data/ref_file/ref_file_schema.avro"
-# make_schema()
-# make_file()
-# result = show_file(invoke)
