@@ -1,17 +1,14 @@
 import csv
 import gzip
-import io
 import json
 import os
 import shutil
 
 from fastavro import reader
-from pfb.writer import PFBWriter
 from pfb.base import decode_enum, encode_enum, str_hook
-from pfb.importers.gen3dict import _from_dict
-from pfb.reader import PFBReader
-from pfb.importers.json import _convert_json, _from_json
-def _test_schema(r):
+
+
+def test_schema(r):
     for node in r.writer_schema["fields"][2]["type"]:
         if node["name"] == "experiment_metadata":
             for field in node["fields"]:
@@ -36,7 +33,7 @@ def test_from_dict(runner, invoke):
 
         with open("output.avro", "rb") as f:
             r = reader(f)
-            _test_schema(r)
+            test_schema(r)
             assert len(list(r)) == 1
 
 
@@ -59,7 +56,7 @@ def test_from_json(runner, invoke, path_join):
         assert result.exit_code == 0, result.output
         with open("output.avro", "rb") as f:
             r = reader(f)
-            _test_schema(r)
+            test_schema(r)
             data = list(r)
             assert len(data) == 37
             for record in data:
@@ -92,7 +89,7 @@ def test_from_tsv(runner, invoke, path_join):
         assert result.exit_code == 0, result.output
         with open("output.avro", "rb") as f:
             r = reader(f)
-            _test_schema(r)
+            test_schema(r)
             data = list(r)
             assert len(data) == 37
             for record in data:
@@ -280,7 +277,7 @@ def test_rename_node(runner, invoke, test_avro):
         assert result.exit_code == 0, result.output
         with open("output.avro", "rb") as f:
             r = reader(f)
-            _test_schema(r)
+            test_schema(r)
             found = False
             for node in r.writer_schema["fields"][2]["type"]:
                 if node["name"] == "outcome":
