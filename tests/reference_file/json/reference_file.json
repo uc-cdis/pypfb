@@ -1,0 +1,20 @@
+{
+    "bucket_path": null,
+    "created_datetime": "2023-04-04T02:47:35.845364+00:00",
+    "data_category": "Clinical Data",
+    "data_format": "XML",
+    "data_type": "Unharmonized Clinical Data",
+    "file_format": "XML",
+    "file_md5sum": "<md5sum>",
+    "file_name": "<filename>",
+    "file_size": 2971,
+    "file_type": "Unharmonized Clinical Data",
+    "ga4gh_drs_uri": "<drs uri>",
+    "id": "<id here>",
+    "md5sum": "<md5sum>",
+    "object_id": "<dg.num/id?>",
+    "project_id": "<project id>",
+    "study_version": null,
+    "submitter_id": "<matches filename>",
+    "type": "reference_file"
+}
