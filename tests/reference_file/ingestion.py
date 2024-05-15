@@ -31,38 +31,6 @@ def test_example_bdc_schema(runner):
             print("Exception: ", str(e))
 
 
-def test_creating_file():
-    """
-    mimics
-    result = invoke(
-        "from", "-o",
-        "example_reference_file.avro",
-        "json",
-        "-s",
-        "minimal_schema.avro",
-        "--program",
-        "DEV",
-        "--project",
-        "test",
-        "./json")
-    """
-    output_location = "./output/example_reference_file.avro"
-    schema_location = "minimal_schema.avro"
-    location_of_json_data_to_import = "./pfb-data/ref_file/json"
-
-    try:
-        writer_pre = PFBWriter(output_location)
-        with writer_pre as writer:
-            with PFBReader(schema_location) as reader_e:
-                writer.copy_schema(reader_e)
-            writer.write(_from_json(writer.metadata, location_of_json_data_to_import, "DEV", "test"))
-            with PFBReader(output_location) as output_reader:
-                # todo: what am i testing here?
-                print(output_reader)
-    except Exception as e:
-        print("Exception: ", str(e))
-
-
 def from_json(metadata, path, program, project):
     """
     stolen from elsewhere
@@ -110,16 +78,17 @@ def test_pfb_import(runner, invoke, path_join):
         "json/")
     """
     try:
-        with PFBWriter("minimal_data.avro") as writer:
-            with PFBReader("minimal_schema.avro") as s_reader:
-                writer.copy_schema(s_reader)
-            data_from_json = from_json(writer.metadata, "json/", "NSRR", "CFS")
-            for entry in data_from_json:
-                writer.write(entry)
-            with PFBReader("minimal_data.avro") as d_reader:
-                for r in itertools.islice(d_reader, None):
-                    json.dump(r, sys.stdout)
-                    sys.stdout.write("\n")
+        with PFBReader("avro/minimal_schema.avro") as s_reader:
+            data_from_json = from_json(s_reader.metadata, "json/", "NSRR", "CFS")
+            with runner.isolated_filesystem():
+                with PFBWriter("minimal_data.avro") as d_writer:
+                    d_writer.copy_schema(s_reader)
+                    for entry in data_from_json:
+                        d_writer.write(entry)
+                with PFBReader("minimal_data.avro") as d_reader:
+                    for r in itertools.islice(d_reader, None):
+                        json.dump(r, sys.stdout)
+                        sys.stdout.write("\n")
     except Exception as e:
         print("Failed! -> ", e)
         raise
