@@ -4,8 +4,10 @@ from pfb.writer import PFBWriter
 from pfb.importers.gen3dict import _from_dict
 from pfb.reader import PFBReader
 from pfb.importers.json import _convert_json, _from_json
-from fastavro import reader
+from fastavro import reader as avro_reader
 import glob
+import itertools
+import sys
 
 
 def test_example_bdc_schema(runner):
@@ -21,7 +23,7 @@ def test_example_bdc_schema(runner):
             with writer_pre as writer:
                 _from_dict(writer, url)
                 with open(file_path, "rb") as output_file:
-                    r = reader(output_file)
+                    r = avro_reader(output_file)
                     entity = r.writer_schema["entity"]
                     # test_schema(r)
                     assert entity == "Entity"
@@ -108,12 +110,16 @@ def test_pfb_import(runner, invoke, path_join):
         "json/")
     """
     try:
-        with PFBWriter("reference_file/minimal_data.avro") as writer:
-            with PFBReader("reference_file/minimal_schema.avro") as avro_reader:
-                writer.copy_schema(avro_reader)
-            data_from_json = from_json(writer.metadata, "./pfb-data/ref_file/json/", "NSRR", "CFS")
+        with PFBWriter("minimal_data.avro") as writer:
+            with PFBReader("minimal_schema.avro") as s_reader:
+                writer.copy_schema(s_reader)
+            data_from_json = from_json(writer.metadata, "json/", "NSRR", "CFS")
             for entry in data_from_json:
                 writer.write(entry)
+            with PFBReader("minimal_data.avro") as d_reader:
+                for r in itertools.islice(d_reader, None):
+                    json.dump(r, sys.stdout)
+                    sys.stdout.write("\n")
     except Exception as e:
         print("Failed! -> ", e)
         raise
