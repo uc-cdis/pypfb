@@ -1,10 +1,16 @@
 import os
+import shutil
+from functools import partial
 
 import requests
 import csv
 import json
 from gen3.auth import Gen3Auth
 from gen3.index import Gen3Index
+
+from pfb.reader import PFBReader
+from pfb.writer import PFBWriter
+from tests.reference_file.test_ingestion import from_json
 
 
 def tsv_to_json(tsv_file_path):
@@ -43,7 +49,64 @@ def create_ref_file_node(indexd_data):
     }
 
 
-def test_ref_to_tsv():
+def clear_directory(directory_path):
+    # Check if the directory exists
+    if not os.path.exists(directory_path):
+        print(f"The directory {directory_path} does not exist.")
+        return
+
+    # Iterate over all the files and directories in the specified directory
+    for filename in os.listdir(directory_path):
+        file_path = os.path.join(directory_path, filename)
+        try:
+            # Check if it is a file and remove it
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.remove(file_path)
+            # Check if it is a directory and remove it
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+        except Exception as e:
+            print(f'Failed to delete {file_path}. Reason: {e}')
+
+
+def write_dicts_to_json_files(directory, index_with_node_dict):
+    """
+    Writes each dictionary in the list to a separate JSON file.
+
+    :param dict_list: List of dictionaries to write to files.
+    :param directory: The directory where the files will be saved.
+    """
+
+    file_path = os.path.join(directory, f"entry_{index_with_node_dict[0]+1}.json")
+    with open(file_path, 'w') as json_file:
+        json.dump(index_with_node_dict[1], json_file, indent=4)
+
+
+def for_each(iterable, run_side_effect):
+    for item in iterable:
+        run_side_effect(item)
+
+
+def ingest_json_files_into_pfb(ref_file_node):
+    try:
+        # todo: figure out where to get ref_file schema from
+        # right now we get it from that manifest file in github iirc
+        with PFBReader("avro/minimal_schema.avro") as s_reader:
+            data_from_json = from_json(s_reader.metadata, "json/", "NSRR", "CFS")
+            with PFBWriter("minimal_data.avro") as d_writer:
+                d_writer.copy_schema(s_reader)
+                for entry in data_from_json:
+                    d_writer.write(entry)
+            with PFBReader("minimal_data.avro") as d_reader:
+                for r in itertools.islice(d_reader, None):
+                    json.dump(r, sys.stdout)
+                    sys.stdout.write("\n")
+    except Exception as e:
+        print("Failed! -> ", e)
+        raise
+
+
+def test_ref_to_json():
     cred_path = os.environ.get("PP_CREDS")
     auth = Gen3Auth(refresh_file=cred_path)
     index = Gen3Index(auth_provider=auth)
@@ -72,7 +135,17 @@ def test_ref_to_tsv():
         # reference_file_data_from_indexd.append(a)
 
     output = list(map(create_ref_file_node, reference_file_data_from_indexd))
-
+    output_directory_for_ref_file_json_files = "json/output_ref_files/"
+    # if not os.path.exists(output_directory_for_ref_file_json_files):
+    #     try:
+    #         os.makedirs(output_directory_for_ref_file_json_files)
+    #     except Exception as e:
+    #         print(e)
+    # if len(os.listdir(output_directory_for_ref_file_json_files)) > 0:
+    #     clear_directory(output_directory_for_ref_file_json_files)
+    # for_each(list(enumerate(output)), partial(write_dicts_to_json_files, output_directory_for_ref_file_json_files))
+    ingest_json_files_into_pfb(output)
+    print(output)
 
 
     # url = "https://preprod.gen3.biodatacatalyst.nhlbi.nih.gov/index/index/"
