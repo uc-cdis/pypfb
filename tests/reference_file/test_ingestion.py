@@ -62,8 +62,8 @@ def from_json(metadata, path, program, project):
     enumerated_order = enumerate(order)
     for i, o in enumerated_order:
         o = os.path.basename(o).replace(".json", "").strip()
-
-        with open(os.path.join(path, o + ".json"), "r") as f:
+        filename = os.path.join(path, o + ".json")
+        with open(filename, "r") as f:
             json_data = json.load(f)
 
         node_name = o
@@ -96,7 +96,8 @@ def test_pfb_import(runner, invoke, path_join):
     """
     try:
         with PFBReader("avro/minimal_schema.avro") as s_reader:
-            data_from_json = from_json(s_reader.metadata, "json/", "NSRR", "CFS")
+            # todo: contrast working example from failing example
+            data_from_json = from_json(s_reader.metadata, "json/example", "NSRR", "CFS")
             with runner.isolated_filesystem():
                 with PFBWriter("minimal_data.avro") as d_writer:
                     d_writer.copy_schema(s_reader)
