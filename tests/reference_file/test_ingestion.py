@@ -31,6 +31,23 @@ def test_example_bdc_schema(runner):
             print("Exception: ", str(e))
 
 
+def from_json_v2(metadata, node_info):
+    """
+    stolen from elsewhere
+    """
+    link_dests = {
+        node["name"]: {link["name"]: link["dst"] for link in node["links"]}
+        for node in metadata["nodes"]
+    }
+    file_name = str(node_info[0])
+    node_data = node_info[1]
+    program = node_data["program"]
+    project = node_data["project"]
+    reference_file_info = node_data["reference_file"]
+    record = _convert_json(file_name, reference_file_info, program, project, link_dests)
+    return record
+
+
 def from_json(metadata, path, program, project):
     """
     stolen from elsewhere

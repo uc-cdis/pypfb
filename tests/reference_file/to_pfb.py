@@ -12,7 +12,7 @@ from gen3.index import Gen3Index
 
 from pfb.reader import PFBReader
 from pfb.writer import PFBWriter
-from tests.reference_file.test_ingestion import from_json
+from tests.reference_file.test_ingestion import from_json_v2
 
 
 def tsv_to_json(tsv_file_path):
@@ -99,8 +99,8 @@ def ingest_json_files_into_pfb(ref_file_nodes):
         # todo: figure out where to get ref_file schema from
         # right now we get it from that manifest file in github iirc
         with PFBReader("avro/minimal_schema.avro") as s_reader:
-            for node_info in ref_file_nodes:
-                data_from_json = from_json(s_reader.metadata, "json/", "NSRR", "CFS")
+            for node_info in enumerate(ref_file_nodes):
+                data_from_json = from_json_v2(s_reader.metadata, node_info)
                 with PFBWriter("minimal_data.avro") as d_writer:
                     d_writer.copy_schema(s_reader)
                     for entry in data_from_json:
