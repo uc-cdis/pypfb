@@ -1,5 +1,7 @@
+import itertools
 import os
 import shutil
+import sys
 from functools import partial
 
 import requests
@@ -36,7 +38,7 @@ def create_ref_file_node(indexd_data):
     # data_category being "Other" and data_format being the file extension? what about submitter_id? (
     # data type, data category, data format, submitter id
     # Format the timestamp
-    print(indexd_data)
+    output = {}
     return {
         "data_category": "Clinical Data",  # ?
         "data_format": "XML",  # ?
@@ -106,29 +108,53 @@ def ingest_json_files_into_pfb(ref_file_node):
         raise
 
 
+def add_program_and_project(dest):
+    def get_program_and_project(ref_file_info):
+        dataset = dest.get(ref_file_info["study_with_consent"], None)
+        assert dataset is not None
+        program_project = dataset["dataset_identifier"].split('-', 1)
+        ref_file_info["program"] = program_project[0]
+        ref_file_info["project"] = program_project[1]
+        return ref_file_info
+    return get_program_and_project
+
+
+def add_program_and_project_to_indexd_closure(guid_to_updated_nodes):
+    def add_program_and_project_to_indexd(indexd_data):
+        dataset = guid_to_updated_nodes.get(indexd_data["did"], None)
+        assert dataset is not None
+        indexd_data["program"] = guid_to_updated_nodes["program"]
+        indexd_data["project"] = guid_to_updated_nodes["project"]
+    return add_program_and_project_to_indexd
+
+
 def test_ref_to_json():
     cred_path = os.environ.get("PP_CREDS")
     auth = Gen3Auth(refresh_file=cred_path)
     index = Gen3Index(auth_provider=auth)
 
-    # 'dg.4503/e4581ff0-5a8e-43cd-a3fb-13893e0e2d61'
+
     dest_data = tsv_to_json("tsv/dest-bucket-manifest.tsv")
     ref_file_data = tsv_to_json("tsv/release_manifest_release-27.tsv")
     filter_by_field = lambda field_name, dictionary: list(filter(lambda d: d.get(field_name), dictionary))
     map_dict_to_field = lambda field_name, dictionary: dict(map(lambda d: (d[field_name], d), dictionary))
     workable_ref_fields = map_dict_to_field("study_with_consent", filter_by_field("study_with_consent", ref_file_data))
-    study_set = set(map(lambda d: d["acl"], dest_data))
+    acl_to_dest_data = dict(map(lambda d: (d["acl"], d), dest_data))
+    study_set = set(acl_to_dest_data.keys())
+    nodes_with_program_and_project = list(map(add_program_and_project(acl_to_dest_data), workable_ref_fields.values()))
+    guid_to_updated_nodes = dict(map(lambda n: (n["guid"], n), nodes_with_program_and_project))
+    def check_lake(ss):
+        def value_in_lake(n):
+            return n["study_with_consent"] in ss
+        return value_in_lake
 
-    def x(ss):
-        def y(t):
-            return t[0] in ss
-
-        return y
-
-    fields_to_make_nodes_for = dict(filter(x(study_set), list(workable_ref_fields.items())))
-    guids_for_fields = list(map(lambda d: d["guid"], fields_to_make_nodes_for.values()))
-    acl_set = set(fields_to_make_nodes_for.keys())
+    fields_to_make_nodes_for = list(filter(check_lake(study_set), list(nodes_with_program_and_project)))
+    guids_for_fields = list(map(lambda d: d["guid"], fields_to_make_nodes_for))
+    # acl_set = set(fields_to_make_nodes_for)
     reference_file_data_from_indexd = index.get_records(guids_for_fields)
+    indexd_data_with_program_and_project = list(map(add_program_and_project_to_indexd_closure(guid_to_updated_nodes),
+                                                    reference_file_data_from_indexd))
+
     # for acl in acl_set:
         # params = {"study_with_consent": acl}
         # a = index.get_with_params(params)
