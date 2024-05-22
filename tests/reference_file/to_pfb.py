@@ -38,8 +38,7 @@ def create_ref_file_node(indexd_data):
     # data_category being "Other" and data_format being the file extension? what about submitter_id? (
     # data type, data category, data format, submitter id
     # Format the timestamp
-    output = {}
-    return {
+    reference_file = {
         "data_category": "Clinical Data",  # ?
         "data_format": "XML",  # ?
         "data_type": "Unharmonized Clinical Data",  # ?
@@ -49,6 +48,12 @@ def create_ref_file_node(indexd_data):
         "submitter_id": "no idea",  # ?
         "type": "reference_file"
     }
+    pfb_data = {
+        "program": indexd_data["program"],
+        "project": indexd_data["project"],
+        "reference_file": reference_file
+    }
+    return pfb_data
 
 
 def clear_directory(directory_path):
@@ -89,20 +94,21 @@ def for_each(iterable, run_side_effect):
         run_side_effect(item)
 
 
-def ingest_json_files_into_pfb(ref_file_node):
+def ingest_json_files_into_pfb(ref_file_nodes):
     try:
         # todo: figure out where to get ref_file schema from
         # right now we get it from that manifest file in github iirc
         with PFBReader("avro/minimal_schema.avro") as s_reader:
-            data_from_json = from_json(s_reader.metadata, "json/", "NSRR", "CFS")
-            with PFBWriter("minimal_data.avro") as d_writer:
-                d_writer.copy_schema(s_reader)
-                for entry in data_from_json:
-                    d_writer.write(entry)
-            with PFBReader("minimal_data.avro") as d_reader:
-                for r in itertools.islice(d_reader, None):
-                    json.dump(r, sys.stdout)
-                    sys.stdout.write("\n")
+            for node_info in ref_file_nodes:
+                data_from_json = from_json(s_reader.metadata, "json/", "NSRR", "CFS")
+                with PFBWriter("minimal_data.avro") as d_writer:
+                    d_writer.copy_schema(s_reader)
+                    for entry in data_from_json:
+                        d_writer.write(entry)
+                with PFBReader("minimal_data.avro") as d_reader:
+                    for r in itertools.islice(d_reader, None):
+                        json.dump(r, sys.stdout)
+                        sys.stdout.write("\n")
     except Exception as e:
         print("Failed! -> ", e)
         raise
@@ -123,8 +129,9 @@ def add_program_and_project_to_indexd_closure(guid_to_updated_nodes):
     def add_program_and_project_to_indexd(indexd_data):
         dataset = guid_to_updated_nodes.get(indexd_data["did"], None)
         assert dataset is not None
-        indexd_data["program"] = guid_to_updated_nodes["program"]
-        indexd_data["project"] = guid_to_updated_nodes["project"]
+        indexd_data["program"] = dataset["program"]
+        indexd_data["project"] = dataset["project"]
+        return indexd_data
     return add_program_and_project_to_indexd
 
 
@@ -160,7 +167,7 @@ def test_ref_to_json():
         # a = index.get_with_params(params)
         # reference_file_data_from_indexd.append(a)
 
-    output = list(map(create_ref_file_node, reference_file_data_from_indexd))
+    pfb_data_list = list(map(create_ref_file_node, reference_file_data_from_indexd))
     output_directory_for_ref_file_json_files = "json/output_ref_files/"
     # if not os.path.exists(output_directory_for_ref_file_json_files):
     #     try:
@@ -170,8 +177,8 @@ def test_ref_to_json():
     # if len(os.listdir(output_directory_for_ref_file_json_files)) > 0:
     #     clear_directory(output_directory_for_ref_file_json_files)
     # for_each(list(enumerate(output)), partial(write_dicts_to_json_files, output_directory_for_ref_file_json_files))
-    ingest_json_files_into_pfb(output)
-    print(output)
+    ingest_json_files_into_pfb(pfb_data_list)
+    print(pfb_data_list)
 
 
     # url = "https://preprod.gen3.biodatacatalyst.nhlbi.nih.gov/index/index/"
