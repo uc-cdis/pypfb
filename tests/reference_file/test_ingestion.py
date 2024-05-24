@@ -96,14 +96,13 @@ def test_pfb_import(runner, invoke, path_join):
     """
     try:
         with PFBReader("avro/minimal_schema.avro") as s_reader:
-            # todo: contrast working example from failing example
             data_from_json = from_json(s_reader.metadata, "json/example", "NSRR", "CFS")
             with runner.isolated_filesystem():
-                with PFBWriter("minimal_data.avro") as d_writer:
+                with PFBWriter("minimal_data.avro.old") as d_writer:
                     d_writer.copy_schema(s_reader)
                     for entry in data_from_json:
                         d_writer.write(entry)
-                with PFBReader("minimal_data.avro") as d_reader:
+                with PFBReader("minimal_data.avro.old") as d_reader:
                     for r in itertools.islice(d_reader, None):
                         json.dump(r, sys.stdout)
                         sys.stdout.write("\n")
@@ -115,9 +114,9 @@ def test_pfb_import(runner, invoke, path_join):
 def test_reference_file_nodes(runner, invoke, path_join):
     """
     mimics the command
-    invoke("show", "-i", "./minimal_data.avro.old", "nodes")
+    invoke("show", "-i", "./minimal_data.avro.old.old", "nodes")
     """
-    schema_location = "./minimal_data.avro"
+    schema_location = "./minimal_data.avro.old"
     try:
         with PFBReader(schema_location) as d_reader:
             for node in d_reader.schema:

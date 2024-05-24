@@ -107,15 +107,18 @@ def ingest_json_files_into_pfb(ref_file_nodes):
         # todo: figure out where to get ref_file schema from
         # right now we get it from that manifest file in github iirc
         with PFBReader("avro/minimal_schema.avro") as s_reader:
+            data_from_json = []
             for node_info in ref_file_nodes:
-                data_from_json = from_json_v2(s_reader.metadata, ("reference_file", node_info))
-                with PFBWriter("minimal_data.avro") as d_writer:
-                    d_writer.copy_schema(s_reader)
-                    d_writer.write([data_from_json])
-                with PFBReader("minimal_data.avro") as d_reader:
-                    for r in itertools.islice(d_reader, None):
-                        json.dump(r, sys.stdout)
-                        sys.stdout.write("\n")
+                data_from_json.append(from_json_v2(s_reader.metadata, ("reference_file", node_info)))
+            with PFBWriter("minimal_data.avro") as d_writer:
+                d_writer.copy_schema(s_reader)
+                for json_data in data_from_json:
+                    d_writer.write([json_data])
+            with PFBReader("minimal_data.avro") as d_reader:
+                for r in itertools.islice(d_reader, None):
+                    json.dump(r, sys.stdout)
+                    sys.stdout.write("\n")
+
     except Exception as e:
         print("Failed! -> ", e)
         raise
