@@ -4,7 +4,7 @@ import random
 import shutil
 import string
 import sys
-from functools import partial
+from functools import partial, reduce
 
 import requests
 import csv
@@ -290,6 +290,20 @@ def create_reference_file_node(self, ppc, dbgap_ascnum, nhlbi_manifest, referenc
     return submission_df
 
 
+def insert_or_append(graph, key, value):
+    # Get the list for the key, creating it if necessary
+    graph.setdefault(key, []).append(value)
+    return graph
+
+
+def group_by(group_identifier, accessor=lambda gid, e: e[gid], inserter=insert_or_append):
+    def add_to_graph(graph, data_entry):
+        group_id = accessor(group_identifier, data_entry)
+        graph = inserter(graph, group_id, data_entry)
+        return graph
+    return add_to_graph
+
+
 def test_ref_to_json():
     cred_path = os.environ.get("PP_CREDS")
     auth = Gen3Auth(refresh_file=cred_path)
@@ -316,6 +330,16 @@ def test_ref_to_json():
     reference_file_data_from_indexd = index.get_records(guids_for_fields)
     indexd_data_with_program_and_project = list(map(add_program_and_project_to_indexd_closure(guid_to_updated_nodes),
                                                     reference_file_data_from_indexd))
+    def add(g, gid, d):
+        entry_as_dict = dict([d])
+        g[gid] = dict([d])
+        return g
+    ref_file_data_by_project = reduce(group_by("project"), indexd_data_with_program_and_project, {})
+    ref_file_data_by_project_program = reduce(group_by("program",
+                                                       lambda gid, e: e[1][0][gid]),
+                                              list(ref_file_data_by_project.items()), {})
+    # todo: why am i getting only record per file?
+    final_answer_so_far = dict(map(lambda p: (p[0], dict(p[1])), ref_file_data_by_project_program.items()))
 
     # for acl in acl_set:
         # params = {"study_with_consent": acl}
