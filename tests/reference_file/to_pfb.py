@@ -15,7 +15,7 @@ from gen3.index import Gen3Index
 from pfb.reader import PFBReader
 from pfb.writer import PFBWriter
 from tests.reference_file.test_ingestion import from_json_v2
-
+from ref_file_helper import create_reference_file_node
 
 def tsv_to_json(tsv_file_path):
     data = []
@@ -165,7 +165,7 @@ def test_ref_to_json():
     auth = Gen3Auth(refresh_file=cred_path)
     index = Gen3Index(auth_provider=auth)
 
-
+    # there should be more than one guid per study
     dest_data = tsv_to_json("tsv/dest-bucket-manifest.tsv")
     ref_file_data = tsv_to_json("tsv/release_manifest_release-27.tsv")
     filter_by_field = lambda field_name, dictionary: list(filter(lambda d: d.get(field_name), dictionary))
@@ -194,7 +194,11 @@ def test_ref_to_json():
     # todo: why am i getting only record per file?
     final_answer_so_far = dict(map(lambda p: (p[0], dict(p[1])), ref_file_data_by_project_program.items()))
 
-    x = create_reference_file_node()
+    submitter_ids = []
+    for index_dict in indexd_data_with_program_and_project:
+        print("blah")
+        # todo: generate submitter id
+        # x = create_reference_file_node(index_dict["project"], index_dict["acl"][1])
 
     # for acl in acl_set:
         # params = {"study_with_consent": acl}
