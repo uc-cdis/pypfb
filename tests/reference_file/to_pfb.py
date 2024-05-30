@@ -105,13 +105,13 @@ def for_each(iterable, run_side_effect):
         run_side_effect(item)
 
 
-def ingest_json_files_into_pfb(ref_file_nodes):
+def ingest_json_files_into_pfb(ref_file_node):
     try:
         # todo: figure out where to get ref_file schema from
         # right now we get it from that manifest file in github iirc
         with PFBReader("avro/minimal_schema.avro") as s_reader:
             data_from_json = []
-            for node_info in ref_file_nodes:
+            for node_info in ref_file_node:
                 data_from_json.append(from_json_v2(s_reader.metadata, ("reference_file", node_info)))
             with PFBWriter("minimal_data.avro") as d_writer:
                 d_writer.copy_schema(s_reader)
@@ -188,52 +188,16 @@ def test_ref_to_json():
         v = d.get("study_with_consent")
         return bool(v)
     fields_with_study_with_consent = list(filter(remove_empty, release_files))
+
     guid_to_release_data = dict(map(lambda r: (r["guid"], r), fields_with_study_with_consent))
     guid_to_acl = dict(map(lambda p: (p[0], p[1]["study_with_consent"]), guid_to_release_data.items()))
     guid_to_program_project = dict(map(lambda p: (p[0], acl_to_program_project[p[1]]), guid_to_acl.items()))
 
-
-    fields_organized_by_study = reduce(add_or_insert, fields_with_study_with_consent, {})
-
-    def add_program_and_project(study_id_to_study_context, study_pair):
-        study_id = study_pair[0]
-        destination_info = acl_to_dest_data.get(study_id)
-        assert destination_info is not None
-        program_project = destination_info["dataset_identifier"].split('-', 1)
-        study_context = {"program": program_project[0], "project": program_project[1], "study": study_pair[1]}
-        study_id_to_study_context[study_id] = study_context
-        return study_id_to_study_context
-
-    study_id_to_study_context = reduce(add_program_and_project, fields_organized_by_study.items(), {})
-    def map_to_project(project_to_study_id, study_tuple):
-        project = study_tuple[1]["project"]
-        project_already_added = project in project_to_study_id
-        assert not project_already_added
-        project_to_study_id[project] = study_tuple[1]
-        return project_to_study_id
-    project_to_study_context = reduce(map_to_project, study_id_to_study_context.items(), {})
-    def map_to_program(program_to_project_context, project_tuple):
-        program = project_tuple[1]["program"]
-        program_already_added = program in program_to_project_context
-        if program_already_added:
-            program_to_project_context[program][project_tuple[0]] = project_tuple[1]
-        else:
-            program_to_project_context[program] = {project_tuple[0]: project_tuple[1]}
-        return program_to_project_context
-    program_to_project_context = reduce(map_to_program, project_to_study_context.items(), {})
-
-    def inner_get(inner_list, study):
-        inner_list.append(study["guid"])
-        return inner_list
-    def outer_get(outer_list, project_study_pair):
-        inner_list = reduce(inner_get, project_study_pair[1]["study"], [])
-        outer_list += inner_list
-        return outer_list
-    guids_for_fields = reduce(outer_get, program_to_project_context["topmed"].items(), [])
+    reference_file_guids = list(guid_to_program_project.keys())
 
     def chunk(lst, size):
         return [lst[i:i + size] for i in range(0, len(lst), size)]
-    chunked_guids = chunk(guids_for_fields, 2500)
+    chunked_guids = chunk(reference_file_guids, 2500)
     def get_chunked_records(indexd_chunks, guid_chunk):
         indexd_data_chunk = index.get_records(guid_chunk)
         indexd_chunks += indexd_data_chunk
@@ -247,23 +211,42 @@ def test_ref_to_json():
         return indexd_entry
     indexd_data_with_program_and_project = list(map(add_program_and_project_v2, indexd_data))
 
-
-
-    ref_file_data_by_project = reduce(group_by("project"), indexd_data_with_program_and_project, {})
-    ref_file_data_by_project_program = reduce(group_by("program",
-                                                       lambda gid, e: e[1][0][gid]),
-                                              list(ref_file_data_by_project.items()), {})
-    program_to_project_context = dict(map(lambda p: (p[0], dict(p[1])), ref_file_data_by_project_program.items()))
-
     submitter_ids = []
-    for index_dict in indexd_data_with_program_and_project:
-        print("blah")
+    # for index_dict in indexd_data_with_program_and_project:
+        # print("blah")
         # todo: generate submitter id
         # x = create_reference_file_node(index_dict["project"], index_dict["acl"][1])
+    reference_file_context = list(map(create_ref_file_node, indexd_data_with_program_and_project))
 
+    def sort_by_program(program_to_ref_file_context, ref_context):
+        program = ref_context["program"]
+        program_exists = program in program_to_ref_file_context
+        program_context = {"project": ref_context["project"], "reference_file": ref_context["reference_file"]}
+        if program_exists:
+            program_to_ref_file_context[program].append(program_context)
+        else:
+            program_to_ref_file_context[program] = [program_context]
+        return program_to_ref_file_context
+    program_to_reference_file_context = reduce(sort_by_program, reference_file_context, {})
 
+    def collect_to_project(program_with_reference_files_under_program):
+        def build_project_contexts(project_to_ref_file_context, project_context):
+            project = project_context["project"]
+            project_already_added = project in project_to_ref_file_context
+            if project_already_added:
+                project_to_ref_file_context[project].append(project_context["reference_file"])
+            else:
+                project_to_ref_file_context[project] = [project_context["reference_file"]]
+            return project_to_ref_file_context
+        reference_files_under_program = program_with_reference_files_under_program[1]
+        project_to_reference_file_context = reduce(build_project_contexts, reference_files_under_program, {})
+        return program_with_reference_files_under_program[0], project_to_reference_file_context
 
-    pfb_data_list = list(map(create_ref_file_node, indexd_data_with_program_and_project))
+    program_to_project_context = dict(map(collect_to_project, program_to_reference_file_context.items()))
+
+    def sort_by_program():
+        print("blah")
+
     output_directory_for_ref_file_json_files = "json/output_ref_files/"
     # if not os.path.exists(output_directory_for_ref_file_json_files):
     #     try:
@@ -273,8 +256,58 @@ def test_ref_to_json():
     # if len(os.listdir(output_directory_for_ref_file_json_files)) > 0:
     #     clear_directory(output_directory_for_ref_file_json_files)
     # for_each(list(enumerate(output)), partial(write_dicts_to_json_files, output_directory_for_ref_file_json_files))
+
+    # for program, project_context in pfb_data_list.items()
     ingest_json_files_into_pfb(pfb_data_list)
     print("done!")
+
+
+
+
+    # ref_file_data_by_project = reduce(group_by("project"), indexd_data_with_program_and_project, {})
+    # ref_file_data_by_project_program = reduce(group_by("program",
+    #                                                    lambda gid, e: e[1][0][gid]),
+    #                                           list(ref_file_data_by_project.items()), {})
+    # program_to_project_context = dict(map(lambda p: (p[0], dict(p[1])), ref_file_data_by_project_program.items()))
+
+
+    # fields_organized_by_study = reduce(add_or_insert, fields_with_study_with_consent, {})
+
+    # def add_program_and_project(study_id_to_study_context, study_pair):
+    #     study_id = study_pair[0]
+    #     destination_info = acl_to_dest_data.get(study_id)
+    #     assert destination_info is not None
+    #     program_project = destination_info["dataset_identifier"].split('-', 1)
+    #     study_context = {"program": program_project[0], "project": program_project[1], "study": study_pair[1]}
+    #     study_id_to_study_context[study_id] = study_context
+    #     return study_id_to_study_context
+    #
+    # study_id_to_study_context = reduce(add_program_and_project, fields_organized_by_study.items(), {})
+    # def map_to_project(project_to_study_id, study_tuple):
+    #     project = study_tuple[1]["project"]
+    #     project_already_added = project in project_to_study_id
+    #     assert not project_already_added
+    #     project_to_study_id[project] = study_tuple[1]
+    #     return project_to_study_id
+    # project_to_study_context = reduce(map_to_project, study_id_to_study_context.items(), {})
+    # def map_to_program(program_to_project_context, project_tuple):
+    #     program = project_tuple[1]["program"]
+    #     program_already_added = program in program_to_project_context
+    #     if program_already_added:
+    #         program_to_project_context[program][project_tuple[0]] = project_tuple[1]
+    #     else:
+    #         program_to_project_context[program] = {project_tuple[0]: project_tuple[1]}
+    #     return program_to_project_context
+    # program_to_project_context = reduce(map_to_program, project_to_study_context.items(), {})
+    #
+    # def inner_get(inner_list, study):
+    #     inner_list.append(study["guid"])
+    #     return inner_list
+    # def outer_get(outer_list, project_study_pair):
+    #     inner_list = reduce(inner_get, project_study_pair[1]["study"], [])
+    #     outer_list += inner_list
+    #     return outer_list
+    # guids_for_fields = reduce(outer_get, program_to_project_context["topmed"].items(), [])
 
     # for acl in acl_set:
         # params = {"study_with_consent": acl}
