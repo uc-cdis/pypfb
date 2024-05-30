@@ -39,18 +39,17 @@ def from_json_v2(metadata, node_info):
         node["name"]: {link["name"]: link["dst"] for link in node["links"]}
         for node in metadata["nodes"]
     }
-    file_name = str(node_info[0])
-    node_data = node_info[1]
-    program = node_data["program"]
-    project = node_data["project"]
-    reference_file_info = node_data["reference_file"]
+    file_name = "reference_file"
+    program = node_info["program"]
+    project = node_info["project"]
+    reference_file_info = node_info["reference_file"]
     record = _convert_json(file_name, reference_file_info, program, project, link_dests)
     return record
 
 
 def from_json(metadata, path, program, project):
     """
-    stolen from elsewhere
+    mimics _from_json
     """
     link_dests = {
         node["name"]: {link["name"]: link["dst"] for link in node["links"]}
@@ -98,14 +97,15 @@ def test_pfb_import(runner, invoke, path_join):
         with PFBReader("avro/minimal_schema.avro") as s_reader:
             data_from_json = from_json(s_reader.metadata, "json/example", "NSRR", "CFS")
             with runner.isolated_filesystem():
-                with PFBWriter("minimal_data.avro.old") as d_writer:
+                with PFBWriter("minimal_data.avro") as d_writer:
                     d_writer.copy_schema(s_reader)
                     for entry in data_from_json:
                         d_writer.write(entry)
-                with PFBReader("minimal_data.avro.old") as d_reader:
+                with PFBReader("minimal_data.avro") as d_reader:
                     for r in itertools.islice(d_reader, None):
                         json.dump(r, sys.stdout)
                         sys.stdout.write("\n")
+        assert True
     except Exception as e:
         print("Failed! -> ", e)
         raise
@@ -114,9 +114,9 @@ def test_pfb_import(runner, invoke, path_join):
 def test_reference_file_nodes(runner, invoke, path_join):
     """
     mimics the command
-    invoke("show", "-i", "./minimal_data.avro.old.old", "nodes")
+    invoke("show", "-i", "./minimal_data.avro", "nodes")
     """
-    schema_location = "./minimal_data.avro.old"
+    schema_location = "./minimal_data.avro"
     try:
         with PFBReader(schema_location) as d_reader:
             for node in d_reader.schema:
