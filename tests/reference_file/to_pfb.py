@@ -5,6 +5,7 @@ import shutil
 import string
 import sys
 from functools import partial, reduce
+from typing import List
 
 import requests
 import csv
@@ -16,8 +17,10 @@ from pfb.reader import PFBReader
 from pfb.writer import PFBWriter
 from tests.reference_file.test_ingestion import from_json_v2
 from ref_file_helper import create_reference_file_node
+from typing import List, Dict, Any
 
-def tsv_to_json(tsv_file_path):
+
+def tsv_to_json(tsv_file_path) -> List[Dict[Any, Any]]:
     data = []
     with open(tsv_file_path, 'r', newline='', encoding='utf-8') as tsv_file:
         reader = csv.DictReader(tsv_file, delimiter='\t')
@@ -160,6 +163,16 @@ def group_by(group_identifier, accessor=lambda gid, e: e[gid], inserter=insert_o
     return add_to_graph
 
 
+def add_or_insert(phs_to_file_data, file):
+    field_value = file["study_with_consent"]
+    field_exists = field_value in phs_to_file_data
+    if field_exists:
+        phs_to_file_data[field_value].append(file)
+    else:
+        phs_to_file_data[field_value] = [file]
+    return phs_to_file_data
+
+
 def test_ref_to_json():
     cred_path = os.environ.get("PP_CREDS")
     auth = Gen3Auth(refresh_file=cred_path)
@@ -167,14 +180,35 @@ def test_ref_to_json():
 
     # there should be more than one guid per study
     dest_data = tsv_to_json("tsv/dest-bucket-manifest.tsv")
-    ref_file_data = tsv_to_json("tsv/release_manifest_release-27.tsv")
-    filter_by_field = lambda field_name, dictionary: list(filter(lambda d: d.get(field_name), dictionary))
-    map_dict_to_field = lambda field_name, dictionary: dict(map(lambda d: (d[field_name], d), dictionary))
-    workable_ref_fields = map_dict_to_field("study_with_consent", filter_by_field("study_with_consent", ref_file_data))
     acl_to_dest_data = dict(map(lambda d: (d["acl"], d), dest_data))
+
+    release_files = tsv_to_json("tsv/release_manifest_release-27.tsv")
+    def remove_empty(d):
+        v = d.get("study_with_consent")
+        return bool(v)
+    fields_with_study_with_consent = list(filter(remove_empty, release_files))
+    fields_organized_by_study = reduce(add_or_insert, fields_with_study_with_consent, {})
+
+    def add_program_and_project(study_id_to_study_context, study_pair):
+        study_id = study_pair[0]
+        destination_info = acl_to_dest_data.get(study_id)
+        assert destination_info is not None
+        program_project = destination_info["dataset_identifier"].split('-', 1)
+        study_context = {"program": program_project[0], "project": program_project[1], "study": study_pair[1]}
+        study_id_to_study_context[study_id] = study_context
+        return study_id_to_study_context
+
+
+
+    studies_organized_by_project = reduce(lambda p: "blah", fields_organized_by_study.items(), {})
+
+    phsid_to_file_data = dict(map(lambda d: (d["study_with_consent"], d), fields_with_study_with_consent))
     study_set = set(acl_to_dest_data.keys())
-    nodes_with_program_and_project = list(map(add_program_and_project(acl_to_dest_data), workable_ref_fields.values()))
-    guid_to_updated_nodes = dict(map(lambda n: (n["guid"], n), nodes_with_program_and_project))
+    files_with_program_and_project = list(map(add_program_and_project(acl_to_dest_data),
+                                              phsid_to_file_data.values()))
+    files_sorted_by_project = reduce(group_by("project"), files_with_program_and_project, {})
+    projects_sorted_by_program = reduce(group_by("program", lambda gid, e: e[1][0][gid]),
+                                        list(files_sorted_by_project.items()), {})
     def check_lake(ss):
         def value_in_lake(n):
             return n["study_with_consent"] in ss
@@ -184,6 +218,7 @@ def test_ref_to_json():
     guids_for_fields = list(map(lambda d: d["guid"], fields_to_make_nodes_for))
     # acl_set = set(fields_to_make_nodes_for)
     reference_file_data_from_indexd = index.get_records(guids_for_fields)
+    guid_to_updated_nodes = dict(map(lambda n: (n["guid"], n), nodes_with_program_and_project))
     indexd_data_with_program_and_project = list(map(add_program_and_project_to_indexd_closure(guid_to_updated_nodes),
                                                     reference_file_data_from_indexd))
 
