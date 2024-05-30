@@ -181,12 +181,18 @@ def test_ref_to_json():
     # there should be more than one guid per study
     dest_data = tsv_to_json("tsv/dest-bucket-manifest.tsv")
     acl_to_dest_data = dict(map(lambda d: (d["acl"], d), dest_data))
+    acl_to_program_project = dict(map(lambda p: (p[0], p[1]["dataset_identifier"].split('-', 1)), acl_to_dest_data.items()))
 
     release_files = tsv_to_json("tsv/release_manifest_release-27.tsv")
     def remove_empty(d):
         v = d.get("study_with_consent")
         return bool(v)
     fields_with_study_with_consent = list(filter(remove_empty, release_files))
+    guid_to_release_data = dict(map(lambda r: (r["guid"], r), fields_with_study_with_consent))
+    guid_to_acl = dict(map(lambda p: (p[0], p[1]["study_with_consent"]), guid_to_release_data.items()))
+    guid_to_program_project = dict(map(lambda p: (p[0], acl_to_program_project[p[1]]), guid_to_acl.items()))
+
+
     fields_organized_by_study = reduce(add_or_insert, fields_with_study_with_consent, {})
 
     def add_program_and_project(study_id_to_study_context, study_pair):
@@ -198,36 +204,56 @@ def test_ref_to_json():
         study_id_to_study_context[study_id] = study_context
         return study_id_to_study_context
 
+    study_id_to_study_context = reduce(add_program_and_project, fields_organized_by_study.items(), {})
+    def map_to_project(project_to_study_id, study_tuple):
+        project = study_tuple[1]["project"]
+        project_already_added = project in project_to_study_id
+        assert not project_already_added
+        project_to_study_id[project] = study_tuple[1]
+        return project_to_study_id
+    project_to_study_context = reduce(map_to_project, study_id_to_study_context.items(), {})
+    def map_to_program(program_to_project_context, project_tuple):
+        program = project_tuple[1]["program"]
+        program_already_added = program in program_to_project_context
+        if program_already_added:
+            program_to_project_context[program][project_tuple[0]] = project_tuple[1]
+        else:
+            program_to_project_context[program] = {project_tuple[0]: project_tuple[1]}
+        return program_to_project_context
+    program_to_project_context = reduce(map_to_program, project_to_study_context.items(), {})
+
+    def inner_get(inner_list, study):
+        inner_list.append(study["guid"])
+        return inner_list
+    def outer_get(outer_list, project_study_pair):
+        inner_list = reduce(inner_get, project_study_pair[1]["study"], [])
+        outer_list += inner_list
+        return outer_list
+    guids_for_fields = reduce(outer_get, program_to_project_context["topmed"].items(), [])
+
+    def chunk(lst, size):
+        return [lst[i:i + size] for i in range(0, len(lst), size)]
+    chunked_guids = chunk(guids_for_fields, 2500)
+    def get_chunked_records(indexd_chunks, guid_chunk):
+        indexd_data_chunk = index.get_records(guid_chunk)
+        indexd_chunks += indexd_data_chunk
+        return indexd_chunks
+    indexd_data = reduce(get_chunked_records, chunked_guids[:2], [])
+    def add_program_and_project_v2(indexd_entry):
+        program_project = guid_to_program_project.get(indexd_entry["did"])
+        assert program_project is not None
+        indexd_entry["program"] = program_project[0]
+        indexd_entry["project"] = program_project[1]
+        return indexd_entry
+    indexd_data_with_program_and_project = list(map(add_program_and_project_v2, indexd_data))
 
 
-    studies_organized_by_project = reduce(lambda p: "blah", fields_organized_by_study.items(), {})
-
-    phsid_to_file_data = dict(map(lambda d: (d["study_with_consent"], d), fields_with_study_with_consent))
-    study_set = set(acl_to_dest_data.keys())
-    files_with_program_and_project = list(map(add_program_and_project(acl_to_dest_data),
-                                              phsid_to_file_data.values()))
-    files_sorted_by_project = reduce(group_by("project"), files_with_program_and_project, {})
-    projects_sorted_by_program = reduce(group_by("program", lambda gid, e: e[1][0][gid]),
-                                        list(files_sorted_by_project.items()), {})
-    def check_lake(ss):
-        def value_in_lake(n):
-            return n["study_with_consent"] in ss
-        return value_in_lake
-
-    fields_to_make_nodes_for = list(filter(check_lake(study_set), list(nodes_with_program_and_project)))
-    guids_for_fields = list(map(lambda d: d["guid"], fields_to_make_nodes_for))
-    # acl_set = set(fields_to_make_nodes_for)
-    reference_file_data_from_indexd = index.get_records(guids_for_fields)
-    guid_to_updated_nodes = dict(map(lambda n: (n["guid"], n), nodes_with_program_and_project))
-    indexd_data_with_program_and_project = list(map(add_program_and_project_to_indexd_closure(guid_to_updated_nodes),
-                                                    reference_file_data_from_indexd))
 
     ref_file_data_by_project = reduce(group_by("project"), indexd_data_with_program_and_project, {})
     ref_file_data_by_project_program = reduce(group_by("program",
                                                        lambda gid, e: e[1][0][gid]),
                                               list(ref_file_data_by_project.items()), {})
-    # todo: why am i getting only record per file?
-    final_answer_so_far = dict(map(lambda p: (p[0], dict(p[1])), ref_file_data_by_project_program.items()))
+    program_to_project_context = dict(map(lambda p: (p[0], dict(p[1])), ref_file_data_by_project_program.items()))
 
     submitter_ids = []
     for index_dict in indexd_data_with_program_and_project:
@@ -235,10 +261,7 @@ def test_ref_to_json():
         # todo: generate submitter id
         # x = create_reference_file_node(index_dict["project"], index_dict["acl"][1])
 
-    # for acl in acl_set:
-        # params = {"study_with_consent": acl}
-        # a = index.get_with_params(params)
-        # reference_file_data_from_indexd.append(a)
+
 
     pfb_data_list = list(map(create_ref_file_node, indexd_data_with_program_and_project))
     output_directory_for_ref_file_json_files = "json/output_ref_files/"
@@ -253,6 +276,28 @@ def test_ref_to_json():
     ingest_json_files_into_pfb(pfb_data_list)
     print("done!")
 
+    # for acl in acl_set:
+        # params = {"study_with_consent": acl}
+        # a = index.get_with_params(params)
+        # reference_file_data_from_indexd.append(a)
+
+    # studies_organized_by_project = reduce(lambda p: "blah", fields_organized_by_study.items(), {})
+
+    # phsid_to_file_data = dict(map(lambda d: (d["study_with_consent"], d), fields_with_study_with_consent))
+    # study_set = set(acl_to_dest_data.keys())
+    # files_with_program_and_project = list(map(add_program_and_project(acl_to_dest_data),
+    #                                           phsid_to_file_data.values()))
+    # files_sorted_by_project = reduce(group_by("project"), files_with_program_and_project, {})
+    # projects_sorted_by_program = reduce(group_by("program", lambda gid, e: e[1][0][gid]),
+    #                                     list(files_sorted_by_project.items()), {})
+    # def check_lake(ss):
+    #     def value_in_lake(n):
+    #         return n["study_with_consent"] in ss
+    #     return value_in_lake
+
+    # fields_to_make_nodes_for = list(filter(check_lake(study_set), list(nodes_with_program_and_project)))
+    # guids_for_fields = list(map(lambda d: d["guid"], fields_to_make_nodes_for))
+    # acl_set = set(fields_to_make_nodes_for)
 
     # url = "https://preprod.gen3.biodatacatalyst.nhlbi.nih.gov/index/index/"
     # params = {"page": 0}  # Set the number of records to fetch per request
