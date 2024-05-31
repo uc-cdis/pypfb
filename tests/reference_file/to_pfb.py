@@ -120,8 +120,11 @@ def ingest_json_files_into_pfb(program, project, reference_file_nodes):
                 data_from_json.append(from_json_v2(s_reader.metadata, node_info))
             with PFBWriter("avro/minimal_data.avro") as d_writer:
                 d_writer.copy_schema(s_reader)
-                for json_data in data_from_json:
-                    d_writer.write([json_data])
+                d_writer.write(data_from_json)
+                # if I get the "a+" error it's because i'm trying to write one entry in at a time
+                # in contrast to just writing it in all at once, as is done in the line above
+                # for json_data in data_from_json:
+                #     d_writer.write([json_data])
             with PFBReader("avro/minimal_data.avro") as d_reader:
                 for r in itertools.islice(d_reader, None):
                     json.dump(r, sys.stdout)
