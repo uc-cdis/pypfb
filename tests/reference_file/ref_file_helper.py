@@ -108,7 +108,9 @@ def prog_projcons_partsplit(ppc):
 
 def create_reference_file_node(ppc, dbgap_ascnum, nhlbi_manifest, reference_file_node=None):
     # what is a guid, exactly?
+    # a guid is a unique id for a file
     # what is a dbgap accession number?
+    # all the full dots of the phs id?
     """
     This function creates a reference file node from the given project, dbgap accession number, NHLBI manifest,
     and optional reference file node.
@@ -141,6 +143,8 @@ def create_reference_file_node(ppc, dbgap_ascnum, nhlbi_manifest, reference_file
     # Ensure the NHLBI manifest and reference file node are dataframes
     nhlbi_manifest = ensure_dataframe(nhlbi_manifest)
     reference_file_node = ensure_dataframe(reference_file_node)
+    assert nhlbi_manifest is not None
+    # assert reference_file_node is not None
     # Check for errors in reading the files and return None if there are any
     if isinstance(nhlbi_manifest, str):
         print("Error reading nhlbi_manifest")

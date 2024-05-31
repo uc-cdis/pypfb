@@ -20,6 +20,9 @@ from ref_file_helper import create_reference_file_node
 from typing import List, Dict, Any
 
 
+LEFT = 0
+RIGHT = 1
+
 def tsv_to_json(tsv_file_path) -> List[Dict[Any, Any]]:
     data = []
     with open(tsv_file_path, 'r', newline='', encoding='utf-8') as tsv_file:
@@ -44,6 +47,9 @@ def generate_random_string():
 
 
 def create_ref_file_node(indexd_data):
+    object_id = indexd_data["did"]
+    drs_uri = f"drs://{object_id}"
+
     reference_file = {
         "data_category": "Clinical Data",
         "data_format": "XML",
@@ -52,12 +58,9 @@ def create_ref_file_node(indexd_data):
         "file_size": indexd_data["size"],
         "md5sum": indexd_data["hashes"]["md5"],
         "submitter_id": generate_random_string(),
-        "type": "reference_file"
-
-        # Add object id!
-        # Gag4
-        # bucket_path
-
+        "type": "reference_file",
+        "ga4gh_drs_uri": drs_uri,
+        "object_id": object_id,
     }
     pfb_data = {
         "program": indexd_data["program"],
@@ -180,36 +183,70 @@ def add_or_insert(phs_to_file_data, file):
     return phs_to_file_data
 
 
-def test_ref_to_json():
+def map_to(key, dictionaries):
+    def map_from_key_in_dictionary(dictionary):
+        value_at_key = dictionary[key]
+        return value_at_key, dictionary
+    return dict(map(map_from_key_in_dictionary, dictionaries))
+
+
+def map_values(mutator, dictionary):
+    def map_value(kv_pair):
+        return kv_pair[LEFT], mutator(kv_pair[RIGHT])
+    return dict(map(map_value, dictionary.items()))
+
+
+def derive_acl_to_program_project_from_destination_manifest(manifest_location):
+    dest_data = tsv_to_json(manifest_location)
+    acl_to_dest_data = map_to("acl", dest_data)
+
+    def get_program_project_from_dest_entry(dest_entry):
+        program_project_pair = dest_entry["dataset_identifier"].split('-', 1)
+        return {"program": program_project_pair[LEFT], "project": program_project_pair[RIGHT]}
+    acl_to_program_project = map_values(get_program_project_from_dest_entry, acl_to_dest_data)
+    return acl_to_program_project
+
+
+def handle_chunked_querying_of_indexd(reference_file_guids, index):
     cred_path = os.environ.get("PP_CREDS")
     auth = Gen3Auth(refresh_file=cred_path)
     index = Gen3Index(auth_provider=auth)
 
-    # there should be more than one guid per study
-    dest_data = tsv_to_json("tsv/dest-bucket-manifest.tsv")
-    acl_to_dest_data = dict(map(lambda d: (d["acl"], d), dest_data))
-    acl_to_program_project = dict(map(lambda p: (p[0], p[1]["dataset_identifier"].split('-', 1)), acl_to_dest_data.items()))
-
-    release_files = tsv_to_json("tsv/release_manifest_release-27.tsv")
-    def remove_empty(d):
-        v = d.get("study_with_consent")
-        return bool(v)
-    fields_with_study_with_consent = list(filter(remove_empty, release_files))
-
-    guid_to_release_data = dict(map(lambda r: (r["guid"], r), fields_with_study_with_consent))
-    guid_to_acl = dict(map(lambda p: (p[0], p[1]["study_with_consent"]), guid_to_release_data.items()))
-    guid_to_program_project = dict(map(lambda p: (p[0], acl_to_program_project[p[1]]), guid_to_acl.items()))
-
-    reference_file_guids = list(guid_to_program_project.keys())
-
     def chunk(lst, size):
         return [lst[i:i + size] for i in range(0, len(lst), size)]
     chunked_guids = chunk(reference_file_guids, 2500)
-    def get_chunked_records(indexd_chunks, guid_chunk):
-        indexd_data_chunk = index.get_records(guid_chunk)
-        indexd_chunks += indexd_data_chunk
-        return indexd_chunks
-    indexd_data = reduce(get_chunked_records, chunked_guids[:2], [])
+    def get_and_save_chunked_records():
+        def get_chunked_records(indexd_chunks, guid_chunk):
+            indexd_data_chunk = index.get_records(guid_chunk)
+            indexd_chunks += indexd_data_chunk
+            return indexd_chunks
+        indexd_data = reduce(get_chunked_records, chunked_guids, [])
+        with open("json/indexd/ref_file_indexd_records.json", 'w') as file:
+            json.dump(indexd_data, file, indent=4)
+
+
+def read(file_location):
+    with open(file_location, 'r') as file:
+        file_contents = json.load(file)
+    return file_contents
+
+
+def test_full_ingestion_process():
+
+    acl_to_program_project = derive_acl_to_program_project_from_destination_manifest("tsv/dest-bucket-manifest.tsv")
+    release_files = tsv_to_json("tsv/release_manifest_release-27.tsv")
+    fields_with_accession_number = list(filter(lambda entry: bool(entry.get("study_accession_with_consent")),
+                                               release_files))
+
+    guid_to_release_data = map_to("guid", fields_with_accession_number)
+
+
+    guid_to_acl = map_values(lambda field: field["study_with_consent"], guid_to_release_data)
+    guid_to_program_project = map_values(lambda acl: acl_to_program_project[acl], guid_to_acl)
+    reference_file_guids = list(guid_to_release_data.keys())
+    guid_to_accession = map_values(lambda field: field["study_with_consent"], guid_to_release_data)
+    indexd_data = read("json/indexd/ref_file_indexd_records.json")[:2]
+
     def add_program_and_project_v2(indexd_entry):
         program_project = guid_to_program_project.get(indexd_entry["did"])
         assert program_project is not None
@@ -219,10 +256,14 @@ def test_ref_to_json():
     indexd_data_with_program_and_project = list(map(add_program_and_project_v2, indexd_data))
 
     submitter_ids = []
-    # for index_dict in indexd_data_with_program_and_project:
-        # print("blah")
+    for index_dict in indexd_data_with_program_and_project:
         # todo: generate submitter id
-        # x = create_reference_file_node(index_dict["project"], index_dict["acl"][1])
+        manifest_location = "tsv/release_manifest_release-27.tsv"
+        ref_file_location = "json/example/reference_file.json"
+        accession_number = guid_to_accession.get(index_dict["did"])
+        assert accession_number is not None
+        # outcome = create_reference_file_node(index_dict["project"], accession_number, manifest_location, ref_file_location)
+        # print(outcome)
     reference_file_context = list(map(create_ref_file_node, indexd_data_with_program_and_project))
 
     def sort_by_program(program_to_ref_file_context, ref_context):
@@ -264,106 +305,4 @@ def test_ref_to_json():
     for program, project_context in program_to_project_context.items():
         for project, reference_files in project_context.items():
             ingest_json_files_into_pfb(program, project, reference_files)
-        # for project, reference_node in project_context.items():
-        #     ingest_json_files_into_pfb(pfb_data_list)
     print("done!")
-
-
-
-
-    # ref_file_data_by_project = reduce(group_by("project"), indexd_data_with_program_and_project, {})
-    # ref_file_data_by_project_program = reduce(group_by("program",
-    #                                                    lambda gid, e: e[1][0][gid]),
-    #                                           list(ref_file_data_by_project.items()), {})
-    # program_to_project_context = dict(map(lambda p: (p[0], dict(p[1])), ref_file_data_by_project_program.items()))
-
-
-    # fields_organized_by_study = reduce(add_or_insert, fields_with_study_with_consent, {})
-
-    # def add_program_and_project(study_id_to_study_context, study_pair):
-    #     study_id = study_pair[0]
-    #     destination_info = acl_to_dest_data.get(study_id)
-    #     assert destination_info is not None
-    #     program_project = destination_info["dataset_identifier"].split('-', 1)
-    #     study_context = {"program": program_project[0], "project": program_project[1], "study": study_pair[1]}
-    #     study_id_to_study_context[study_id] = study_context
-    #     return study_id_to_study_context
-    #
-    # study_id_to_study_context = reduce(add_program_and_project, fields_organized_by_study.items(), {})
-    # def map_to_project(project_to_study_id, study_tuple):
-    #     project = study_tuple[1]["project"]
-    #     project_already_added = project in project_to_study_id
-    #     assert not project_already_added
-    #     project_to_study_id[project] = study_tuple[1]
-    #     return project_to_study_id
-    # project_to_study_context = reduce(map_to_project, study_id_to_study_context.items(), {})
-    # def map_to_program(program_to_project_context, project_tuple):
-    #     program = project_tuple[1]["program"]
-    #     program_already_added = program in program_to_project_context
-    #     if program_already_added:
-    #         program_to_project_context[program][project_tuple[0]] = project_tuple[1]
-    #     else:
-    #         program_to_project_context[program] = {project_tuple[0]: project_tuple[1]}
-    #     return program_to_project_context
-    # program_to_project_context = reduce(map_to_program, project_to_study_context.items(), {})
-    #
-    # def inner_get(inner_list, study):
-    #     inner_list.append(study["guid"])
-    #     return inner_list
-    # def outer_get(outer_list, project_study_pair):
-    #     inner_list = reduce(inner_get, project_study_pair[1]["study"], [])
-    #     outer_list += inner_list
-    #     return outer_list
-    # guids_for_fields = reduce(outer_get, program_to_project_context["topmed"].items(), [])
-
-    # for acl in acl_set:
-        # params = {"study_with_consent": acl}
-        # a = index.get_with_params(params)
-        # reference_file_data_from_indexd.append(a)
-
-    # studies_organized_by_project = reduce(lambda p: "blah", fields_organized_by_study.items(), {})
-
-    # phsid_to_file_data = dict(map(lambda d: (d["study_with_consent"], d), fields_with_study_with_consent))
-    # study_set = set(acl_to_dest_data.keys())
-    # files_with_program_and_project = list(map(add_program_and_project(acl_to_dest_data),
-    #                                           phsid_to_file_data.values()))
-    # files_sorted_by_project = reduce(group_by("project"), files_with_program_and_project, {})
-    # projects_sorted_by_program = reduce(group_by("program", lambda gid, e: e[1][0][gid]),
-    #                                     list(files_sorted_by_project.items()), {})
-    # def check_lake(ss):
-    #     def value_in_lake(n):
-    #         return n["study_with_consent"] in ss
-    #     return value_in_lake
-
-    # fields_to_make_nodes_for = list(filter(check_lake(study_set), list(nodes_with_program_and_project)))
-    # guids_for_fields = list(map(lambda d: d["guid"], fields_to_make_nodes_for))
-    # acl_set = set(fields_to_make_nodes_for)
-
-    # url = "https://preprod.gen3.biodatacatalyst.nhlbi.nih.gov/index/index/"
-    # params = {"page": 0}  # Set the number of records to fetch per request
-    # data_array = []
-    # outcome1 = index.get_all_records()
-    # tsv_acls = map(lambda row: row["acl"], dest_data)
-    # params = {"acl": [next(iter(dest_data))["acl"]]}
-    # outcome2 = index.get_with_params(params)
-    # outcome = create_ref_file_node(outcome2)
-    # print(outcome1, outcome2)
-    # try:
-    #     while params["page"] < 1:
-    #         response = requests.get(url, params=params)
-    #         if response.status_code == 200:
-    #             data = response.json()
-    #             if len(data["records"]) == 0:
-    #                 break
-    #             else:
-    #                 data_array.extend(data["records"])
-    #                 params["page"] = params.get("page") + 1
-    #         else:
-    #             print("Failed to retrieve data. Status code:", response.status_code)
-    #             break
-    # except requests.exceptions.RequestException as e:
-    #     print("Error fetching data:", e)
-    # print("Total records fetched:", len(data_array))
-
-    # get data from indexd
-    # compare against the tsv
