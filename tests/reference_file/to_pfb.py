@@ -272,10 +272,7 @@ def get_indexd_data_and_add_program_project(guid_to_program_project):
     return list(map(add_program_and_project, indexd_data))
 
 
-def test_full_ingestion_process():
-    guid_to_program_project = derive_guid_to_program_project()
-    indexd_data_with_program_and_project = get_indexd_data_and_add_program_project(guid_to_program_project)
-
+def add_submitter_id():
     for index_dict in indexd_data_with_program_and_project:
         # todo: generate submitter id
         manifest_location = "tsv/release_manifest_release-27.tsv"
@@ -284,18 +281,39 @@ def test_full_ingestion_process():
         assert accession_number is not None
         # outcome = create_reference_file_node(index_dict["project"], accession_number, manifest_location, ref_file_location)
         # print(outcome)
+
+
+def upsert(identifier, graph, value):
+    identifier_exists = identifier in graph
+    if identifier_exists:
+        graph[identifier].append(value)
+    else:
+        graph[identifier] = [value]
+    return graph
+
+
+def graph_to(key, dictionary_list):
+    def add_to_graph(graph, dictionary):
+        value_at_key = dictionary[key]
+        graph = upsert(value_at_key, graph, dictionary)
+        return graph
+    return reduce(add_to_graph, dictionary_list, {})
+
+def test_full_ingestion_process():
+    guid_to_program_project = derive_guid_to_program_project()
+    indexd_data_with_program_and_project = get_indexd_data_and_add_program_project(guid_to_program_project)
     reference_file_context = list(map(create_ref_file_node, indexd_data_with_program_and_project))
 
-    def sort_by_program(program_to_ref_file_context, ref_context):
-        program = ref_context["program"]
+    def organize_by_program(program_to_ref_file_context, reference_file_context):
+        program = reference_file_context["program"]
         program_exists = program in program_to_ref_file_context
-        program_context = {"project": ref_context["project"], "reference_file": ref_context["reference_file"]}
+        program_context = {"project": reference_file_context["project"], "reference_file": reference_file_context["reference_file"]}
         if program_exists:
             program_to_ref_file_context[program].append(program_context)
         else:
             program_to_ref_file_context[program] = [program_context]
         return program_to_ref_file_context
-    program_to_reference_file_context = reduce(sort_by_program, reference_file_context, {})
+    program_to_reference_file_context = graph_to(organize_by_program, reference_file_context)
 
     def collect_to_project(program_with_reference_files_under_program):
         def build_project_contexts(project_to_ref_file_context, project_context):
