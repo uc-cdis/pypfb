@@ -137,7 +137,7 @@ def ingest_json_files_into_pfb(program, project, reference_file_nodes):
         raise
 
 
-def add_program_and_project(dest):
+def add_program_and_project_old(dest):
     def get_program_and_project(ref_file_info):
         dataset = dest.get(ref_file_info["study_with_consent"], None)
         assert dataset is not None
@@ -231,31 +231,51 @@ def read(file_location):
     return file_contents
 
 
-def test_full_ingestion_process():
-
+def derive_guid_to_program_project():
     acl_to_program_project = derive_acl_to_program_project_from_destination_manifest("tsv/dest-bucket-manifest.tsv")
     release_files = tsv_to_json("tsv/release_manifest_release-27.tsv")
     fields_with_accession_number = list(filter(lambda entry: bool(entry.get("study_accession_with_consent")),
                                                release_files))
-
     guid_to_release_data = map_to("guid", fields_with_accession_number)
-
-
     guid_to_acl = map_values(lambda field: field["study_with_consent"], guid_to_release_data)
     guid_to_program_project = map_values(lambda acl: acl_to_program_project[acl], guid_to_acl)
+    return guid_to_program_project
+
+
+def handle_querying_indexd_for_ref_file_records():
+    # derive_guid_to_program_project()
     reference_file_guids = list(guid_to_release_data.keys())
     guid_to_accession = map_values(lambda field: field["study_with_consent"], guid_to_release_data)
-    indexd_data = read("json/indexd/ref_file_indexd_records.json")[:2]
+    handle_chunked_querying_of_indexd("...")
 
-    def add_program_and_project_v2(indexd_entry):
+def handle_directory_stuff():
+    # output_directory_for_ref_file_json_files = "json/output_ref_files/"
+    # if not os.path.exists(output_directory_for_ref_file_json_files):
+    #     try:
+    #         os.makedirs(output_directory_for_ref_file_json_files)
+    #     except Exception as e:
+    #         print(e)
+    # if len(os.listdir(output_directory_for_ref_file_json_files)) > 0:
+    #     clear_directory(output_directory_for_ref_file_json_files)
+    # for_each(list(enumerate(output)), partial(write_dicts_to_json_files, output_directory_for_ref_file_json_files))
+    pass
+
+
+def get_indexd_data_and_add_program_project(guid_to_program_project):
+    indexd_data = read("json/indexd/ref_file_indexd_records.json")[:2]
+    def add_program_and_project(indexd_entry):
         program_project = guid_to_program_project.get(indexd_entry["did"])
         assert program_project is not None
         indexd_entry["program"] = program_project[0]
         indexd_entry["project"] = program_project[1]
         return indexd_entry
-    indexd_data_with_program_and_project = list(map(add_program_and_project_v2, indexd_data))
+    return list(map(add_program_and_project, indexd_data))
 
-    submitter_ids = []
+
+def test_full_ingestion_process():
+    guid_to_program_project = derive_guid_to_program_project()
+    indexd_data_with_program_and_project = get_indexd_data_and_add_program_project(guid_to_program_project)
+
     for index_dict in indexd_data_with_program_and_project:
         # todo: generate submitter id
         manifest_location = "tsv/release_manifest_release-27.tsv"
@@ -292,15 +312,6 @@ def test_full_ingestion_process():
 
     program_to_project_context = dict(map(collect_to_project, program_to_reference_file_context.items()))
 
-    # output_directory_for_ref_file_json_files = "json/output_ref_files/"
-    # if not os.path.exists(output_directory_for_ref_file_json_files):
-    #     try:
-    #         os.makedirs(output_directory_for_ref_file_json_files)
-    #     except Exception as e:
-    #         print(e)
-    # if len(os.listdir(output_directory_for_ref_file_json_files)) > 0:
-    #     clear_directory(output_directory_for_ref_file_json_files)
-    # for_each(list(enumerate(output)), partial(write_dicts_to_json_files, output_directory_for_ref_file_json_files))
 
     for program, project_context in program_to_project_context.items():
         for project, reference_files in project_context.items():
