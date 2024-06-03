@@ -16,12 +16,12 @@ from gen3.index import Gen3Index
 from pfb.reader import PFBReader
 from pfb.writer import PFBWriter
 from tests.reference_file.test_ingestion import from_json_v2
-from ref_file_helper import create_reference_file_node
+from ref_file_helper import generate_unique_submitter_ids_v2, create_reference_file_node
 from typing import List, Dict, Any
-
 
 LEFT = 0
 RIGHT = 1
+
 
 def tsv_to_json(tsv_file_path) -> List[Dict[Any, Any]]:
     data = []
@@ -98,7 +98,7 @@ def write_dicts_to_json_files(directory, index_with_node_dict):
     :param directory: The directory where the files will be saved.
     """
 
-    file_path = os.path.join(directory, f"entry_{index_with_node_dict[0]+1}.json")
+    file_path = os.path.join(directory, f"entry_{index_with_node_dict[0] + 1}.json")
     with open(file_path, 'w') as json_file:
         json.dump(index_with_node_dict[1], json_file, indent=4)
 
@@ -145,6 +145,7 @@ def add_program_and_project_old(dest):
         ref_file_info["program"] = program_project[0]
         ref_file_info["project"] = program_project[1]
         return ref_file_info
+
     return get_program_and_project
 
 
@@ -155,8 +156,8 @@ def add_program_and_project_to_indexd_closure(guid_to_updated_nodes):
         indexd_data["program"] = dataset["program"]
         indexd_data["project"] = dataset["project"]
         return indexd_data
-    return add_program_and_project_to_indexd
 
+    return add_program_and_project_to_indexd
 
 
 def insert_or_append(graph, key, value):
@@ -170,6 +171,7 @@ def group_by(group_identifier, accessor=lambda gid, e: e[gid], inserter=insert_o
         group_id = accessor(group_identifier, data_entry)
         graph = inserter(graph, group_id, data_entry)
         return graph
+
     return add_to_graph
 
 
@@ -183,43 +185,50 @@ def add_or_insert(phs_to_file_data, file):
     return phs_to_file_data
 
 
-def map_to(key, dictionaries):
+def map_from(key, dictionaries):
     def map_from_key_in_dictionary(dictionary):
         value_at_key = dictionary[key]
         return value_at_key, dictionary
+
     return dict(map(map_from_key_in_dictionary, dictionaries))
 
 
 def map_values(mutator, dictionary):
     def map_value(kv_pair):
         return kv_pair[LEFT], mutator(kv_pair[RIGHT])
+
     return dict(map(map_value, dictionary.items()))
 
 
 def derive_acl_to_program_project_from_destination_manifest(manifest_location):
     dest_data = tsv_to_json(manifest_location)
-    acl_to_dest_data = map_to("acl", dest_data)
+    acl_to_dest_data = map_from("acl", dest_data)
 
     def get_program_project_from_dest_entry(dest_entry):
         program_project_pair = dest_entry["dataset_identifier"].split('-', 1)
-        return {"program": program_project_pair[LEFT], "project": program_project_pair[RIGHT]}
+        return {"program": program_project_pair[LEFT],
+                "project": program_project_pair[RIGHT]}
+
     acl_to_program_project = map_values(get_program_project_from_dest_entry, acl_to_dest_data)
     return acl_to_program_project
 
 
-def handle_chunked_querying_of_indexd(reference_file_guids, index):
+def get_and_save_indexd_records_to_file(reference_file_guids, index):
     cred_path = os.environ.get("PP_CREDS")
     auth = Gen3Auth(refresh_file=cred_path)
     index = Gen3Index(auth_provider=auth)
 
     def chunk(lst, size):
         return [lst[i:i + size] for i in range(0, len(lst), size)]
+
     chunked_guids = chunk(reference_file_guids, 2500)
+
     def get_and_save_chunked_records():
         def get_chunked_records(indexd_chunks, guid_chunk):
             indexd_data_chunk = index.get_records(guid_chunk)
             indexd_chunks += indexd_data_chunk
             return indexd_chunks
+
         indexd_data = reduce(get_chunked_records, chunked_guids, [])
         with open("json/indexd/ref_file_indexd_records.json", 'w') as file:
             json.dump(indexd_data, file, indent=4)
@@ -231,22 +240,27 @@ def read(file_location):
     return file_contents
 
 
-def derive_guid_to_program_project():
-    acl_to_program_project = derive_acl_to_program_project_from_destination_manifest("tsv/dest-bucket-manifest.tsv")
+def map_guid_to_release_data():
     release_files = tsv_to_json("tsv/release_manifest_release-27.tsv")
     fields_with_accession_number = list(filter(lambda entry: bool(entry.get("study_accession_with_consent")),
                                                release_files))
-    guid_to_release_data = map_to("guid", fields_with_accession_number)
+    guid_to_release_data = map_from("guid", fields_with_accession_number)
+    return guid_to_release_data
+
+
+def derive_guid_to_program_project(guid_to_release_data):
+    acl_to_program_project = derive_acl_to_program_project_from_destination_manifest("tsv/dest-bucket-manifest.tsv")
     guid_to_acl = map_values(lambda field: field["study_with_consent"], guid_to_release_data)
     guid_to_program_project = map_values(lambda acl: acl_to_program_project[acl], guid_to_acl)
     return guid_to_program_project
 
 
-def handle_querying_indexd_for_ref_file_records():
+def handle_querying_indexd_for_ref_file_records(guid_to_release_data):
     # derive_guid_to_program_project()
-    reference_file_guids = list(guid_to_release_data.keys())
+    # reference_file_guids = list(guid_to_release_data.keys())
     guid_to_accession = map_values(lambda field: field["study_with_consent"], guid_to_release_data)
-    handle_chunked_querying_of_indexd("...")
+    # get_and_save_indexd_records_to_file("...")
+
 
 def handle_directory_stuff():
     # output_directory_for_ref_file_json_files = "json/output_ref_files/"
@@ -263,24 +277,27 @@ def handle_directory_stuff():
 
 def get_indexd_data_and_add_program_project(guid_to_program_project):
     indexd_data = read("json/indexd/ref_file_indexd_records.json")[:2]
+
     def add_program_and_project(indexd_entry):
         program_project = guid_to_program_project.get(indexd_entry["did"])
         assert program_project is not None
-        indexd_entry["program"] = program_project[0]
-        indexd_entry["project"] = program_project[1]
+        indexd_entry["program"] = program_project["program"]
+        indexd_entry["project"] = program_project["project"]
         return indexd_entry
+
     return list(map(add_program_and_project, indexd_data))
 
 
-def add_submitter_id():
-    for index_dict in indexd_data_with_program_and_project:
-        # todo: generate submitter id
-        manifest_location = "tsv/release_manifest_release-27.tsv"
-        ref_file_location = "json/example/reference_file.json"
-        accession_number = guid_to_accession.get(index_dict["did"])
-        assert accession_number is not None
-        # outcome = create_reference_file_node(index_dict["project"], accession_number, manifest_location, ref_file_location)
-        # print(outcome)
+def add_submitter_id(guid_to_accession, index_dict):
+    # todo: generate submitter id
+    manifest_location = "../tsv_data/nhlbi_ref_file/nhlbi_ref_manifest.tsv"
+    ref_file_location = "json/example/reference_file_without_submitter_id.json"
+    accession_number = guid_to_accession.get(index_dict["did"])
+    assert accession_number is not None
+    bucket_url = index_dict["url"]
+    outcome = create_reference_file_node(index_dict["project"], accession_number, manifest_location, ref_file_location)
+    outcome2 = generate_unique_submitter_ids_v2(bucket_url)
+    print(outcome)
 
 
 def upsert(identifier, graph, value):
@@ -297,22 +314,38 @@ def graph_to(key, dictionary_list):
         value_at_key = dictionary[key]
         graph = upsert(value_at_key, graph, dictionary)
         return graph
+
     return reduce(add_to_graph, dictionary_list, {})
 
-def test_full_ingestion_process():
-    guid_to_program_project = derive_guid_to_program_project()
-    indexd_data_with_program_and_project = get_indexd_data_and_add_program_project(guid_to_program_project)
-    reference_file_context = list(map(create_ref_file_node, indexd_data_with_program_and_project))
 
-    def organize_by_program(program_to_ref_file_context, reference_file_context):
-        program = reference_file_context["program"]
+def insert(dictionary, pair):
+    dictionary.update([pair])
+    return dictionary
+
+
+def test_full_ingestion_process():
+    guid_to_release_data = map_guid_to_release_data()
+    guid_to_program_project = derive_guid_to_program_project(guid_to_release_data)
+    guid_to_urls = map_values(lambda d: d["urls"], guid_to_release_data)
+    guid_to_accession = map_values(lambda field: field["study_accession_with_consent"], guid_to_release_data)
+    indexd_data_with_program_and_project = get_indexd_data_and_add_program_project(guid_to_program_project)
+    indexd_with_needed_context = list(map(lambda d: insert(d, ("urls", guid_to_urls[d["did"]])),
+                                      indexd_data_with_program_and_project))
+    indexd_data_with_submitter_id = list(map(partial(add_submitter_id, guid_to_accession),
+                                             indexd_data_with_program_and_project))
+    reference_file_context = list(map(create_ref_file_node, indexd_data_with_submitter_id))
+
+    def organize_by_program(program_to_ref_file_context, ref_file_context):
+        program = ref_file_context["program"]
         program_exists = program in program_to_ref_file_context
-        program_context = {"project": reference_file_context["project"], "reference_file": reference_file_context["reference_file"]}
+        program_context = {"project": ref_file_context["project"],
+                           "reference_file": ref_file_context["reference_file"]}
         if program_exists:
             program_to_ref_file_context[program].append(program_context)
         else:
             program_to_ref_file_context[program] = [program_context]
         return program_to_ref_file_context
+
     program_to_reference_file_context = graph_to(organize_by_program, reference_file_context)
 
     def collect_to_project(program_with_reference_files_under_program):
@@ -324,12 +357,12 @@ def test_full_ingestion_process():
             else:
                 project_to_ref_file_context[project] = [project_context["reference_file"]]
             return project_to_ref_file_context
+
         reference_files_under_program = program_with_reference_files_under_program[1]
         project_to_reference_file_context = reduce(build_project_contexts, reference_files_under_program, {})
         return program_with_reference_files_under_program[0], project_to_reference_file_context
 
     program_to_project_context = dict(map(collect_to_project, program_to_reference_file_context.items()))
-
 
     for program, project_context in program_to_project_context.items():
         for project, reference_files in project_context.items():

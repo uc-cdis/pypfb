@@ -1,3 +1,5 @@
+import json
+
 import pandas as pd
 import os
 
@@ -81,6 +83,20 @@ def get_extension(filename):
             return ext.upper()
 
 
+def generate_unique_submitter_ids_v2(bucket_url):
+    path_components = bucket_url[5:].split("/")
+    reversed_components = path_components[::-1]
+    outcome = '_'.join(reversed_components)
+    existing_ids = set()
+    submitter_id = None
+    blah = list(range(len(path_components)))[::-1]
+    for component_index in blah:
+        # ['ACTIV4-10-PKimlab-BioData_Catalyst-2023-to_upload-2024updates.xlsx']
+        thing = path_components[component_index:]
+        submitter_id = '_'.join(thing)
+    return submitter_id
+
+
 def generate_unique_submitter_ids(df, url_col, id_col):
     """
         Helper function to generate unique submitter IDs based on the bucket path.
@@ -89,7 +105,8 @@ def generate_unique_submitter_ids(df, url_col, id_col):
     existing_ids = set()
     for i, row in df.iterrows():
         # Remove 's3://' and split the path into components
-        path_components = row[url_col][5:].split('/')
+        bucket_value = row[url_col]
+        path_components = bucket_value[5:].split('/')
         for j in range(len(path_components)):
             # Create a potential submitter ID by joining the relevant path components
             submitter_id = '_'.join(path_components[-(j + 1):])
@@ -106,7 +123,12 @@ def prog_projcons_partsplit(ppc):
     return parts[0], parts[1]
 
 
-def create_reference_file_node(ppc, dbgap_ascnum, nhlbi_manifest, reference_file_node=None):
+def read_json(file_location):
+    with open(file_location, 'r') as file:
+        data = json.load(file)
+    return data
+
+def create_reference_file_node(ppc, dbgap_ascnum, manifest_location, node_location=None):
     # what is a guid, exactly?
     # a guid is a unique id for a file
     # what is a dbgap accession number?
@@ -118,22 +140,22 @@ def create_reference_file_node(ppc, dbgap_ascnum, nhlbi_manifest, reference_file
     self: Instance of the class
     ppc: Program, Project and Consent text string delimited by a "-" and "_" respectively. (ex. BioLINCC-MESA_HMB)
     dbgap_ascnum: dbGaP accession number (e.g., phs001234.v5.p1)
-    nhlbi_manifest: Path to the NHLBI manifest file or a pandas DataFrame
-    reference_file_node: Optional path to the reference file node or a pandas DataFrame (default: None_
+    manifest_location: Path to the NHLBI manifest file or a pandas DataFrame
+    node_location: Optional path to the reference file node or a pandas DataFrame (default: None_
     Returns:
     submission_df: Pandas DataFrame containing the reference file node data
 
     TODO: Some columns DNE for every project and should be dropped or not called if they DNE to avoid errors.
         For example, 'callset' is usually unique to topmed studies, but is fully integrated into this function.
-        The function should be changed to dynamically check whether a column exists in 'reference_file_node'
+        The function should be changed to dynamically check whether a column exists in 'node_location'
         and append it with the existing data. Otherwise, only the required fields should be affixed.
     """
     # If a reference file node is not provided, warn the user that default values will be used
-    if reference_file_node is None:
+    if node_location is None:
         print("""
-        NOTE: The 'reference_file_node' argument is not defined. 
+        NOTE: The 'node_location' argument is not defined. 
         The existing 'reference_file' node values from Gen3 will not map based on matching md5sum values in the NHLBI manifest. 
-        To match these values, include the 'reference_file_node' function argument.
+        To match these values, include the 'node_location' function argument.
         The function will apply these default values:
         1. 'callset' will be dropped as a column.
         2. 'file_type' = 'Other'
@@ -141,8 +163,8 @@ def create_reference_file_node(ppc, dbgap_ascnum, nhlbi_manifest, reference_file
         4. 'data_type' = 'Other'
         """)
     # Ensure the NHLBI manifest and reference file node are dataframes
-    nhlbi_manifest = ensure_dataframe(nhlbi_manifest)
-    reference_file_node = ensure_dataframe(reference_file_node)
+    nhlbi_manifest = ensure_dataframe(manifest_location)
+    reference_file_node = pd.DataFrame(read_json(node_location), index=[0])
     assert nhlbi_manifest is not None
     # assert reference_file_node is not None
     # Check for errors in reading the files and return None if there are any
@@ -181,7 +203,6 @@ def create_reference_file_node(ppc, dbgap_ascnum, nhlbi_manifest, reference_file
         submission_df['data_type'] = 'Other'
     # Otherwise, map and fill values from the reference file node
     else:
-        map_and_fillna(submission_df, reference_file_node, 'md5sum', 'callset', 'Freeze 9b')
         map_and_fillna(submission_df, reference_file_node, 'md5sum', 'file_type', 'Other')
         map_and_fillna(submission_df, reference_file_node, 'md5sum', 'data_category', 'Clinical Data')
         map_and_fillna(submission_df, reference_file_node, 'md5sum', 'data_type', 'Other')
@@ -193,7 +214,10 @@ def create_reference_file_node(ppc, dbgap_ascnum, nhlbi_manifest, reference_file
     submission_df['file_md5sum'] = submission_df['md5sum']
     submission_df['study_version'] = ''.join([char for char in dbgap_version if char.isdigit()])
     # Generate unique submitter IDs
+    bucket_url = 's3://nih-nhlbi-biodata-catalyst-phs002694-v4/ACTIV4a-Mechanistic-Studies/10-Kim-ACTIV4-BEACONS-COVID-19-Comprehensive-Biomarker-Analysis-for-Prediction-of-clinical-course/ACTIV4-10-PKimlab-BioData_Catalyst-2023-to_upload-2024updates.xlsx''s3://nih-nhlbi-biodata-catalyst-phs002694-v4/ACTIV4a-Mechanistic-Studies/10-Kim-ACTIV4-BEACONS-COVID-19-Comprehensive-Biomarker-Analysis-for-Prediction-of-clinical-course/ACTIV4-10-PKimlab-BioData_Catalyst-2023-to_upload-2024updates.xlsx'
+    outcome = generate_unique_submitter_ids_v2(bucket_url)
     generate_unique_submitter_ids(submission_df, 'bucket_path', 'submitter_id')
+
     # If a reference file node is not provided, drop the 'callset' column
     if reference_file_node is None:
         submission_df.drop('callset', axis=1, inplace=True)
