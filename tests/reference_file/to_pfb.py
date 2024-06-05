@@ -57,7 +57,7 @@ def create_ref_file_node(indexd_data):
         "file_name": indexd_data["file_name"],
         "file_size": indexd_data["size"],
         "md5sum": indexd_data["hashes"]["md5"],
-        "submitter_id": generate_random_string(),
+        "submitter_id": indexd_data["submitter_id"],
         "type": "reference_file",
         "ga4gh_drs_uri": drs_uri,
         "object_id": object_id,
@@ -234,11 +234,16 @@ def get_and_save_indexd_records_to_file(reference_file_guids, index):
             json.dump(indexd_data, file, indent=4)
 
 
-def read(file_location):
+def read_json(file_location):
     with open(file_location, 'r') as file:
         file_contents = json.load(file)
     return file_contents
 
+
+def read_tsv(file_location):
+    with open(file_location, 'r') as file:
+        reader = list(csv.DictReader(file, delimiter='\t'))
+    return reader
 
 def map_guid_to_release_data():
     release_files = tsv_to_json("tsv/release_manifest_release-27.tsv")
@@ -276,7 +281,7 @@ def handle_directory_stuff():
 
 
 def get_indexd_data_and_add_program_project(guid_to_program_project):
-    indexd_data = read("json/indexd/ref_file_indexd_records.json")[:2]
+    indexd_data = read_json("json/indexd/ref_file_indexd_records.json")
 
     def add_program_and_project(indexd_entry):
         program_project = guid_to_program_project.get(indexd_entry["did"])
@@ -288,16 +293,52 @@ def get_indexd_data_and_add_program_project(guid_to_program_project):
     return list(map(add_program_and_project, indexd_data))
 
 
-def add_submitter_id(guid_to_accession, index_dict):
-    # todo: generate submitter id
-    manifest_location = "../tsv_data/nhlbi_ref_file/nhlbi_ref_manifest.tsv"
-    ref_file_location = "json/example/reference_file_without_submitter_id.json"
-    accession_number = guid_to_accession.get(index_dict["did"])
-    assert accession_number is not None
-    bucket_url = index_dict["url"]
-    outcome = create_reference_file_node(index_dict["project"], accession_number, manifest_location, ref_file_location)
-    outcome2 = generate_unique_submitter_ids_v2(bucket_url)
-    print(outcome)
+def try_next(iterator_instance):
+    try:
+        next_element = next(iterator_instance)
+        return next_element
+    except StopIteration:
+        return None
+
+
+def mint_new_submitter_id(existing_ids, bucket_url):
+    path_components = bucket_url[5:].split("/")
+    reversed_components = iter(path_components[::-1])
+
+    def generate_submitter_id(previous_submitter_id, id_components):
+        next_element = try_next(id_components)
+        if next_element is None:
+            return None
+        else:
+            return previous_submitter_id + "_" + next_element
+
+    new_submitter_id = try_next(reversed_components)
+    id_already_used = new_submitter_id in existing_ids
+    exhausted_possible_submitter_ids = new_submitter_id is None
+    while id_already_used and not exhausted_possible_submitter_ids:
+        new_submitter_id = generate_submitter_id(new_submitter_id, reversed_components)
+        id_already_used = new_submitter_id in existing_ids
+        exhausted_possible_submitter_ids = new_submitter_id is None
+    assert new_submitter_id is not None  # come up with a definitive way to create unique submitter IDs
+    existing_ids.add(new_submitter_id)
+    return new_submitter_id
+
+
+def generate_submitter_ids(guid_to_bucket_urls):
+    existing_ids = set()
+    guid_to_submitter_ids = map_values(partial(mint_new_submitter_id, existing_ids), guid_to_bucket_urls)
+    return guid_to_submitter_ids
+
+
+def add_submitter_ids(indexd_contexts):
+    def map_guid_to_bucket_path(mapping, indexd_context):
+        mapping[indexd_context["did"]] = indexd_context["bucket_path"]
+        return mapping
+    guid_to_bucket_urls = reduce(map_guid_to_bucket_path, indexd_contexts, {})
+    guid_to_submitter_ids = generate_submitter_ids(guid_to_bucket_urls)
+    add_submitter_id = lambda d: insert(d, ("submitter_id", guid_to_submitter_ids[d["did"]]))
+    reference_file_context = list(map(add_submitter_id, indexd_contexts))
+    return reference_file_context
 
 
 def upsert(identifier, graph, value):
@@ -327,13 +368,20 @@ def test_full_ingestion_process():
     guid_to_release_data = map_guid_to_release_data()
     guid_to_program_project = derive_guid_to_program_project(guid_to_release_data)
     guid_to_urls = map_values(lambda d: d["urls"], guid_to_release_data)
-    guid_to_accession = map_values(lambda field: field["study_accession_with_consent"], guid_to_release_data)
+    # guid_to_accession = map_values(lambda field: field["study_accession_with_consent"], guid_to_release_data)
     indexd_data_with_program_and_project = get_indexd_data_and_add_program_project(guid_to_program_project)
-    indexd_with_needed_context = list(map(lambda d: insert(d, ("urls", guid_to_urls[d["did"]])),
-                                      indexd_data_with_program_and_project))
-    indexd_data_with_submitter_id = list(map(partial(add_submitter_id, guid_to_accession),
-                                             indexd_data_with_program_and_project))
-    reference_file_context = list(map(create_ref_file_node, indexd_data_with_submitter_id))
+    # indexd_with_needed_context = list(map(lambda d: insert(d, ("urls", guid_to_urls[d["did"]])),
+    #                                   indexd_data_with_program_and_project))
+    bad_indexd_data = list(filter(lambda context: len(context["urls"]) == 0, indexd_data_with_program_and_project))
+    indexd_data_in_google = list(filter(lambda context: len(context["urls"]) == 1, indexd_data_with_program_and_project))
+    indexd_data_in_amazon = list(filter(lambda context: len(context["urls"]) == 2, indexd_data_with_program_and_project))
+    indexd_google_data_with_bucket_path = list(map(lambda d:insert(d, ("bucket_path", d["urls"][0])),
+                                                   indexd_data_in_google))
+    indexd_amazon_data_with_bucket_path = list(map(lambda d: insert(d, ("bucket_path", d["urls"][1])),
+                                                   indexd_data_in_amazon))
+    regrouped_indexd_data = indexd_google_data_with_bucket_path + indexd_amazon_data_with_bucket_path
+    indexd_data_with_submitter_id = add_submitter_ids(regrouped_indexd_data)
+    reference_file_nodes = list(map(create_ref_file_node, indexd_data_with_submitter_id))
 
     def organize_by_program(program_to_ref_file_context, ref_file_context):
         program = ref_file_context["program"]
@@ -346,7 +394,7 @@ def test_full_ingestion_process():
             program_to_ref_file_context[program] = [program_context]
         return program_to_ref_file_context
 
-    program_to_reference_file_context = graph_to(organize_by_program, reference_file_context)
+    program_to_reference_file_nodes = graph_to(organize_by_program, reference_file_nodes)
 
     def collect_to_project(program_with_reference_files_under_program):
         def build_project_contexts(project_to_ref_file_context, project_context):
@@ -359,10 +407,10 @@ def test_full_ingestion_process():
             return project_to_ref_file_context
 
         reference_files_under_program = program_with_reference_files_under_program[1]
-        project_to_reference_file_context = reduce(build_project_contexts, reference_files_under_program, {})
-        return program_with_reference_files_under_program[0], project_to_reference_file_context
+        project_to_reference_file_nodes = reduce(build_project_contexts, reference_files_under_program, {})
+        return program_with_reference_files_under_program[0], project_to_reference_file_nodes
 
-    program_to_project_context = dict(map(collect_to_project, program_to_reference_file_context.items()))
+    program_to_project_context = dict(map(collect_to_project, program_to_reference_file_nodes.items()))
 
     for program, project_context in program_to_project_context.items():
         for project, reference_files in project_context.items():

@@ -103,19 +103,24 @@ def generate_unique_submitter_ids(df, url_col, id_col):
         """
     # Initialize a set to store existing submitter IDs
     existing_ids = set()
+    submitter_ids = []
     for i, row in df.iterrows():
         # Remove 's3://' and split the path into components
         bucket_value = row[url_col]
         path_components = bucket_value[5:].split('/')
+        submitter_ids.append(i)
         for j in range(len(path_components)):
             # Create a potential submitter ID by joining the relevant path components
-            submitter_id = '_'.join(path_components[-(j + 1):])
+            reverse_index = -(j+1)
+            path_component_at_reverse_index = path_components[reverse_index:]
+            submitter_id = '_'.join(path_component_at_reverse_index)
             # If this id is unique, use it and break the inner loop
             if submitter_id not in existing_ids:
                 df.loc[i, id_col] = submitter_id
                 existing_ids.add(submitter_id)
+                submitter_ids.append(submitter_id)
                 break
-    return df
+    return df, existing_ids, submitter_ids
 
 
 def prog_projcons_partsplit(ppc):
@@ -127,6 +132,7 @@ def read_json(file_location):
     with open(file_location, 'r') as file:
         data = json.load(file)
     return data
+
 
 def create_reference_file_node(ppc, dbgap_ascnum, manifest_location, node_location=None):
     # what is a guid, exactly?
@@ -215,8 +221,10 @@ def create_reference_file_node(ppc, dbgap_ascnum, manifest_location, node_locati
     submission_df['study_version'] = ''.join([char for char in dbgap_version if char.isdigit()])
     # Generate unique submitter IDs
     bucket_url = 's3://nih-nhlbi-biodata-catalyst-phs002694-v4/ACTIV4a-Mechanistic-Studies/10-Kim-ACTIV4-BEACONS-COVID-19-Comprehensive-Biomarker-Analysis-for-Prediction-of-clinical-course/ACTIV4-10-PKimlab-BioData_Catalyst-2023-to_upload-2024updates.xlsx''s3://nih-nhlbi-biodata-catalyst-phs002694-v4/ACTIV4a-Mechanistic-Studies/10-Kim-ACTIV4-BEACONS-COVID-19-Comprehensive-Biomarker-Analysis-for-Prediction-of-clinical-course/ACTIV4-10-PKimlab-BioData_Catalyst-2023-to_upload-2024updates.xlsx'
-    outcome = generate_unique_submitter_ids_v2(bucket_url)
-    generate_unique_submitter_ids(submission_df, 'bucket_path', 'submitter_id')
+    outcome = generate_unique_submitter_ids_v2(list(submission_df.iterrows())[0][1]["bucket_path"])
+    outcome2 = generate_unique_submitter_ids(submission_df, 'bucket_path', 'submitter_id')
+    # todo: if need to make a new ref file node, use the submission df
+    # swap out guids if existing df
 
     # If a reference file node is not provided, drop the 'callset' column
     if reference_file_node is None:
