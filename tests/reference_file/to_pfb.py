@@ -52,7 +52,7 @@ def create_ref_file_node(indexd_data):
 
     reference_file = {
         "data_category": "Clinical Data",
-        "data_format": "XML",
+        "data_format": indexd_data["bucket_path"].split(".")[-1],
         "data_type": "Other",
         "file_name": indexd_data["file_name"],
         "file_size": indexd_data["size"],
