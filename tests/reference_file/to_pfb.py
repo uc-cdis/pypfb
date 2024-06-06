@@ -112,7 +112,8 @@ def ingest_json_files_into_pfb(program, project, reference_file_nodes):
     try:
         # todo: figure out where to get ref_file schema from
         # right now we get it from that manifest file in github iirc
-        with PFBReader("avro/minimal_schema.avro") as s_reader:
+        path = "avro/" + project + ".avro"
+        with PFBReader("avro/minimal/minimal_schema.avro") as s_reader:
             data_from_json = []
             for reference_file_node in reference_file_nodes:
                 node_info = {
@@ -121,14 +122,14 @@ def ingest_json_files_into_pfb(program, project, reference_file_nodes):
                     "reference_file": reference_file_node
                 }
                 data_from_json.append(from_json_v2(s_reader.metadata, node_info))
-            with PFBWriter("avro/minimal_data.avro") as d_writer:
+            with PFBWriter(path) as d_writer:
                 d_writer.copy_schema(s_reader)
                 d_writer.write(data_from_json)
                 # if I get the "a+" error it's because i'm trying to write one entry in at a time
                 # in contrast to just writing it in all at once, as is done in the line above
                 # for json_data in data_from_json:
                 #     d_writer.write([json_data])
-            with PFBReader("avro/minimal_data.avro") as d_reader:
+            with PFBReader(path) as d_reader:
                 for r in itertools.islice(d_reader, None):
                     json.dump(r, sys.stdout)
                     sys.stdout.write("\n")
@@ -394,7 +395,7 @@ def test_full_ingestion_process():
             program_to_ref_file_context[program] = [program_context]
         return program_to_ref_file_context
 
-    program_to_reference_file_nodes = graph_to(organize_by_program, reference_file_nodes)
+    program_to_reference_file_nodes = reduce(organize_by_program, reference_file_nodes, {})
 
     def collect_to_project(program_with_reference_files_under_program):
         def build_project_contexts(project_to_ref_file_context, project_context):

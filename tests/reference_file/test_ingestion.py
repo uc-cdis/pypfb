@@ -94,7 +94,7 @@ def test_pfb_import(runner, invoke, path_join):
         "json/")
     """
     try:
-        with PFBReader("avro/minimal_schema.avro") as s_reader:
+        with PFBReader("avro/minimal/minimal_schema.avro") as s_reader:
             data_from_json = from_json(s_reader.metadata, "json/example", "NSRR", "CFS")
             with runner.isolated_filesystem():
                 with PFBWriter("minimal_data.avro") as d_writer:
