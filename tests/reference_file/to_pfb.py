@@ -5,9 +5,6 @@ import shutil
 import string
 import sys
 from functools import partial, reduce
-from typing import List
-
-import requests
 import csv
 import json
 from gen3.auth import Gen3Auth
@@ -36,15 +33,6 @@ def test_tsv_ingestion():
     print(outcome)
 
 
-from datetime import datetime, timezone
-
-
-def generate_random_string():
-    characters = string.ascii_letters + string.digits
-    random_string = ''.join(random.choice(characters) for _ in range(12))
-    return random_string
-
-
 def create_ref_file_node(indexd_data):
     object_id = indexd_data["did"]
     drs_uri = f"drs://{object_id}"
@@ -67,44 +55,6 @@ def create_ref_file_node(indexd_data):
         "reference_file": reference_file
     }
     return pfb_data
-
-
-def clear_directory(directory_path):
-    # Check if the directory exists
-    if not os.path.exists(directory_path):
-        print(f"The directory {directory_path} does not exist.")
-        return
-
-    # Iterate over all the files and directories in the specified directory
-    for filename in os.listdir(directory_path):
-        file_path = os.path.join(directory_path, filename)
-        try:
-            # Check if it is a file and remove it
-            if os.path.isfile(file_path) or os.path.islink(file_path):
-                os.remove(file_path)
-            # Check if it is a directory and remove it
-            elif os.path.isdir(file_path):
-                shutil.rmtree(file_path)
-        except Exception as e:
-            print(f'Failed to delete {file_path}. Reason: {e}')
-
-
-def write_dicts_to_json_files(directory, index_with_node_dict):
-    """
-    Writes each dictionary in the list to a separate JSON file.
-
-    :param dict_list: List of dictionaries to write to files.
-    :param directory: The directory where the files will be saved.
-    """
-
-    file_path = os.path.join(directory, f"entry_{index_with_node_dict[0] + 1}.json")
-    with open(file_path, 'w') as json_file:
-        json.dump(index_with_node_dict[1], json_file, indent=4)
-
-
-def for_each(iterable, run_side_effect):
-    for item in iterable:
-        run_side_effect(item)
 
 
 def ingest_json_files_into_pfb(program, project, reference_file_nodes):
@@ -135,54 +85,6 @@ def ingest_json_files_into_pfb(program, project, reference_file_nodes):
     except Exception as e:
         print("Failed! -> ", e)
         raise
-
-
-def add_program_and_project_old(dest):
-    def get_program_and_project(ref_file_info):
-        dataset = dest.get(ref_file_info["study_with_consent"], None)
-        assert dataset is not None
-        program_project = dataset["dataset_identifier"].split('-', 1)
-        ref_file_info["program"] = program_project[0]
-        ref_file_info["project"] = program_project[1]
-        return ref_file_info
-
-    return get_program_and_project
-
-
-def add_program_and_project_to_indexd_closure(guid_to_updated_nodes):
-    def add_program_and_project_to_indexd(indexd_data):
-        dataset = guid_to_updated_nodes.get(indexd_data["did"], None)
-        assert dataset is not None
-        indexd_data["program"] = dataset["program"]
-        indexd_data["project"] = dataset["project"]
-        return indexd_data
-
-    return add_program_and_project_to_indexd
-
-
-def insert_or_append(graph, key, value):
-    # Get the list for the key, creating it if necessary
-    graph.setdefault(key, []).append(value)
-    return graph
-
-
-def group_by(group_identifier, accessor=lambda gid, e: e[gid], inserter=insert_or_append):
-    def add_to_graph(graph, data_entry):
-        group_id = accessor(group_identifier, data_entry)
-        graph = inserter(graph, group_id, data_entry)
-        return graph
-
-    return add_to_graph
-
-
-def add_or_insert(phs_to_file_data, file):
-    field_value = file["study_with_consent"]
-    field_exists = field_value in phs_to_file_data
-    if field_exists:
-        phs_to_file_data[field_value].append(file)
-    else:
-        phs_to_file_data[field_value] = [file]
-    return phs_to_file_data
 
 
 def map_from(key, dictionaries):
@@ -245,6 +147,7 @@ def read_tsv(file_location):
         reader = list(csv.DictReader(file, delimiter='\t'))
     return reader
 
+
 def map_guid_to_release_data():
     release_files = tsv_to_json("tsv/release_manifest_release-27.tsv")
     fields_with_accession_number = list(filter(lambda entry: bool(entry.get("study_accession_with_consent")),
@@ -258,26 +161,6 @@ def derive_guid_to_program_project(guid_to_release_data):
     guid_to_acl = map_values(lambda field: field["study_with_consent"], guid_to_release_data)
     guid_to_program_project = map_values(lambda acl: acl_to_program_project[acl], guid_to_acl)
     return guid_to_program_project
-
-
-def handle_querying_indexd_for_ref_file_records(guid_to_release_data):
-    # derive_guid_to_program_project()
-    # reference_file_guids = list(guid_to_release_data.keys())
-    guid_to_accession = map_values(lambda field: field["study_with_consent"], guid_to_release_data)
-    # get_and_save_indexd_records_to_file("...")
-
-
-def handle_directory_stuff():
-    # output_directory_for_ref_file_json_files = "json/output_ref_files/"
-    # if not os.path.exists(output_directory_for_ref_file_json_files):
-    #     try:
-    #         os.makedirs(output_directory_for_ref_file_json_files)
-    #     except Exception as e:
-    #         print(e)
-    # if len(os.listdir(output_directory_for_ref_file_json_files)) > 0:
-    #     clear_directory(output_directory_for_ref_file_json_files)
-    # for_each(list(enumerate(output)), partial(write_dicts_to_json_files, output_directory_for_ref_file_json_files))
-    pass
 
 
 def get_indexd_data_and_add_program_project(guid_to_program_project):
@@ -350,18 +233,10 @@ def upsert(identifier, graph, value):
     return graph
 
 
-def graph_to(key, dictionary_list):
-    def add_to_graph(graph, dictionary):
-        value_at_key = dictionary[key]
-        graph = upsert(value_at_key, graph, dictionary)
-        return graph
-
-    return reduce(add_to_graph, dictionary_list, {})
-
-
 def insert(dictionary, pair):
     dictionary.update([pair])
     return dictionary
+
 
 def organize_by_program(program_to_ref_file_context, ref_file_context):
     program = ref_file_context["program"]
