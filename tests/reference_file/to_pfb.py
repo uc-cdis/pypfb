@@ -364,6 +364,32 @@ def insert(dictionary, pair):
     dictionary.update([pair])
     return dictionary
 
+def organize_by_program(program_to_ref_file_context, ref_file_context):
+    program = ref_file_context["program"]
+    program_exists = program in program_to_ref_file_context
+    program_context = {"project": ref_file_context["project"],
+                       "reference_file": ref_file_context["reference_file"]}
+    if program_exists:
+        program_to_ref_file_context[program].append(program_context)
+    else:
+        program_to_ref_file_context[program] = [program_context]
+    return program_to_ref_file_context
+
+
+def collect_to_project(program_with_reference_files_under_program):
+    def build_project_contexts(project_to_ref_file_context, project_context):
+        project = project_context["project"]
+        project_already_added = project in project_to_ref_file_context
+        if project_already_added:
+            project_to_ref_file_context[project].append(project_context["reference_file"])
+        else:
+            project_to_ref_file_context[project] = [project_context["reference_file"]]
+        return project_to_ref_file_context
+
+    reference_files_under_program = program_with_reference_files_under_program[1]
+    project_to_reference_file_nodes = reduce(build_project_contexts, reference_files_under_program, {})
+    return program_with_reference_files_under_program[0], project_to_reference_file_nodes
+
 
 def test_full_ingestion_process():
     guid_to_release_data = map_guid_to_release_data()
@@ -383,34 +409,7 @@ def test_full_ingestion_process():
     regrouped_indexd_data = indexd_google_data_with_bucket_path + indexd_amazon_data_with_bucket_path
     indexd_data_with_submitter_id = add_submitter_ids(regrouped_indexd_data)
     reference_file_nodes = list(map(create_ref_file_node, indexd_data_with_submitter_id))
-
-    def organize_by_program(program_to_ref_file_context, ref_file_context):
-        program = ref_file_context["program"]
-        program_exists = program in program_to_ref_file_context
-        program_context = {"project": ref_file_context["project"],
-                           "reference_file": ref_file_context["reference_file"]}
-        if program_exists:
-            program_to_ref_file_context[program].append(program_context)
-        else:
-            program_to_ref_file_context[program] = [program_context]
-        return program_to_ref_file_context
-
     program_to_reference_file_nodes = reduce(organize_by_program, reference_file_nodes, {})
-
-    def collect_to_project(program_with_reference_files_under_program):
-        def build_project_contexts(project_to_ref_file_context, project_context):
-            project = project_context["project"]
-            project_already_added = project in project_to_ref_file_context
-            if project_already_added:
-                project_to_ref_file_context[project].append(project_context["reference_file"])
-            else:
-                project_to_ref_file_context[project] = [project_context["reference_file"]]
-            return project_to_ref_file_context
-
-        reference_files_under_program = program_with_reference_files_under_program[1]
-        project_to_reference_file_nodes = reduce(build_project_contexts, reference_files_under_program, {})
-        return program_with_reference_files_under_program[0], project_to_reference_file_nodes
-
     program_to_project_context = dict(map(collect_to_project, program_to_reference_file_nodes.items()))
 
     for program, project_context in program_to_project_context.items():
