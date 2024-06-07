@@ -265,24 +265,31 @@ def collect_to_project(program_with_reference_files_under_program):
     return program_with_reference_files_under_program[0], project_to_reference_file_nodes
 
 
+def add_bucket_path(source, desired_subset):
+    source_map = {
+        # from indexd 'urls' seem to(!) take the form [google_url, amazon_url, ...]
+        # each entry represents the length of 'urls', and assumes(!) the order is the same between records
+        "google": 1,
+        "amazon": 2
+    }
+    subset_length = source_map[desired_subset]
+    subset_location = subset_length - 1
+    indexd_subset_by_cloud_source = list(filter(lambda context: len(context["urls"]) == subset_length, source))
+    insert_bucket_path = lambda context: insert(context, ("bucket_path", context["urls"][subset_location]))
+    node_context_with_bucket_path = list(map(insert_bucket_path, indexd_subset_by_cloud_source))
+    return node_context_with_bucket_path
+
+
 def test_full_ingestion_process():
     guid_to_release_data = map_guid_to_release_data()
     guid_to_program_project = derive_guid_to_program_project(guid_to_release_data)
-    guid_to_urls = map_values(lambda d: d["urls"], guid_to_release_data)
-    # guid_to_accession = map_values(lambda field: field["study_accession_with_consent"], guid_to_release_data)
     indexd_data_with_program_and_project = get_indexd_data_and_add_program_project(guid_to_program_project)
-    # indexd_with_needed_context = list(map(lambda d: insert(d, ("urls", guid_to_urls[d["did"]])),
-    #                                   indexd_data_with_program_and_project))
-    bad_indexd_data = list(filter(lambda context: len(context["urls"]) == 0, indexd_data_with_program_and_project))
-    indexd_data_in_google = list(filter(lambda context: len(context["urls"]) == 1, indexd_data_with_program_and_project))
-    indexd_data_in_amazon = list(filter(lambda context: len(context["urls"]) == 2, indexd_data_with_program_and_project))
-    indexd_google_data_with_bucket_path = list(map(lambda d:insert(d, ("bucket_path", d["urls"][0])),
-                                                   indexd_data_in_google))
-    indexd_amazon_data_with_bucket_path = list(map(lambda d: insert(d, ("bucket_path", d["urls"][1])),
-                                                   indexd_data_in_amazon))
-    regrouped_indexd_data = indexd_google_data_with_bucket_path + indexd_amazon_data_with_bucket_path
-    indexd_data_with_submitter_id = add_submitter_ids(regrouped_indexd_data)
-    reference_file_nodes = list(map(create_ref_file_node, indexd_data_with_submitter_id))
+    # bad_indexd_data = list(filter(lambda context: len(context["urls"]) == 0, indexd_data_with_program_and_project))
+    node_context_in_google = add_bucket_path(indexd_data_with_program_and_project, "google")
+    node_context_in_amazon = add_bucket_path(indexd_data_with_program_and_project, "amazon")
+    node_context_without_submitter_id = node_context_in_google + node_context_in_amazon
+    full_context_for_nodes = add_submitter_ids(node_context_without_submitter_id)
+    reference_file_nodes = list(map(create_ref_file_node, full_context_for_nodes))
     program_to_reference_file_nodes = reduce(organize_by_program, reference_file_nodes, {})
     program_to_project_context = dict(map(collect_to_project, program_to_reference_file_nodes.items()))
 
