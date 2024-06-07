@@ -219,6 +219,10 @@ class PFBWriter(PFBBase):
         self.set_metadata(reader.metadata)
 
     def write(self, iterable=None, metadata=True):
+        """
+        Expects all data to be written to the file at once. Will throw an error
+        if you try to write line by line unless you change the mode to a+
+        """
         def _iter():
             if metadata:
                 yield avro_record(None, "Metadata", self._metadata, [])
