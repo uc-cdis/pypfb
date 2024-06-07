@@ -16,7 +16,6 @@ from gen3.index import Gen3Index
 from pfb.reader import PFBReader
 from pfb.writer import PFBWriter
 from tests.reference_file.test_ingestion import from_json_v2
-from ref_file_helper import generate_unique_submitter_ids_v2, create_reference_file_node
 from typing import List, Dict, Any
 
 LEFT = 0
