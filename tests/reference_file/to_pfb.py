@@ -1,8 +1,5 @@
 import itertools
 import os
-import random
-import shutil
-import string
 import sys
 from functools import partial, reduce
 import csv
@@ -284,7 +281,6 @@ def test_full_ingestion_process():
     guid_to_release_data = map_guid_to_release_data()
     guid_to_program_project = derive_guid_to_program_project(guid_to_release_data)
     indexd_data_with_program_and_project = get_indexd_data_and_add_program_project(guid_to_program_project)
-    # bad_indexd_data = list(filter(lambda context: len(context["urls"]) == 0, indexd_data_with_program_and_project))
     node_context_in_google = add_bucket_path(indexd_data_with_program_and_project, "google")
     node_context_in_amazon = add_bucket_path(indexd_data_with_program_and_project, "amazon")
     node_context_without_submitter_id = node_context_in_google + node_context_in_amazon
