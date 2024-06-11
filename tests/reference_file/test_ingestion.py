@@ -31,7 +31,7 @@ def test_example_bdc_schema(runner):
             print("Exception: ", str(e))
 
 
-def from_json_v2(metadata, node_info):
+def from_json(metadata, node_info):
     """
     stolen from elsewhere
     """
@@ -45,36 +45,6 @@ def from_json_v2(metadata, node_info):
     reference_file_info = node_info["reference_file"]
     record = _convert_json(file_name, reference_file_info, program, project, link_dests)
     return record
-
-
-def from_json(metadata, path, program, project):
-    """
-    mimics _from_json
-    """
-    link_dests = {
-        node["name"]: {link["name"]: link["dst"] for link in node["links"]}
-        for node in metadata["nodes"]
-    }
-    order = glob.glob(os.path.join(path, "*.json"))
-    total = len(order)
-    final_json = []
-    enumerated_order = enumerate(order)
-    for i, o in enumerated_order:
-        o = os.path.basename(o).replace(".json", "").strip()
-        filename = os.path.join(path, o + ".json")
-        with open(filename, "r") as f:
-            json_data = json.load(f)
-
-        node_name = o
-
-        if isinstance(json_data, dict):
-            json_data = [json_data]
-        json_records = []
-        for json_record in json_data:
-            record = _convert_json(node_name, json_record, program, project, link_dests)
-            json_records.append(record)
-        final_json.append(json_records)
-    return final_json
 
 
 def test_pfb_import(runner, invoke, path_join):
