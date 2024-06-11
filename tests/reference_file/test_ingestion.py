@@ -33,7 +33,7 @@ def test_example_bdc_schema(runner):
 
 def from_json(metadata, node_info):
     """
-    stolen from elsewhere
+    hacky version
     """
     link_dests = {
         node["name"]: {link["name"]: link["dst"] for link in node["links"]}
