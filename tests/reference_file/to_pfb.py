@@ -4,12 +4,14 @@ import sys
 from functools import partial, reduce
 import csv
 import json
+
+import requests
 from gen3.auth import Gen3Auth
 from gen3.index import Gen3Index
 
 from pfb.reader import PFBReader
 from pfb.writer import PFBWriter
-from tests.reference_file.test_ingestion import from_json_v2
+from tests.reference_file.test_ingestion import from_json
 from typing import List, Dict, Any
 
 LEFT = 0
@@ -30,51 +32,42 @@ def test_tsv_ingestion():
     print(outcome)
 
 
-def create_ref_file_node(indexd_data):
+def create_original_file_node(indexd_data):
     object_id = indexd_data["did"]
     drs_uri = f"drs://{object_id}"
 
-    reference_file = {
-        "data_category": "Clinical Data",
-        "data_format": indexd_data["bucket_path"].split(".")[-1],
-        "data_type": "Other",
-        "file_name": indexd_data["file_name"],
-        "file_size": indexd_data["size"],
-        "md5sum": indexd_data["hashes"]["md5"],
+    original_file = {
         "submitter_id": indexd_data["submitter_id"],
-        "type": "reference_file",
+        "type": "original_file",
         "ga4gh_drs_uri": drs_uri,
-        "object_id": object_id,
     }
     pfb_data = {
         "program": indexd_data["program"],
         "project": indexd_data["project"],
-        "reference_file": reference_file
+        "original_file": original_file
     }
     return pfb_data
 
 
-def ingest_json_files_into_pfb(program, project, reference_file_nodes):
+def ingest_json_files_into_pfb(program, project, original_file_nodes):
     try:
-        # todo: figure out where to get ref_file schema from
+        # pfb from -o thing.avro dict https://s3.amazonaws.com/dictionary-artifacts/gtexdictionary/3.2.2/schema.json
+        # todo: figure out where to get original_file schema from
         # right now we get it from that manifest file in github iirc
+        # url https://raw.githubusercontent.com/uc-cdis/cdis-manifest/main/README.md
         path = "avro/" + project + ".avro"
         with PFBReader("avro/minimal/minimal_schema.avro") as s_reader:
             data_from_json = []
-            for reference_file_node in reference_file_nodes:
+            for original_file_node in original_file_nodes:
                 node_info = {
                     "program": program,
                     "project": project,
-                    "reference_file": reference_file_node
+                    "original_file": original_file_node
                 }
-                data_from_json.append(from_json_v2(s_reader.metadata, node_info))
+                data_from_json.append(from_json(s_reader.metadata, node_info))
             with PFBWriter(path) as d_writer:
                 d_writer.copy_schema(s_reader)
                 d_writer.write(data_from_json)
-                # if I get the "a+" error it's because i'm trying to write one entry in at a time
-                # in contrast to just writing it in all at once, as is done in the line above
-                # for json_data in data_from_json:
-                #     d_writer.write([json_data])
             with PFBReader(path) as d_reader:
                 for r in itertools.islice(d_reader, None):
                     json.dump(r, sys.stdout)
@@ -112,7 +105,7 @@ def derive_acl_to_program_project_from_destination_manifest(manifest_location):
     return acl_to_program_project
 
 
-def get_and_save_indexd_records_to_file(reference_file_guids, index):
+def get_and_save_indexd_records_to_file(original_file_guids, index):
     cred_path = os.environ.get("PP_CREDS")
     auth = Gen3Auth(refresh_file=cred_path)
     index = Gen3Index(auth_provider=auth)
@@ -120,7 +113,7 @@ def get_and_save_indexd_records_to_file(reference_file_guids, index):
     def chunk(lst, size):
         return [lst[i:i + size] for i in range(0, len(lst), size)]
 
-    chunked_guids = chunk(reference_file_guids, 2500)
+    chunked_guids = chunk(original_file_guids, 2500)
 
     def get_and_save_chunked_records():
         def get_chunked_records(indexd_chunks, guid_chunk):
@@ -217,8 +210,8 @@ def add_submitter_ids(indexd_contexts):
     guid_to_bucket_urls = reduce(map_guid_to_bucket_path, indexd_contexts, {})
     guid_to_submitter_ids = generate_submitter_ids(guid_to_bucket_urls)
     add_submitter_id = lambda d: insert(d, ("submitter_id", guid_to_submitter_ids[d["did"]]))
-    reference_file_context = list(map(add_submitter_id, indexd_contexts))
-    return reference_file_context
+    original_file_context = list(map(add_submitter_id, indexd_contexts))
+    return original_file_context
 
 
 def upsert(identifier, graph, value):
@@ -235,31 +228,31 @@ def insert(dictionary, pair):
     return dictionary
 
 
-def organize_by_program(program_to_ref_file_context, ref_file_context):
-    program = ref_file_context["program"]
-    program_exists = program in program_to_ref_file_context
-    program_context = {"project": ref_file_context["project"],
-                       "reference_file": ref_file_context["reference_file"]}
+def organize_by_program(program_to_original_file_context, original_file_context):
+    program = original_file_context["program"]
+    program_exists = program in program_to_original_file_context
+    program_context = {"project": original_file_context["project"],
+                       "original_file": original_file_context["original_file"]}
     if program_exists:
-        program_to_ref_file_context[program].append(program_context)
+        program_to_original_file_context[program].append(program_context)
     else:
-        program_to_ref_file_context[program] = [program_context]
-    return program_to_ref_file_context
+        program_to_original_file_context[program] = [program_context]
+    return program_to_original_file_context
 
 
-def collect_to_project(program_with_reference_files_under_program):
-    def build_project_contexts(project_to_ref_file_context, project_context):
+def collect_to_project(program_with_original_files_under_program):
+    def build_project_contexts(project_to_original_file_context, project_context):
         project = project_context["project"]
-        project_already_added = project in project_to_ref_file_context
+        project_already_added = project in project_to_original_file_context
         if project_already_added:
-            project_to_ref_file_context[project].append(project_context["reference_file"])
+            project_to_original_file_context[project].append(project_context["original_file"])
         else:
-            project_to_ref_file_context[project] = [project_context["reference_file"]]
-        return project_to_ref_file_context
+            project_to_original_file_context[project] = [project_context["original_file"]]
+        return project_to_original_file_context
 
-    reference_files_under_program = program_with_reference_files_under_program[1]
-    project_to_reference_file_nodes = reduce(build_project_contexts, reference_files_under_program, {})
-    return program_with_reference_files_under_program[0], project_to_reference_file_nodes
+    original_files_under_program = program_with_original_files_under_program[1]
+    project_to_original_file_nodes = reduce(build_project_contexts, original_files_under_program, {})
+    return program_with_original_files_under_program[0], project_to_original_file_nodes
 
 
 def add_bucket_path(source, desired_subset):
@@ -278,6 +271,15 @@ def add_bucket_path(source, desired_subset):
 
 
 def test_full_ingestion_process():
+    def get_manifest_schema_for_bdc():
+        url = 'https://raw.githubusercontent.com/uc-cdis/cdis-manifest/master/gen3.biodatacatalyst.nhlbi.nih.gov/manifest.json'
+        manifest_result = requests.get(url)
+        assert manifest_result.status_code == 200
+        schema_location = manifest_result.json()["global"]["dictionary_url"]
+        schema_result = requests.get(schema_location)
+        return schema_result.json()
+    schema = get_manifest_schema_for_bdc()
+
     guid_to_release_data = map_guid_to_release_data()
     guid_to_program_project = derive_guid_to_program_project(guid_to_release_data)
     indexd_data_with_program_and_project = get_indexd_data_and_add_program_project(guid_to_program_project)
@@ -285,11 +287,12 @@ def test_full_ingestion_process():
     node_context_in_amazon = add_bucket_path(indexd_data_with_program_and_project, "amazon")
     node_context_without_submitter_id = node_context_in_google + node_context_in_amazon
     full_context_for_nodes = add_submitter_ids(node_context_without_submitter_id)
-    reference_file_nodes = list(map(create_ref_file_node, full_context_for_nodes))
-    program_to_reference_file_nodes = reduce(organize_by_program, reference_file_nodes, {})
-    program_to_project_context = dict(map(collect_to_project, program_to_reference_file_nodes.items()))
+    original_file_nodes = list(map(create_original_file_node, full_context_for_nodes))
+    program_to_original_file_nodes = reduce(organize_by_program, original_file_nodes, {})
+    program_to_project_context = dict(map(collect_to_project, program_to_original_file_nodes.items()))
+
 
     for program, project_context in program_to_project_context.items():
-        for project, reference_files in project_context.items():
-            ingest_json_files_into_pfb(program, project, reference_files)
+        for project, original_files in project_context.items():
+            ingest_json_files_into_pfb(program, project, original_files)
     print("done!")
