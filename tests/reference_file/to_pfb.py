@@ -279,6 +279,7 @@ def test_full_ingestion_process():
         schema_result = requests.get(schema_location)
         return schema_result.json()
     schema = get_manifest_schema_for_bdc()
+    #todo: pass this schema in, instead of the one that is saved locally
 
     guid_to_release_data = map_guid_to_release_data()
     guid_to_program_project = derive_guid_to_program_project(guid_to_release_data)
