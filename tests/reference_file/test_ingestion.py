@@ -13,7 +13,7 @@ import sys
 def test_example_bdc_schema(runner):
     """
     mimics
-    invoke("from", "-o", "minimal_schema.avro", "dict", "<url>")
+    invoke("from", "-o", "example_schema.avro", "dict", "<url>")
     """
     with runner.isolated_filesystem():
         url = "https://s3.amazonaws.com/dictionary-artifacts/gtexdictionary/4.4.3/schema.json"
@@ -42,7 +42,7 @@ def from_json(metadata, node_info):
     file_name = "reference_file"
     program = node_info["program"]
     project = node_info["project"]
-    reference_file_info = node_info["reference_file"]
+    reference_file_info = node_info["original_file"]
     record = _convert_json(file_name, reference_file_info, program, project, link_dests)
     return record
 
@@ -56,7 +56,7 @@ def test_pfb_import(runner, invoke, path_join):
         "./output/example_reference_file.avro",
         "json",
         "-s",
-        "./minimal_schema.avro",
+        "./example_schema.avro",
         "--program",
         "NSRR",
         "--project",
@@ -64,14 +64,14 @@ def test_pfb_import(runner, invoke, path_join):
         "json/")
     """
     try:
-        with PFBReader("avro/minimal/minimal_schema.avro") as s_reader:
+        with PFBReader("avro/schema/example_schema.avro") as s_reader:
             data_from_json = from_json(s_reader.metadata, "json/example", "NSRR", "CFS")
             with runner.isolated_filesystem():
-                with PFBWriter("minimal_data.avro") as d_writer:
+                with PFBWriter("example_data.avro") as d_writer:
                     d_writer.copy_schema(s_reader)
                     for entry in data_from_json:
                         d_writer.write(entry)
-                with PFBReader("minimal_data.avro") as d_reader:
+                with PFBReader("example_data.avro") as d_reader:
                     for r in itertools.islice(d_reader, None):
                         json.dump(r, sys.stdout)
                         sys.stdout.write("\n")
@@ -84,9 +84,9 @@ def test_pfb_import(runner, invoke, path_join):
 def test_reference_file_nodes(runner, invoke, path_join):
     """
     mimics the command
-    invoke("show", "-i", "./minimal_data.avro", "nodes")
+    invoke("show", "-i", "./example_data.avro", "nodes")
     """
-    schema_location = "./minimal_data.avro"
+    schema_location = "./example_data.avro"
     try:
         with PFBReader(schema_location) as d_reader:
             for node in d_reader.schema:

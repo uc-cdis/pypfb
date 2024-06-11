@@ -55,8 +55,8 @@ def ingest_json_files_into_pfb(program, project, original_file_nodes):
         # todo: figure out where to get original_file schema from
         # right now we get it from that manifest file in github iirc
         # url https://raw.githubusercontent.com/uc-cdis/cdis-manifest/main/README.md
-        path = "avro/" + project + ".avro"
-        with PFBReader("avro/minimal/minimal_schema.avro") as s_reader:
+        path = "avro/raw_pfbs/" + project + ".avro"
+        with PFBReader("avro/schema/example_schema.avro") as s_reader:
             data_from_json = []
             for original_file_node in original_file_nodes:
                 node_info = {
