@@ -1,11 +1,9 @@
-import os
 import json
 from pfb.writer import PFBWriter
 from pfb.importers.gen3dict import _from_dict
 from pfb.reader import PFBReader
 from pfb.importers.json import _convert_json
 from fastavro import reader as avro_reader
-import glob
 import itertools
 import sys
 
