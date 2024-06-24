@@ -20,13 +20,13 @@ def from_dict(ctx, url_or_path):
     """
     try:
         with ctx.obj["writer"] as writer:
-            _from_dict(writer, url_or_path)
+            write_from_dict(writer, url_or_path)
     except Exception:
         click.secho("Failed!", fg="red", bold=True, err=True)
         raise
 
 
-def _from_dict(writer, url_or_path):
+def write_from_dict(writer, url_or_path):
     if writer.isatty:
         click.secho("Error: cannot output to TTY.", fg="red", bold=True, err=True)
         return
