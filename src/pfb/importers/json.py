@@ -74,11 +74,11 @@ def _from_json(metadata, path, program, project):
         if isinstance(json_data, dict):
             json_data = [json_data]
         for json_record in json_data:
-            record = _convert_json(node_name, json_record, program, project, link_dests)
+            record = convert_json(node_name, json_record, program, project, link_dests)
             yield record
 
 
-def _convert_json(node_name, json_record, program, project, link_dests):
+def convert_json(node_name, json_record, program, project, link_dests):
     relations = []
     try:
         node_id = json_record["submitter_id"]
