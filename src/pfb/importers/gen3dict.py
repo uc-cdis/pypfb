@@ -275,7 +275,7 @@ def _array_type(property_type):
         if "description" in property_type:
             enum["name"] = property_type["description"]
         else:
-            enum["name"] = property_type["term"]["termDef"]["term"]
+            enum["name"] = property_type.get("term", {}).get("termDef", {}).get("term")
             if enum["name"] is None:
                 # This final fallback is to a value that was being used before
                 enum["name"] = property_type["termDef"][0]["term"]
