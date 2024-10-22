@@ -275,7 +275,10 @@ def _array_type(property_type):
         if "description" in property_type:
             enum["name"] = property_type["description"]
         else:
-            enum["name"] = property_type["termDef"][0]["term"]
+            enum["name"] = property_type["term"]["termDef"]["term"]
+            if enum["name"] is None:
+                # This final fallback is to a value that was being used before
+                enum["name"] = property_type["termDef"][0]["term"]
 
         array_type = {}
         array_type["type"] = "array"
