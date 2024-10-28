@@ -239,7 +239,7 @@ def _get_avro_type(property_name, property_type, name):
             # this is for when a type is required in a dictionary and is an array type
             return _required_array_type(property_type)
         if property_type["type"] == ["array", "null"]:
-            return _array_type(property_type)
+            return _array_type(property_name,property_type, name)
         if "number" in property_type["type"]:
             return ["null", "float"]
         if "int" in property_type["type"]:
@@ -267,18 +267,12 @@ def _required_array_type(property_type):
     return end_array_type
 
 
-def _array_type(property_type):
+def _array_type(property_name ,property_type, object_name):
     if "enum" in property_type["items"]:
         enum = {}
         enum["type"] = "enum"
         enum["symbols"] = property_type["items"]["enum"]
-        if "description" in property_type:
-            enum["name"] = property_type["description"]
-        else:
-            enum["name"] = property_type.get("term", {}).get("termDef", {}).get("term")
-            if enum["name"] is None:
-                # This final fallback is to a value that was being used before
-                enum["name"] = property_type["termDef"][0]["term"]
+        enum["name"] = f"{object_name}_{property_name}_anon_enum"
 
         array_type = {}
         array_type["type"] = "array"
