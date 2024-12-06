@@ -184,7 +184,7 @@ class PFBBase(object):
                         t = stack.pop()
                         if isinstance(t, list):
                             stack.extend(t)
-                        elif t in ["long", "float"]:
+                        elif t in ["long", "double"]:
                             val = 0
                             break
                         elif t in ["string"]:
