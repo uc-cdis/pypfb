@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pypfb"
-version = "0.5.31"
+version = "0.5.32"
 description = "Python SDK for PFB format"
 authors = ["CTDS UChicago <cdis@uchicago.edu>"]
 license = "Apache-2.0"
@@ -24,7 +24,6 @@ gen3 = "^4.11.3"
 codacy-coverage = "*"
 pytest = "~=6.2.5"
 pytest-cov = "~=2.5"
-truffleHog = "*"
 gen3git = "*"
 
 [tool.poetry.scripts]

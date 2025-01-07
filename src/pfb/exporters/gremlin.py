@@ -17,6 +17,7 @@ TYPE_MAPPING = dict(
     float="Double",
     number="Double",
     string="String",
+    double="Double",
 )
 
 

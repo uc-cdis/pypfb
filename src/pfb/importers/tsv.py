@@ -89,7 +89,7 @@ def convert_types(val, field_type):
         if val is None or val.strip() == "":
             return None
         return str(val)
-    elif field_type == "float":
+    elif field_type == "double":
         if (
             val is None
             or val.strip() == ""
