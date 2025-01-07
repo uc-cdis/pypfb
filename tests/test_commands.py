@@ -214,7 +214,12 @@ def test_add(runner, invoke, path_join):
 def test_show(invoke, test_avro):
     result = invoke("show", input=test_avro)
     assert result.exit_code == 0, result.output
-    assert len(result.output.splitlines()) == 36
+    formatted_result = result.output.splitlines()
+    assert len(formatted_result) == 36
+    assert (
+        '"time_between_clamping_and_freezing": 83.9'
+        in [x for x in formatted_result if '"id": "sample_Wagnerism_buccally"' in x][0]
+    )
 
     result = invoke("show", "-n", "1", input=test_avro)
     assert result.exit_code == 0, result.output
@@ -222,27 +227,31 @@ def test_show(invoke, test_avro):
     # result["object"].pop("md5sum")  # mute truffles
     print(json.dumps(result))
     assert result == {
+        "id": "submitted_aligned_reads_soixantine_counterimpulse",
+        "name": "submitted_aligned_reads",
         "object": {
-            "cause_of_death": "Not Reported",
+            "data_category": "Sequencing Reads",
+            "data_type": "Aligned Reads",
+            "experimental_strategy": "miRNA-Seq",
+            "data_format": "BAM",
+            "state": "validated",
             "updated_datetime": None,
             "created_datetime": None,
-            "gender": "female",
-            "submitter_id": "demographic_duteousness_unassailing",
-            "state": "validated",
-            "race": "Native Hawaiian or Other Pacific Islander",
-            "age_at_last_follow_up_days": 18074,
-            "vital_status": "Dead",
             "project_id": "DEV-test",
-            "ethnicity": "not hispanic or latino",
+            "submitter_id": "submitted_aligned_reads_soixantine_counterimpulse",
+            "md5sum": "bb1d504e1c10c2865fc67746371af516",
+            "file_format": "thumb_cotranspire",
+            "file_name": "virtuosi_conticent",
+            "error_type": None,
+            "file_url": "docility_cryophile",
+            "object_id": None,
+            "file_size": 54,
+            "state_comment": None,
+            "file_state": "registered",
         },
-        "id": "demographic_duteousness_unassailing",
         "relations": [
-            {
-                "dst_id": "participant_metalinguistics_monofilm",
-                "dst_name": "participant",
-            }
+            {"dst_id": "read_group_ethnicon_fordless", "dst_name": "read_group"}
         ],
-        "name": "demographic",
     }
 
     result = invoke("show", "nodes", input=test_avro)
