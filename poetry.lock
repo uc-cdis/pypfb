@@ -917,31 +917,22 @@ files = [
 smmap = ">=3.0.1,<6"
 
 [[package]]
-name = "gitdb2"
-version = "4.0.2"
-description = "A mirror package for gitdb"
-optional = false
-python-versions = "*"
-files = [
-    {file = "gitdb2-4.0.2-py3-none-any.whl", hash = "sha256:a1c974e5fab8c2c90192c1367c81cbc54baec04244bda1816e9c8ab377d1cba3"},
-    {file = "gitdb2-4.0.2.tar.gz", hash = "sha256:0986cb4003de743f2b3aba4c828edd1ab58ce98e1c4a8acf72ef02760d4beb4e"},
-]
-
-[package.dependencies]
-gitdb = ">=4.0.1"
-
-[[package]]
 name = "gitpython"
-version = "3.0.6"
-description = "Python Git Library"
+version = "3.1.44"
+description = "GitPython is a Python library used to interact with Git repositories"
 optional = false
-python-versions = ">=3.4"
+python-versions = ">=3.7"
 files = [
-    {file = "GitPython-3.0.6-py3-none-any.whl", hash = "sha256:5b5b7b29baa27680a7dff85f171a251d48ac37c5f04cba15d381b56991cc7a48"},
+    {file = "GitPython-3.1.44-py3-none-any.whl", hash = "sha256:9e0e10cda9bed1ee64bc9a6de50e7e38a9c9943241cd7f585f6df3ed28011110"},
+    {file = "gitpython-3.1.44.tar.gz", hash = "sha256:c87e30b26253bf5418b01b0660f818967f3c503193838337fe5e573331249269"},
 ]
 
 [package.dependencies]
-gitdb2 = ">=2.0.0"
+gitdb = ">=4.0.1,<5"
+
+[package.extras]
+doc = ["sphinx (>=7.1.2,<7.2)", "sphinx-autodoc-typehints", "sphinx_rtd_theme"]
+test = ["coverage[toml]", "ddt (>=1.1.1,!=1.4.3)", "mock", "mypy", "pre-commit", "pytest (>=7.3.1)", "pytest-cov", "pytest-instafail", "pytest-mock", "pytest-sugar", "typing-extensions"]
 
 [[package]]
 name = "h11"
@@ -2041,32 +2032,6 @@ slack = ["slack-sdk"]
 telegram = ["requests"]
 
 [[package]]
-name = "trufflehog"
-version = "2.2.1"
-description = "Searches through git repositories for high entropy strings, digging deep into commit history."
-optional = false
-python-versions = "*"
-files = [
-    {file = "truffleHog-2.2.1-py2.py3-none-any.whl", hash = "sha256:ac411e29ffac06555cdc40ed1cbff0b3c74cb0ed26af2a0432ed15e61b94e6b5"},
-    {file = "truffleHog-2.2.1.tar.gz", hash = "sha256:7f0d09c8cda2a90ae42f81405e5944a3325d90a5842d2dde014471e4d65c71e4"},
-]
-
-[package.dependencies]
-GitPython = "3.0.6"
-truffleHogRegexes = "0.0.7"
-
-[[package]]
-name = "trufflehogregexes"
-version = "0.0.7"
-description = "These regexes power truffleHog."
-optional = false
-python-versions = "*"
-files = [
-    {file = "truffleHogRegexes-0.0.7-py2.py3-none-any.whl", hash = "sha256:627e7cd246153135dea86bacd1253df262c525874f9008395ffe81eb63f92352"},
-    {file = "truffleHogRegexes-0.0.7.tar.gz", hash = "sha256:b81dfc60c86c1e353f436a0e201fd88edb72d5a574615a7858485c59edf32405"},
-]
-
-[[package]]
 name = "typing-extensions"
 version = "4.12.2"
 description = "Backported and Experimental Type Hints for Python 3.8+"
@@ -2323,4 +2288,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9, <4"
-content-hash = "43dc97b6056b150593902ed23db0b4e41d69b9967344534fe0a897f56257d4cb"
+content-hash = "0fe08f969f47dd5e3a19369257fc4442e76c7d3feef96239779b60617f8e58a3"
