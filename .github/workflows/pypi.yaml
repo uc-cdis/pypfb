@@ -1,4 +1,4 @@
-name: PyPFB release
+name: PyPI release
 
 on:
   push:
@@ -10,7 +10,7 @@ jobs:
     uses: uc-cdis/.github/.github/workflows/python_package_index_publish.yaml@master
     with:
         PYTHON_VERSION: '3.9'
-        DO_TEST_PUBLISH_FIRST: false # temporarily blocked https://cdis.slack.com/archives/C02SH3UB2T0/p1749076310304519
+        DO_TEST_PUBLISH_FIRST: true
     secrets:
       PYPI_TEST_API_TOKEN: ${{ secrets.PYPI_TEST_API_TOKEN }}
       PYPI_PROD_API_TOKEN: ${{ secrets.PYPI_PROD_API_TOKEN }}
