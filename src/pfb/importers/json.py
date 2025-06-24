@@ -80,6 +80,10 @@ def _from_json(metadata, path, program, project):
 
 def convert_json(node_name, json_record, program, project, link_dests):
     relations = []
+    if "submitter_id" not in json_record and "code" not in json_record:
+        raise ValueError(
+            "JSON record is missing submitter_id or code: {}".format(json_record)
+        )
     try:
         node_id = json_record["submitter_id"]
     except KeyError:
@@ -95,6 +99,8 @@ def convert_json(node_name, json_record, program, project, link_dests):
                 {
                     "dst_id": json_record[item]["submitter_id"],
                     "dst_name": link_dests[node_name][v],
+                    "label": item,
+                    "properties": json_record[item].get("properties", None),
                 }
             )
 

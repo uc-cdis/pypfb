@@ -1,0 +1,4 @@
+# This is a .gitignore file for the FOAF tests directory
+# Ignore the output Avro data and schema files created during tests
+output.avro
+schema.avro

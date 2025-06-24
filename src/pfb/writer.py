@@ -144,6 +144,18 @@ def make_avro_schema(schema):
                                                                 "name": "name",
                                                                 "type": "string",
                                                             },
+                                                            {
+                                                              "name": "label",
+                                                              "type": ["null", "string"],
+                                                              "default": None,
+                                                              "doc": "A semantic label for the link (e.g., 'requestor', 'owner')"
+                                                            },
+                                                            {
+                                                              "name": "properties",
+                                                              "type": ["null", {"type": "map", "values": "string"}],
+                                                              "default": None,
+                                                              "doc": "Arbitrary metadata about the relationship"
+                                                            }
                                                         ],
                                                     },
                                                 },
@@ -198,6 +210,8 @@ def make_avro_schema(schema):
                         "fields": [
                             {"name": "dst_id", "type": "string"},
                             {"name": "dst_name", "type": "string"},
+                            {"name": "label", "type": ["null", "string"], "default": None},
+                            {"name": "properties","type": ["null", {"type": "map", "values": "string"}],"default": None}
                         ],
                     },
                 },

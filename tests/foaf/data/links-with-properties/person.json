@@ -1,0 +1,36 @@
+[
+  {
+    "submitter_id": "person_alice",
+    "name": "Alice",
+    "email": "alice@example.org",
+    "knows": {
+      "submitter_id": "person_bob",
+      "properties": {
+        "since": "2020-01-01"
+      }
+    },
+    "colleagues": {
+      "submitter_id": "person_bob",
+      "properties": {
+        "workplace": "acme_corp"
+      }
+    }
+  },
+  {
+    "submitter_id": "person_bob",
+    "name": "Bob",
+    "email": "bob@example.org",
+    "knows": {
+      "submitter_id": "person_alice",
+      "properties": {
+          "since": "2020-01-01"
+      }
+    },
+    "colleagues": {
+      "submitter_id": "person_alice",
+      "properties": {
+          "workplace": "acme_corp"
+      }
+    }
+  }
+]

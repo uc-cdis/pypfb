@@ -273,7 +273,7 @@ def test_show(invoke, test_avro):
 
 
 def test_rename_node(runner, invoke, test_avro):
-    with runner.isolated_filesystem():
+    with runner.isolated_filesystem("/tmp"):
         result = invoke(
             "rename",
             "-o",
