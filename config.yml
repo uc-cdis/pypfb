@@ -6,7 +6,7 @@ formatters:
     full:
         format: "[%(filename)12.11s:%(lineno)-4d]# %(levelname)-8s [%(asctime)s] %(message)s"
     json:
-        class: pythonjsonlogger.jsonlogger.JsonFormatter
+        class: pythonjsonlogger.json.JsonFormatter
         format: "%(filename) %(lineno) %(levelname) %(asctime)s %(message)s"
 
 handlers:
