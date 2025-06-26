@@ -4,6 +4,25 @@ from fastavro import writer
 
 from .base import PFBBase, encode_enum, avro_record, handle_schema_field_unicode
 
+AVRO_PRIMITIVES = ["string", "int", "boolean", "double", ]
+AVRO_MAP = {"type": "map", "values": AVRO_PRIMITIVES}
+RELATIONSHIP_PROPERTIES = {
+                                "name": "properties",
+                                "type": [
+                                    "null",
+                                    {
+                                        "type": "map",
+                                        "values": AVRO_PRIMITIVES + [
+                                            {
+                                                "type": "array",
+                                                "items": AVRO_PRIMITIVES + [AVRO_MAP],
+                                            },
+                                            AVRO_MAP
+                                        ]
+                                    }
+                                ],
+                                "default": None
+                            }
 
 # def add(pfbFile, parField, newField, newFieldType, newFieldDefault):
 #     pfb = open(pfbFile, "rb")
@@ -211,7 +230,7 @@ def make_avro_schema(schema):
                             {"name": "dst_id", "type": "string"},
                             {"name": "dst_name", "type": "string"},
                             {"name": "label", "type": ["null", "string"], "default": None},
-                            {"name": "properties","type": ["null", {"type": "map", "values": "string"}],"default": None}
+                            RELATIONSHIP_PROPERTIES,
                         ],
                     },
                 },

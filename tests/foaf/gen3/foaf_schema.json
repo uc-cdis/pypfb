@@ -513,7 +513,16 @@
             "type": "string",
             "format": "date",
             "description": "Date when the person met the other person"
+          },
+          "how_well": {
+            "type": "integer",
+            "description": "Scale of how well the person knows the other person, from 1 to 10"
+          },
+          "how_well": {
+            "type": "integer",
+            "description": "Scale of how well the person knows the other person, from 1 to 10"
           }
+
         }
       },
       {

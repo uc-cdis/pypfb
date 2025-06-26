@@ -6,7 +6,8 @@
     "knows": {
       "submitter_id": "person_bob",
       "properties": {
-        "since": "2020-01-01"
+        "since": "2020-01-01",
+        "how_well": 5
       }
     },
     "colleagues": {
@@ -23,7 +24,8 @@
     "knows": {
       "submitter_id": "person_alice",
       "properties": {
-          "since": "2020-01-01"
+          "since": "2020-01-01",
+          "how_well": 5
       }
     },
     "colleagues": {

@@ -168,7 +168,7 @@ def _assert_links(person, check_link_properties=False):
     assert person["name"] == "person", f"Expected person, got {person['name']}"
     assert person["object"]["submitter_id"], f"Expected person with submitter_id, got {person}"
     # check links
-    expected_links = sorted([{'dst_name': 'person', 'label': 'knows', 'properties': {'since': '2020-01-01'}},
+    expected_links = sorted([{'dst_name': 'person', 'label': 'knows', 'properties': {'since': '2020-01-01', 'how_well': 5}},
                              {'dst_name': 'person', 'label': 'colleagues', 'properties': {'workplace': 'acme_corp'}}],
                             key=lambda x: x['label'])
     actual_links = sorted(person['relations'], key=lambda x: x['label'])
