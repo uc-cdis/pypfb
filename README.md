@@ -39,6 +39,77 @@ a PFB file.)
 poetry install
 ```
 
+---
+
+## 📦 Schema Support
+
+PFB now supports **nested objects** within entity definitions, enabling more flexible and expressive data models. This enhancement allows fields to store arbitrary JSON-like key-value structures while preserving PFB compatibility.
+
+### ✅ Supported Types
+
+The following types are supported within PFB entity schemas:
+
+* `string`
+* `integer`
+* `number`
+* `boolean`
+* `array`
+* **`object` with `additionalProperties: true` (nested objects supported as Avro `map`)**
+
+---
+
+## 🏗️ Nested Object Representation
+
+Properties defined as type `"object"` with `"additionalProperties": true` will be represented as an **Avro `map`** in the generated PFB schema. This structure allows for arbitrary key-value data, with controlled recursive depth.
+
+### Example
+
+**Input JSON Schema fragment:**
+
+```json
+{
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "age": { "type": "integer" }
+  }
+}
+```
+
+**Resulting Avro fields in PFB:**
+
+```
+metadata : map<string>  
+age      : int  
+```
+
+The `metadata` field can contain arbitrary nested key-value data, subject to a configurable maximum depth.
+
+---
+
+### ⚙️ Configuring Maximum Depth
+
+By default, the recursive depth allowed for nested objects is set to **10 levels**. This prevents excessive or unintended deeply nested structures.
+
+To override this limit during PFB export or schema processing, use the appropriate configuration flag:
+
+```
+--max-depth <N>
+```
+
+Where `<N>` specifies the maximum allowed nesting depth for object fields.
+
+---
+
+### ⚠️ Notes
+
+* Only object fields with `"additionalProperties": true` are treated as flexible key-value maps.
+* The PFB schema uses the Avro `map` type for these fields.
+* Arrays of objects or more complex composite types remain unsupported for now.
+* Existing flat-field PFB behavior is unchanged for backward compatibility.
+
 
 ## Usage
 
