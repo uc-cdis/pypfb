@@ -1,0 +1,2 @@
+# Ignore all .avro files in this directory
+*.avro

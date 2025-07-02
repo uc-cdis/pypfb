@@ -5,14 +5,16 @@ import json
 from ..cli import from_command
 
 _AVRO_TYPES = {"integer": "long", "number": "double", "int": "long"}
+DEFAULT_MAX_DEPTH = 10
 
 
 @from_command.command(
     "dict", short_help="Convert Gen3 data dictionary into a PFB file."
 )
 @click.argument("url_or_path", metavar="DICTIONARY")
+@click.option("--max-depth", default=DEFAULT_MAX_DEPTH, show_default=True, type=int, help="Maximum depth for nested maps/objects.")
 @click.pass_context
-def from_dict(ctx, url_or_path):
+def from_dict(ctx, url_or_path, max_depth):
     """Convert Gen3 data DICTIONARY into a PFB file.
 
     If DICTIONARY is a HTTP URL, it will be downloaded and parsed as JSON; or it will be
@@ -20,13 +22,13 @@ def from_dict(ctx, url_or_path):
     """
     try:
         with ctx.obj["writer"] as writer:
-            write_from_dict(writer, url_or_path)
+            write_from_dict(writer, url_or_path, max_depth)
     except Exception:
         click.secho("Failed!", fg="red", bold=True, err=True)
         raise
 
 
-def write_from_dict(writer, url_or_path):
+def write_from_dict(writer, url_or_path, max_depth):
     if writer.isatty:
         click.secho("Error: cannot output to TTY.", fg="red", bold=True, err=True)
         return
@@ -41,7 +43,7 @@ def write_from_dict(writer, url_or_path):
     dictionary.init(d)
 
     click.secho("Parsing dictionary...", fg="cyan", err=True)
-    records, ontology_references, links = _parse_dictionary(d)
+    records, ontology_references, links = _parse_dictionary(d, max_depth)
     metadata = _get_ontology_references(ontology_references, links)
 
     click.secho("Writing PFB...", fg="blue", err=True)
@@ -131,7 +133,32 @@ def _get_ontologies_from_node(node_value):
     return properties, node_value[1]
 
 
-def _parse_dictionary(d):
+def _any_map(max_depth):
+    """Return a recursive map type for any key-value pairs, up to max_depth."""
+    primitive_types = [
+        "null", "boolean", "int", "long", "float", "double", "bytes", "string"
+    ]
+    if max_depth <= 0:
+        return {
+            "type": "map",
+            "values": primitive_types
+        }
+    return {
+        "type": "map",
+        "values": primitive_types + [
+            {
+                "type": "array",
+                "items": primitive_types + [
+                    _any_map(max_depth - 1)
+                ]
+            },
+            _any_map(max_depth - 1)
+        ]
+    }
+
+
+def _parse_dictionary(d, max_depth):
+    """Parse the Gen3 data dictionary and return a list of Avro records."""
     records = []
     ontology_references = {}
     links = {}
@@ -167,8 +194,7 @@ def _parse_dictionary(d):
                                 ),
                             )
                             break
-
-            avro_type = _get_avro_type(property_name, property_type, record_name)
+            avro_type = _get_avro_type(property_name, property_type, record_name, max_depth)
 
             # "None" represent an unsupported type in dictionary
             if avro_type is not None:
@@ -233,7 +259,7 @@ def _parse_dictionary(d):
     return records, ontology_references, links
 
 
-def _get_avro_type(property_name, property_type, name):
+def _get_avro_type(property_name, property_type, name, max_depth=DEFAULT_MAX_DEPTH):
     if "type" in property_type:
         if property_type["type"] == "array":
             # this is for when a type is required in a dictionary and is an array type
@@ -248,6 +274,11 @@ def _get_avro_type(property_name, property_type, name):
             return "double"
         if property_type["type"] == "integer":
             return "long"
+        if property_type["type"] == "object" or property_type["type"] == ["object", "null"]:
+            # this is for when a type is required in a dictionary and is an object type
+            if property_type.get('additionalProperties', False):
+                # if additionalProperties is set to true, we can use a map type
+                return _any_map(max_depth)
         return _plain_type(property_type["type"])
 
     if "enum" in property_type:

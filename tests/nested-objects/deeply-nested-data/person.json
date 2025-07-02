@@ -1,0 +1,72 @@
+[
+  {
+    "submitter_id": "person_alice",
+    "name": "Alice",
+    "email": "alice@example.org",
+    "address": {
+      "street": "123 Birch St",
+      "city": "Oz",
+      "zip_code": "12345",
+      "directions": [
+        "left",
+        "right",
+        "straight"
+      ],
+      "is_primary": true,
+      "coordinates": {
+        "latitude": 37.7749,
+        "longitude": -122.4194
+      },
+      "test_map": {
+      "string": "value1",
+      "level2": {
+        "int": 2,
+        "level3": {
+          "bool": true,
+          "level4": {
+            "level5": {
+              "float": 5.5,
+              "level6": {
+                "map": {
+                  "a": 1,
+                  "b": [
+                    2,
+                    3,
+                    4
+                  ]
+                },
+                "level7": {
+                  "null": null,
+                  "level8": {
+                    "object": {
+                      "x": "y",
+                      "z": [
+                        true,
+                        false
+                      ]
+                    },
+                    "level9": {
+                      "array_of_maps": [
+                        {
+                          "k1": "v1"
+                        },
+                        {
+                          "k2": 2
+                        }
+                      ],
+                      "level10": {
+                        "final": "end"
+                      }
+                    }
+                  }
+                }
+
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+]
