@@ -16,7 +16,7 @@
 
 A file with data records (JSON) and a schema (JSON) to describe each data record. Avro files can be serialized into a binary format and compressed.
 
-Read more about [Avro](https://Avro.apache.org/docs/current/spec.html).
+Read more about [Avro](https://Avro.apache.org/docs/).
 
 ### What is a PFB File?
 
