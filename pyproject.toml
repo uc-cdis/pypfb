@@ -20,7 +20,7 @@ aiohttp = ">=3.6.3"
 dictionaryutils = ">=3.4.8"
 gen3 = ">=4.11.3"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 codacy-coverage = "*"
 pytest = ">=6.2.5"
 pytest-cov = ">=2.5"
