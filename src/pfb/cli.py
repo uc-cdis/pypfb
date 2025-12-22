@@ -13,6 +13,7 @@ from .reader import PFBReader
 from .writer import PFBWriter
 
 default_level = logging.INFO
+
 config_path = "config.yml"
 
 if os.path.exists(config_path):
