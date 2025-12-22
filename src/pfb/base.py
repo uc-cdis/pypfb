@@ -82,6 +82,7 @@ def handle_schema_field_unicode(field, encode=True):
     method = encode_enum if encode else decode_enum
     is_enum_ = False
     stack = deque([field["type"]])
+
     while stack:
         t = stack.pop()
         if isinstance(t, list):
