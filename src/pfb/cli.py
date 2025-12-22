@@ -60,7 +60,7 @@ def to_command(ctx, input_file):
 
 
 # load plug-ins from entry_points
-for ep in entry_points().get("pfb.plugins", []):
+for ep in entry_points(group="pfb.plugins"):
     ep.load()
 
 if __name__ == "__main__":
