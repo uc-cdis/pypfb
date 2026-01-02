@@ -1,5 +1,6 @@
 import logging.config
 import os
+import sys
 
 try:
     from importlib.metadata import entry_points
@@ -59,9 +60,15 @@ def to_command(ctx, input_file):
     ctx.obj["reader"] = PFBReader(input_file)
 
 
-# load plug-ins from entry_points
-for ep in entry_points(group="pfb.plugins"):
-    ep.load()
+# Load plug-ins from entry_points (syntax changes for python 3.13)
+major = sys.version_info[0]
+minor = sys.version_info[1]
+if major == 3 and minor >= 13:
+    for ep in entry_points(group="pfb.plugins"):
+        ep.load()
+else:
+    for ep in entry_points().get("pfb.plugins", []):
+        ep.load()
 
 if __name__ == "__main__":
     main()
