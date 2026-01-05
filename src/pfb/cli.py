@@ -60,10 +60,10 @@ def to_command(ctx, input_file):
     ctx.obj["reader"] = PFBReader(input_file)
 
 
-# Load plug-ins from entry_points (syntax changes for python 3.13)
+# Load plug-ins from entry_points (syntax changes for python 3.12+)
 major = sys.version_info[0]
 minor = sys.version_info[1]
-if major == 3 and minor >= 13:
+if major == 3 and minor >= 12:
     for ep in entry_points(group="pfb.plugins"):
         ep.load()
 else:
