@@ -9,7 +9,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.13, <4"
+python = ">=3.9, <4"
 click = ">=8.1.7"
 fastavro = ">=1.11.0"
 python-json-logger = ">=2.0.0"
