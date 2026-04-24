@@ -35,6 +35,7 @@ pfb = 'pfb.cli:main'
 "from_tsv" = "pfb.importers.tsv"
 "to_gremlin" = "pfb.exporters.gremlin"
 "to_tsv" = "pfb.exporters.tsv"
+"to_frictionless" = "pfb.exporters.frictionless"
 "show" = "pfb.commands.show"
 "add" = "pfb.commands.add"
 "rename" = "pfb.commands.rename"
