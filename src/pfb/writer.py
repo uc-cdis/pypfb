@@ -183,6 +183,11 @@ def make_avro_schema(schema):
                                 "name": "misc",
                                 "type": {"type": "map", "values": "string"},
                             },
+                            {
+                                "name": "gen3metadata",
+                                "type": ["null", "string"],
+                                "default": None,
+                            },
                         ],
                     }
                 ]
@@ -217,11 +222,17 @@ class PFBWriter(PFBBase):
     def copy_schema(self, reader):
         self.set_schema(deepcopy(reader.schema))
         self.set_metadata(reader.metadata)
+        self.set_gen3metadata(reader.gen3metadata)
 
     def write(self, iterable=None, metadata=True):
         def _iter():
             if metadata:
-                yield avro_record(None, "Metadata", self._metadata, [])
+                metadata_payload = deepcopy(self._metadata or {})
+                metadata_payload["gen3metadata"] = self.serialize_gen3metadata(
+                    self._gen3metadata
+                )
+                yield avro_record(None, "Metadata", metadata_payload, [])
+
             if iterable is not None:
                 for record in iterable:
                     obj = record["object"]

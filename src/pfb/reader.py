@@ -25,7 +25,15 @@ class PFBReader(PFBBase):
                     for field in node["fields"]:
                         handle_schema_field_unicode(field, encode=False)
         self.set_schema(json.loads(json.dumps(schema), object_pairs_hook=str_hook))
-        self.set_metadata(next(self._reader)["object"])
+
+        metadata_record = next(self._reader)["object"]
+        self.set_metadata(metadata_record)
+        self.set_gen3metadata(
+            self.deserialize_gen3metadata(
+                metadata_record.get("gen3metadata") if metadata_record else None
+            )
+        )
+
         return rv
 
     def __iter__(self):

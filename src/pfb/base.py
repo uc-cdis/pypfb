@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import json
 import sys
 import uuid
 import re
@@ -19,11 +20,9 @@ def str_hook(obj):
     if PY3:
         return {k: v for k, v in obj}
     return {
-        k.encode("utf-8")
-        if isinstance(k, unicode)
-        else k: v.encode("utf-8")
-        if isinstance(v, unicode)
-        else v
+        k.encode("utf-8") if isinstance(k, unicode) else k: (
+            v.encode("utf-8") if isinstance(v, unicode) else v
+        )
         for k, v in obj
     }
 
@@ -124,6 +123,7 @@ class PFBBase(object):
         self._schema = None
         self._metadata = None
         self._encoded_schema = None
+        self._gen3metadata = None
 
     def __enter__(self):
         self._file_obj = (
@@ -151,6 +151,32 @@ class PFBBase(object):
     @property
     def metadata(self):
         return self._metadata
+
+    @property
+    def gen3metadata(self):
+        return self._gen3metadata
+
+    def set_gen3metadata(self, gen3metadata):
+        self._gen3metadata = gen3metadata
+
+    @staticmethod
+    def serialize_gen3metadata(value):
+        if value is None:
+            return None
+        if isinstance(value, str):
+            return value
+        return json.dumps(value)
+
+    @staticmethod
+    def deserialize_gen3metadata(value):
+        if value is None:
+            return None
+        if isinstance(value, str):
+            try:
+                return json.loads(value)
+            except json.JSONDecodeError:
+                return value
+        return value
 
     def set_schema(self, schema):
         self._schema = schema

@@ -102,6 +102,24 @@ def metadata(ctx, name):
             sys.stdout.write("\n")
 
 
+@show.command(short_help="Show Gen3 metadata stored in the PFB file.")
+@click.argument("name", metavar="KEY", required=False)
+@click.pass_context
+def gen3metadata(ctx, name):
+    """Show the Gen3 metadata payload stored in the PFB file."""
+    with ctx.obj["reader"] as reader:
+        data = reader.gen3metadata or {}
+        if name:
+            if isinstance(data, dict):
+                payload = data.get(name)
+            else:
+                payload = None
+            json.dump(payload, sys.stdout)
+        else:
+            json.dump(data, sys.stdout)
+        sys.stdout.write("\n")
+
+
 @show.command(short_help="Show the quick stats of the PFB file.")
 @click.argument("name", metavar="NODE", required=False)
 @click.pass_context

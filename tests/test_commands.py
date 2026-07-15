@@ -7,6 +7,8 @@ import shutil
 from fastavro import reader
 
 from pfb.base import decode_enum, encode_enum, str_hook
+from pfb.cli import main
+from pfb.writer import PFBWriter
 
 
 def _test_schema(r):
@@ -343,3 +345,32 @@ def test_rename_enum(runner, invoke, test_avro):
                     found = True
                     break
             assert found
+
+
+def test_show_gen3metadata(runner, tmp_path, invoke):
+    output_path = tmp_path / "out.avro"
+
+    with PFBWriter(str(output_path)) as writer:
+        writer.set_schema(
+            [
+                {
+                    "type": "record",
+                    "name": "sample",
+                    "fields": [{"name": "id", "type": "string"}],
+                }
+            ]
+        )
+        writer.set_metadata({"nodes": [], "misc": {}})
+        writer.set_gen3metadata(
+            {
+                "name": "example-dataset",
+                "title": "Example Dataset",
+                "description": "A simple example",
+                "licenses": [{"name": "CC0-1.0"}],
+            }
+        )
+        writer.write(iterable=[{"name": "sample", "object": {"id": "1"}}])
+
+    result = invoke("show", "-i", str(output_path), "gen3metadata")
+    assert result.exit_code == 0, result.output
+    assert '"title": "Example Dataset"' in result.output
