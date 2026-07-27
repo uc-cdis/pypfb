@@ -33,3 +33,15 @@ def invoke(runner):
 def test_avro(path_join):
     with open(path_join("pfb-data", "test.avro"), "rb") as f:
         return f.read()
+
+
+@pytest.fixture
+def linkml_schema(path_join):
+    """Return path to LinkML test schema."""
+    return path_join("linkml", "test_schema.yaml")
+
+
+@pytest.fixture
+def linkml_data(path_join):
+    """Return path to LinkML test data directory."""
+    return path_join("linkml", "data")

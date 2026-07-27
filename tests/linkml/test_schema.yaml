@@ -1,0 +1,64 @@
+id: http://example.org/test_schema
+name: test_schema
+prefixes:
+  linkml: https://w3id.org/linkml/
+
+classes:
+  Program:
+    description: A research program
+    attributes:
+      id:
+        identifier: true
+        range: string
+        required: true
+      name:
+        range: string
+        required: true
+      description:
+        range: string
+
+  Project:
+    description: A research project
+    attributes:
+      id:
+        identifier: true
+        range: string
+        required: true
+      code:
+        range: string
+        required: true
+      name:
+        range: string
+      program_id:
+        range: Program
+
+   Participant:
+     description: A study participant
+     attributes:
+       id:
+         identifier: true
+         range: string
+         required: true
+       submitter_id:
+         range: string
+         required: true
+       project_id:
+         range: Project
+       race:
+         range: RaceEnum
+         description: A multivalued enum field to test array type handling
+         multivalued: true
+         required: false
+
+enums:
+   RaceEnum:
+     description: Enumeration of race values
+     permissible_values:
+       OMOP:8516:
+         description: Black or African American
+       OMOP:8514:
+         description: Asian
+       OMOP:8507:
+         description: White
+       OMOP:8657:
+         description: Unknown

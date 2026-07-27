@@ -19,6 +19,8 @@ gen3dictionary = ">=2.0.3"
 aiohttp = ">=3.6.3"
 dictionaryutils = ">=3.4.8"
 gen3 = ">=4.11.3"
+linkml-runtime = ">=1.7.0"
+inflect = ">=6.0.0"
 
 [tool.poetry.dev-dependencies]
 codacy-coverage = "*"
@@ -33,6 +35,7 @@ pfb = 'pfb.cli:main'
 "from_gen3dict" = "pfb.importers.gen3dict"
 "from_json" = "pfb.importers.json"
 "from_tsv" = "pfb.importers.tsv"
+"from_linkml" = "pfb.importers.linkml"
 "to_gremlin" = "pfb.exporters.gremlin"
 "to_tsv" = "pfb.exporters.tsv"
 "show" = "pfb.commands.show"
