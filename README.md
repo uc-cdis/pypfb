@@ -136,6 +136,23 @@ poetry install
     Example:
       pfb from -o data.avro tsv -s schema.avro --program DEV --project test /path/to/data/tsv/
 
+### Convert LinkML schema and data into a PFB file
+
+    Usage: pfb from [PARENT OPTIONS] linkml [OPTIONS] [PATH]
+
+      Convert LinkML schema and JSON/TSV data files into a PFB file.
+
+    Parent Options:
+      -o, --output FILENAME  The output PFB file.  [default: <stdout>]
+
+    Options:
+      -s, --schema FILENAME  LinkML schema file to use. (YAML).  [required]
+      --program TEXT         Name of the program.  [required]
+      --project TEXT         Name of the project.  [required]
+
+    Example:
+      pfb from -o output.avro linkml -s schema.yaml --program DEV --project test /path/to/data/json/
+
 ### Make new blank record
 
     Usage: pfb make [OPTIONS] NAME
