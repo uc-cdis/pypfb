@@ -124,6 +124,8 @@ class PFBBase(object):
         self._metadata = None
         self._encoded_schema = None
         self._gen3metadata = None
+        self._variables = None
+        self._aggregations = None
 
     def __enter__(self):
         self._file_obj = (
@@ -177,6 +179,20 @@ class PFBBase(object):
             except json.JSONDecodeError:
                 return value
         return value
+
+    @property
+    def variables(self):
+        return self._variables
+
+    def set_variables(self, variables):
+        self._variables = variables
+
+    @property
+    def aggregations(self):
+        return self._aggregations
+
+    def set_aggregations(self, aggregations):
+        self._aggregations = aggregations
 
     def set_schema(self, schema):
         self._schema = schema

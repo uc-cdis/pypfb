@@ -188,6 +188,22 @@ def make_avro_schema(schema):
                                 "type": ["null", "string"],
                                 "default": None,
                             },
+                            {
+                                "name": "variables",
+                                "type": ["null", {"type": "array", "items": "string"}],
+                                "default": None,
+                            },
+                            {
+                                "name": "aggregations",
+                                "type": [
+                                    "null",
+                                    {
+                                        "type": "map",
+                                        "values": ["null", "long", "double"],
+                                    },
+                                ],
+                                "default": None,
+                            },
                         ],
                     }
                 ]
@@ -223,6 +239,8 @@ class PFBWriter(PFBBase):
         self.set_schema(deepcopy(reader.schema))
         self.set_metadata(reader.metadata)
         self.set_gen3metadata(reader.gen3metadata)
+        self.set_variables(reader.variables)
+        self.set_aggregations(reader.aggregations)
 
     def write(self, iterable=None, metadata=True):
         def _iter():
@@ -231,6 +249,8 @@ class PFBWriter(PFBBase):
                 metadata_payload["gen3metadata"] = self.serialize_gen3metadata(
                     self._gen3metadata
                 )
+                metadata_payload["variables"] = self._variables
+                metadata_payload["aggregations"] = self._aggregations
                 yield avro_record(None, "Metadata", metadata_payload, [])
 
             if iterable is not None:

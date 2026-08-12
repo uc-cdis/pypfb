@@ -33,6 +33,12 @@ class PFBReader(PFBBase):
                 metadata_record.get("gen3metadata") if metadata_record else None
             )
         )
+        self.set_variables(
+            metadata_record.get("variables") if metadata_record else None
+        )
+        self.set_aggregations(
+            metadata_record.get("aggregations") if metadata_record else None
+        )
 
         return rv
 

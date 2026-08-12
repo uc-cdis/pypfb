@@ -120,6 +120,28 @@ def gen3metadata(ctx, name):
         sys.stdout.write("\n")
 
 
+@show.command(short_help="Show variables stored in the PFB file.")
+@click.pass_context
+def variables(ctx):
+    """Show the variables payload stored in the PFB file."""
+    with ctx.obj["reader"] as reader:
+        data = reader.variables or []
+        payload = data if isinstance(data, list) else []
+        json.dump(payload, sys.stdout)
+        sys.stdout.write("\n")
+
+
+@show.command(short_help="Show aggregations stored in the PFB file.")
+@click.pass_context
+def aggregations(ctx):
+    """Show the aggregations payload stored in the PFB file."""
+    with ctx.obj["reader"] as reader:
+        data = reader.aggregations or {}
+        payload = data if isinstance(data, dict) else {}
+        json.dump(payload, sys.stdout)
+        sys.stdout.write("\n")
+
+
 @show.command(short_help="Show the quick stats of the PFB file.")
 @click.argument("name", metavar="NODE", required=False)
 @click.pass_context
