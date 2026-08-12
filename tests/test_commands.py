@@ -395,13 +395,13 @@ def test_show_aggregations(runner, tmp_path, invoke):
             ]
         )
         writer.set_metadata({"nodes": [], "misc": {}})
-        writer.set_aggregations({"submitter_id": "100", "read_group": "42"})
+        writer.set_aggregations({"submitter_id": 100, "read_group": 42})
         writer.write(iterable=[{"name": "sample", "object": {"id": "1"}}])
 
     result = invoke("show", "-i", str(output_path), "aggregations")
     assert result.exit_code == 0, result.output
-    assert '"submitter_id": "100"' in result.output
-    assert '"read_group": "42"' in result.output
+    assert '"submitter_id": 100' in result.output
+    assert '"read_group": 42' in result.output
 
 
 def test_show_gen3metadata(runner, tmp_path, invoke):
