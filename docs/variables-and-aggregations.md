@@ -22,15 +22,20 @@ A flat array of dot-notation strings: `"<node>.<field>"`. Using dot notation dis
 
 ### Example
 
+Variable selection from 1000 Genomes:
+
 ```json
 [
-  "case.submitter_id",
-  "case.project_id",
-  "demographic.age_at_index",
-  "demographic.gender",
-  "demographic.race",
+  "demographic.annotated_sex",
+  "demographic.population",
+  "demographic.submitter_id",
+  "sample.specimen_id",
   "sample.submitter_id",
-  "sample.sample_type"
+  "subject.consent_codes",
+  "subject.participant_id",
+  "subject.submitter_id",
+  "study.study_id",
+  "study.study_description"
 ]
 ```
 
@@ -71,20 +76,25 @@ The map value is `long` for integer counts and `double` for future ratio/percent
 
 ### Example
 
+Selection from 1000 Genomes (3,202 subjects):
+
 ```json
 {
-  "case": 1250,
-  "case.submitter_id": 1250,
-  "case.project_id": 1250,
-  "demographic": 1248,
-  "demographic.age_at_index": 1101,
-  "demographic.gender": 1248,
-  "demographic.race": 1240,
-  "demographic->case": 1248,
-  "sample": 4372,
-  "sample.submitter_id": 4372,
-  "sample.sample_type": 4301,
-  "sample->case": 4372
+  "demographic": 3202,
+  "sample": 3202,
+  "study": 1,
+  "subject": 3202,
+  "demographic.annotated_sex": 3202,
+  "demographic.population": 3202,
+  "demographic.submitter_id": 3202,
+  "sample.specimen_id": 3202,
+  "sample.submitter_id": 3202,
+  "subject.consent_codes": 3202,
+  "subject.participant_id": 3202,
+  "subject.submitter_id": 3202,
+  "demographic->subject": 3202,
+  "sample->subject": 3202,
+  "subject->study": 3202
 }
 ```
 
@@ -137,7 +147,51 @@ flowchart TD
 
 ---
 
-## 4. CLI Surface
+## 4. Pelican Integration Flow
+
+Pelican is the most common path for PFB creation in production. Because Avro headers are written first but aggregations require a full data scan, Pelican needs to compute variables and aggregations *before* calling the pypfb writer. Two strategies are available:
+
+- **Option A (DB-side, preferred):** Pelican runs lightweight `COUNT` / `COUNT … WHERE field IS NOT NULL` queries against Postgres before streaming any records. The results are passed directly to the pypfb writer as pre-computed metadata. No in-memory buffering of records is required.
+- **Option B (stream-side):** Pelican streams records into a temporary buffer, pypfb accumulates counts, then a second pass writes the final PFB. Simpler to implement but requires holding the full export in memory or on disk.
+
+```mermaid
+flowchart TD
+    User["User / Service"]
+    User -->|"Export request + filter manifest"| Gate
+
+    subgraph Gen3["Gen3 Platform"]
+        Gate["Fence / API Gateway"]
+        Gate --> Pelican
+
+        subgraph Pelican["Pelican Export Service"]
+            PL1["Receive export request\n+ cohort filter"] --> PL2["Fetch data dictionary\nfrom Sheepdog"]
+            PL2 --> PL3["Option A: Run COUNT queries\nagainst Postgres\n(preferred — no buffering)"]
+            PL2 --> PL4["Option B: Stream records\nto temp buffer,\naccumulate counts"]
+            PL3 --> PL5["variables + aggregations\ncomputed"]
+            PL4 --> PL5
+            PL5 --> PL6["Call pypfb writer:\npass precomputed metadata\n+ record stream"]
+        end
+
+        DB[("Postgres\n(Sheepdog)")]
+        PL2 -.->|"dict query"| DB
+        PL3 -.->|"aggregation queries"| DB
+        PL4 -.->|"record stream"| DB
+    end
+
+    PL6 -->|"write Metadata record first\n(variables, aggregations)"| Writer["pypfb Writer"]
+    Writer -->|"stream data records"| Avro["PFB Avro file"]
+    Avro --> S3["Object Storage (S3)"]
+    S3 -->|"signed URL / manifest"| User
+
+    style PL5 fill:#d4edda
+    style Writer fill:#d4edda
+```
+
+**Key integration point:** pypfb needs a way to accept pre-computed variables and aggregations at writer construction time so Pelican can pass DB-derived counts without triggering a second pass. The existing `pfb update` command covers the post-hoc case; a writer-level API (e.g., `PFBWriter(variables=..., aggregations=...)`) is the cleanest path for Pelican.
+
+---
+
+## 5. CLI Surface
 
 ### Current PoC (implemented)
 
@@ -176,29 +230,200 @@ These `update` commands copy the PFB through a reader→writer pair (using `copy
 
 ---
 
-## 5. Existing Standards
+## 6. Existing Standards
 
-Three standards were reviewed for alignment:
+Four standards were reviewed for alignment. For reference, the running example throughout uses a subset of real data from `export_2026-08-06T10_36_03.avro` (1000 Genomes): 3,202 subjects each linked to one demographic record and one sample.
+
+**Our representation of this example:**
+
+```json
+// variables (subset)
+["demographic.annotated_sex", "demographic.population", "demographic.submitter_id",
+ "sample.specimen_id", "sample.submitter_id",
+ "subject.consent_codes", "subject.participant_id", "subject.submitter_id"]
+
+// aggregations (subset)
+{
+  "demographic": 3202,
+  "sample": 3202,
+  "subject": 3202,
+  "demographic.annotated_sex": 3202,
+  "demographic.population": 3202,
+  "sample.specimen_id": 3202,
+  "subject.participant_id": 3202,
+  "demographic->subject": 3202,
+  "sample->subject": 3202
+}
+```
+
+---
 
 ### DDI (Data Documentation Initiative) — *most relevant*
 
 [DDI Lifecycle](https://ddialliance.org/Specification/DDI-Lifecycle/) defines `Variable` elements with rich metadata (concept, representation, question reference) and `SummaryStatistic` with typed measures: `ValidCases`, `InvalidCases`, `Minimum`, `Maximum`, `Mean`, `StandardDeviation`. This is the closest existing standard to the aggregations concept. **Recommendation:** use DDI terminology (`ValidCases` = our field count, `InvalidCases` = null count) as a naming guide if aggregations are expanded beyond simple counts.
 
+The same data in DDI Lifecycle XML would look like:
+
+```xml
+<l:Variable name="annotated_sex">
+  <l:VariableName>demographic.annotated_sex</l:VariableName>
+  <l:SummaryStatistic type="ValidCases">3202</l:SummaryStatistic>
+  <l:SummaryStatistic type="InvalidCases">0</l:SummaryStatistic>
+</l:Variable>
+<l:Variable name="population">
+  <l:VariableName>demographic.population</l:VariableName>
+  <l:SummaryStatistic type="ValidCases">3202</l:SummaryStatistic>
+  <l:SummaryStatistic type="InvalidCases">0</l:SummaryStatistic>
+</l:Variable>
+```
+
+Our `variables` list corresponds to DDI's set of `Variable` names; our per-field aggregation count (`demographic.annotated_sex: 3202`) maps directly to `ValidCases`. DDI has no concept of cross-node edge counts.
+
+---
+
 ### Frictionless Data Packages — *partial alignment for variables*
 
 The [Frictionless Data Package spec](https://specs.frictionlessdata.io/) uses `resources[].schema.fields[]` to describe dataset fields — analogous to our `variables` list. The `stats` section (`{hash, bytes, rows}`) is row-level only with no per-field aggregations. The dot-notation key convention in our aggregations mirrors Frictionless path conventions.
 
-### GA4GH / LinkML — *schema definition, not coverage*
+The same data in a Frictionless `datapackage.json` would look like:
 
-GA4GH Data Connect defines table schemas but has no field-coverage or aggregation concept. LinkML defines slots (analogous to variables) with cardinality constraints but describes what *can* be present, not what *is* present. Neither standard conflicts with this proposal; a future extension could express variables as LinkML slot references.
+```json
+{
+  "resources": [
+    {
+      "name": "demographic",
+      "schema": {
+        "fields": [
+          { "name": "annotated_sex", "type": "string" },
+          { "name": "population",    "type": "string" },
+          { "name": "submitter_id",  "type": "string" }
+        ]
+      },
+      "stats": { "rows": 3202 }
+    },
+    {
+      "name": "subject",
+      "schema": {
+        "fields": [
+          { "name": "participant_id",  "type": "string" },
+          { "name": "consent_codes",   "type": "string" },
+          { "name": "submitter_id",    "type": "string" }
+        ]
+      },
+      "stats": { "rows": 3202 }
+    }
+  ]
+}
+```
+
+Frictionless describes the *shape* of the data (which fields exist) but not coverage (how many are populated). It has no equivalent to our per-field counts or edge-count keys. Our `variables` list is essentially a flattened, cross-resource version of `schema.fields[]`.
+
+---
+
+### GA4GH Data Connect — *schema definition, not coverage*
+
+[GA4GH Data Connect](https://github.com/ga4gh-discovery/data-connect) defines table schemas via JSON Schema but has no field-coverage or aggregation concept. It answers "what fields does this table have?" not "how many rows have each field populated?"
+
+The same data in a Data Connect `TableInfo` response would look like:
+
+```json
+{
+  "name": "demographic",
+  "data_model": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "properties": {
+      "annotated_sex": { "type": ["string", "null"] },
+      "population":    { "type": ["string", "null"] },
+      "submitter_id":  { "type": ["string", "null"] }
+    }
+  }
+}
+```
+
+This tells a consumer that `annotated_sex` *can* be present; our `variables` list confirms it *is* present in this specific file, and our aggregations say how many times (3,202). The two are complementary, not redundant.
+
+---
+
+### LinkML — *slot definitions, not coverage*
+
+[LinkML](https://linkml.io/) defines classes and slots with cardinality constraints (`required`, `multivalued`, `range`) — it describes what *can* be present, not what *is* present in a given dataset. It has no summary-statistic concept.
+
+The same schema in LinkML YAML would look like:
+
+```yaml
+classes:
+  Demographic:
+    slots:
+      - annotated_sex
+      - population
+      - submitter_id
+  Subject:
+    slots:
+      - participant_id
+      - consent_codes
+      - submitter_id
+
+slots:
+  annotated_sex:
+    range: string
+    required: false
+  population:
+    range: string
+    required: false
+  participant_id:
+    range: string
+    required: false
+```
+
+A future extension could express our `variables` list as a set of LinkML slot references — i.e., "these slots from the schema are populated in this export" — which would give consumers schema-level metadata (type, range, cardinality) alongside coverage information.
+
+---
 
 ### VOID (Vocabulary of Interlinked Datasets) — *alignment for edge counts*
 
 [VOID](https://www.w3.org/TR/void/) uses `void:propertyPartition` (triples per property) and `void:classPartition` (triples per class) — a direct semantic analog to our `<node>.<field>` and `<node>` aggregation keys. The `<node>-><related_node>` edge count maps to `void:linkset`.
 
+The same data in VOID Turtle notation would look like:
+
+```turtle
+@prefix void: <http://rdfs.org/ns/void#> .
+@prefix ex:   <https://example.org/ns#> .
+
+<#export> a void:Dataset ;
+    void:classPartition [
+        void:class ex:Demographic ;
+        void:entities 3202
+    ] ;
+    void:propertyPartition [
+        void:property ex:annotated_sex ;
+        void:triples 3202
+    ] ;
+    void:propertyPartition [
+        void:property ex:population ;
+        void:triples 3202
+    ] ;
+    void:linkset [
+        void:subjectsTarget ex:Demographic ;
+        void:objectsTarget  ex:Subject ;
+        void:triples        3202
+    ] .
+```
+
+VOID's `entities` count maps to our `"demographic": 3202`; `triples` per property maps to our `"demographic.annotated_sex": 3202`; the `linkset` triple count maps to our `"demographic->subject": 3202`. VOID is the only reviewed standard with a direct analog to our edge-count keys.
+
 ---
 
-## 6. Open Questions
+## 7. Size Constraints
+
+Some projects have a lot of variables (recover has over 150,000). We are going to be adding 1-3 MB of data to each PFB for just the variable names if we include all of them. This should inform the decision on whether or not to null out the variables and aggregations when performing a schema-only pfb creation from dict.
+
+We should further investigate the frequency distribution of variables across projects to determine how often PFB's will have sparsely used variables (i.e. used only a handful of times in a given dataset), the circumstance where databases have thousands upon thousands of variables only used a handful of times should be the only other use case where the variables and aggregations should be significantly contributing to pfb size for large PFB's.
+
+For small PFB's we should consider defaulting to not including variables and aggregations for PFB's with less than a handful of records (5-10), as this would be another case where their inclusion would significantly increase the file's size as a percentage.
+
+---
+
+## 8. Open Questions
 
 | Question                                                                                           | Options                                                                                    |
 | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
