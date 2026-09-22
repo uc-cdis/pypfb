@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 import glob
+import json
 import os
 import csv
 
@@ -84,23 +85,33 @@ def _from_tsv(metadata, schema, path, program, project):
             yield record
 
 
+_EMPTYISH = ("", "null", "Null")
+
+
 def convert_types(val, field_type):
+    """Convert one TSV cell to the type its AVRO field expects.
+
+    ``field_type`` comes from :func:`get_type_from_schema`: a type name, or an
+    AVRO array definition for array-valued fields.
+    """
+    if isinstance(field_type, dict) and field_type.get("type") == "array":
+        return _convert_array(val)
+
     if field_type == "string" or field_type == "enum":
         if val is None or val.strip() == "":
             return None
         return str(val)
     elif field_type == "double":
-        if (
-            val is None
-            or val.strip() == ""
-            or val.strip() == "null"
-            or val.strip() == "Null"
-        ):
+        if val is None or val.strip() in _EMPTYISH:
             return None
         return float(val)
     elif field_type == "integer" or field_type == "long":
+        if val is None or val.strip() in _EMPTYISH:
+            return None
         return int(val)
     elif field_type == "boolean":
+        if val is None or val.strip() == "":
+            return None
         if val.lower() == "false":
             return False
         if val.lower() == "true":
@@ -110,13 +121,29 @@ def convert_types(val, field_type):
         return val
 
 
+def _convert_array(val):
+    """Parse a TSV cell into a list, accepting JSON or bare comma-separated text."""
+    if val is None or not val.strip():
+        return None
+    val = val.strip()
+    if val.startswith("[") and val.endswith("]"):
+        try:
+            parsed = json.loads(val)
+        except (json.JSONDecodeError, ValueError):
+            parsed = None
+        if isinstance(parsed, list):
+            return parsed
+    stripped = val.strip("[]'\"")
+    return [item.strip() for item in stripped.split(",")] if stripped else None
+
+
 def get_type_from_schema(schema, node, field):
     nodes = None
     for n in schema:
         if n["name"] == node:
             nodes = n
             break
-    if nodes == None:
+    if nodes is None:
         return None
 
     field_type = None
@@ -129,7 +156,10 @@ def get_type_from_schema(schema, node, field):
                     continue
                 else:
                     if isinstance(t, dict):
-                        field_type = "enum"
+                        # Arrays need their full definition so convert_types can
+                        # parse the cell into a list; anything else complex is an
+                        # enum, which converts like a string.
+                        field_type = t if t.get("type") == "array" else "enum"
                     else:
                         field_type = t
         if field_type:
