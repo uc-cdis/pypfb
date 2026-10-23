@@ -4,6 +4,7 @@ from copy import deepcopy
 from fastavro import reader
 
 from .base import PY3, PFBBase, decode_enum, handle_schema_field_unicode, str_hook
+from .blockindex import BlockIndex, load_manifest
 
 
 class PFBReader(PFBBase):
@@ -26,6 +27,10 @@ class PFBReader(PFBBase):
                         handle_schema_field_unicode(field, encode=False)
         self.set_schema(json.loads(json.dumps(schema), object_pairs_hook=str_hook))
         self.set_metadata(next(self._reader)["object"])
+        # The manifest is small and already in memory with the header, so it is
+        # parsed eagerly.  A file without one simply leaves this None.
+        manifest = load_manifest(self._reader.metadata)
+        self.set_block_index(BlockIndex(manifest) if manifest else None)
         return rv
 
     def __iter__(self):
