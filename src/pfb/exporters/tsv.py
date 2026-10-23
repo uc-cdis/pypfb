@@ -1,10 +1,13 @@
 import csv
+import logging
 import os
 import json
 
 import click
 
 from ..cli import to_command
+
+logger = logging.getLogger(__name__)
 
 PLURAL_PARENTS = {
     "subjects": "subject",
@@ -95,13 +98,19 @@ def _to_tsv(reader, dir_path, handlers_by_name):
         record_id = row["id"]
         fields = fields_by_name[name]
 
+        # A default, so a record whose node is absent from metadata["nodes"]
+        # is skipped rather than raising StopIteration mid-export.
         node_index = next(
             (
                 index
                 for (index, d) in enumerate(reader.metadata["nodes"])
                 if d["name"] == name
-            )
+            ),
+            None,
         )
+        if node_index is None:
+            logger.warning("skipping record of unknown node %r", name)
+            continue
 
         obj = row["object"]
 
@@ -133,9 +142,9 @@ def _to_tsv(reader, dir_path, handlers_by_name):
 
             if relations_by_node[name][parent_node]["submitter_id"]:
                 if parent_id in node_submitter_ids:
-                    obj[
-                        relations_by_node[name][parent_node]["submitter_id"]
-                    ] = node_submitter_ids[parent_id]
+                    obj[relations_by_node[name][parent_node]["submitter_id"]] = (
+                        node_submitter_ids[parent_id]
+                    )
                 else:
                     obj[relations_by_node[name][parent_node]["submitter_id"]] = "null"
 

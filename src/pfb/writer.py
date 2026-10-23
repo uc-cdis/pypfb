@@ -1,3 +1,4 @@
+import json
 from copy import deepcopy
 
 from fastavro import writer
@@ -74,7 +75,7 @@ from .base import PFBBase, encode_enum, avro_record, handle_schema_field_unicode
 #         writer(out, schema, records)
 
 
-def make_avro_schema(schema):
+def make_avro_schema(schema, with_parquet=False):
     encoded_schema = []
     for node in schema:
         node = deepcopy(node)
@@ -186,6 +187,7 @@ def make_avro_schema(schema):
                         ],
                     }
                 ]
+                + (_node_parquet_schema() if with_parquet else [])
                 + encoded_schema,
             },
             {
@@ -207,12 +209,52 @@ def make_avro_schema(schema):
     }
 
 
+def _node_parquet_schema():
+    """The ``object`` union member carrying one node's embedded Parquet file.
+
+    Added only when payloads are actually embedded.  It is a breaking schema
+    change for consumers that enumerate the union, so a PFB written without
+    ``--embed-parquet`` is byte-compatible with one written by master.
+    """
+    return [
+        {
+            "type": "record",
+            "name": "NodeParquet",
+            "fields": [
+                {"name": "node", "type": "string"},
+                {"name": "payload", "type": "bytes"},
+                {"name": "num_rows", "type": "long"},
+                {"name": "compression", "type": "string"},
+                {"name": "page_index", "type": "boolean"},
+                {
+                    "name": "bloom_columns",
+                    "type": {"type": "array", "items": "string"},
+                },
+            ],
+        }
+    ]
+
+
 class PFBWriter(PFBBase):
     open_mode = "wb"
 
     def __init__(self, file_or_path):
         super(PFBWriter, self).__init__(file_or_path)
         self._hooks = []
+        self._parquet_payloads = None
+        self._parquet_meta = {}
+
+    def set_parquet_payloads(self, payloads, stager=None):
+        """Attach ``{node: parquet_bytes}`` to embed in the record stream."""
+        self._parquet_payloads = payloads
+        self._parquet_meta = {}
+        for node, payload in payloads.items():
+            self._parquet_meta[node] = {
+                "num_rows": stager.row_counts[node] if stager else 0,
+                "compression": "zstd",
+                "page_index": True,
+                "bloom_columns": (stager.bloom_columns_for(node) if stager else []),
+            }
 
     def copy_schema(self, reader):
         self.set_schema(deepcopy(reader.schema))
@@ -230,7 +272,6 @@ class PFBWriter(PFBBase):
                     for hook in self._hooks:
                         record = hook(record)
 
-                    to_update = {}
                     for field, value in list(obj.items()):
                         if value is not None and self.is_encode(name, field):
                             if isinstance(value, list):
@@ -240,10 +281,39 @@ class PFBWriter(PFBBase):
                                     obj[field].append(encode_enum(element))
                             else:
                                 obj[field] = encode_enum(value)
-                    obj.update(to_update)
                     yield record
+            # Payloads last: a consumer that iterates to completion produces
+            # all of its output before reaching them.  pfb.index.container
+            # explains how a reader still fetches one without a full scan.
+            for node, payload in (self._parquet_payloads or {}).items():
+                meta = self._parquet_meta.get(node, {})
+                yield avro_record(
+                    None,
+                    "NodeParquet",
+                    {
+                        "node": node,
+                        "payload": payload,
+                        "num_rows": meta.get("num_rows", 0),
+                        "compression": meta.get("compression", "zstd"),
+                        "page_index": meta.get("page_index", True),
+                        "bloom_columns": meta.get("bloom_columns", []),
+                    },
+                    [],
+                )
 
-        writer(self._file_obj, make_avro_schema(self.schema), _iter())
+        header_metadata = None
+        if self._index_manifest is not None:
+            # Header metadata values must be str; the manifest is JSON text.
+            from .index.manifest import dump_manifest
+
+            header_metadata = dump_manifest(self._index_manifest)
+
+        writer(
+            self._file_obj,
+            make_avro_schema(self.schema, with_parquet=bool(self._parquet_payloads)),
+            _iter(),
+            metadata=header_metadata,
+        )
 
     def rename_node(self, name_from, name_to):
         if type(name_from) == bytes:

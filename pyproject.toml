@@ -19,6 +19,10 @@ gen3dictionary = ">=2.0.3"
 aiohttp = ">=3.6.3"
 dictionaryutils = ">=3.4.8"
 gen3 = ">=4.11.3"
+pyarrow = { version = ">=19.0.0", optional = true }
+
+[tool.poetry.extras]
+parquet = ["pyarrow"]
 
 [tool.poetry.dev-dependencies]
 codacy-coverage = "*"
@@ -40,6 +44,9 @@ pfb = 'pfb.cli:main'
 "rename" = "pfb.commands.rename"
 "import" = "pfb.commands.import"
 "etl" = "pfb.commands.etl"
+"index" = "pfb.commands.index"
+"search" = "pfb.commands.search"
+"to_parquet" = "pfb.exporters.parquet"
 
 [build-system]
 requires = ["poetry>=1.4.1"]
