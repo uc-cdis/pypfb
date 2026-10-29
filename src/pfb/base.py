@@ -19,11 +19,9 @@ def str_hook(obj):
     if PY3:
         return {k: v for k, v in obj}
     return {
-        k.encode("utf-8")
-        if isinstance(k, unicode)
-        else k: v.encode("utf-8")
-        if isinstance(v, unicode)
-        else v
+        k.encode("utf-8") if isinstance(k, unicode) else k: (
+            v.encode("utf-8") if isinstance(v, unicode) else v
+        )
         for k, v in obj
     }
 
@@ -124,6 +122,7 @@ class PFBBase(object):
         self._schema = None
         self._metadata = None
         self._encoded_schema = None
+        self._index_manifest = None
 
     def __enter__(self):
         self._file_obj = (
@@ -152,6 +151,11 @@ class PFBBase(object):
     def metadata(self):
         return self._metadata
 
+    @property
+    def index_manifest(self):
+        """The parsed index manifest, or ``None`` if the file has no index."""
+        return self._index_manifest
+
     def set_schema(self, schema):
         self._schema = schema
 
@@ -160,6 +164,9 @@ class PFBBase(object):
 
     def set_metadata(self, metadata):
         self._metadata = metadata
+
+    def set_index_manifest(self, manifest):
+        self._index_manifest = manifest
 
     def prepare_encode_cache(self):
         if self._is_encode is None:
