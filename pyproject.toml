@@ -40,6 +40,8 @@ pfb = 'pfb.cli:main'
 "rename" = "pfb.commands.rename"
 "import" = "pfb.commands.import"
 "etl" = "pfb.commands.etl"
+"index" = "pfb.commands.index"
+"search" = "pfb.commands.search"
 
 [build-system]
 requires = ["poetry>=1.4.1"]
