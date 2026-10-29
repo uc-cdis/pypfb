@@ -1,9 +1,12 @@
-import json
+import io
 from copy import deepcopy
 
+import fastavro
 from fastavro import writer
+from fastavro.write import Writer
 
 from .base import PFBBase, encode_enum, avro_record, handle_schema_field_unicode
+from .manifest import NODE_PARQUET, NODE_PARQUET_SCHEMA, dump_manifest
 
 
 # def add(pfbFile, parField, newField, newFieldType, newFieldDefault):
@@ -187,7 +190,7 @@ def make_avro_schema(schema, with_parquet=False):
                         ],
                     }
                 ]
-                + (_node_parquet_schema() if with_parquet else [])
+                + ([NODE_PARQUET_SCHEMA] if with_parquet else [])
                 + encoded_schema,
             },
             {
@@ -209,32 +212,6 @@ def make_avro_schema(schema, with_parquet=False):
     }
 
 
-def _node_parquet_schema():
-    """The ``object`` union member carrying one node's embedded Parquet file.
-
-    Added only when payloads are actually embedded.  It is a breaking schema
-    change for consumers that enumerate the union, so a PFB written without
-    ``--embed-parquet`` is byte-compatible with one written by master.
-    """
-    return [
-        {
-            "type": "record",
-            "name": "NodeParquet",
-            "fields": [
-                {"name": "node", "type": "string"},
-                {"name": "payload", "type": "bytes"},
-                {"name": "num_rows", "type": "long"},
-                {"name": "compression", "type": "string"},
-                {"name": "page_index", "type": "boolean"},
-                {
-                    "name": "bloom_columns",
-                    "type": {"type": "array", "items": "string"},
-                },
-            ],
-        }
-    ]
-
-
 class PFBWriter(PFBBase):
     open_mode = "wb"
 
@@ -244,23 +221,33 @@ class PFBWriter(PFBBase):
         self._parquet_payloads = None
         self._parquet_meta = {}
 
-    def set_parquet_payloads(self, payloads, stager=None):
-        """Attach ``{node: parquet_bytes}`` to embed in the record stream."""
+    def set_parquet_payloads(self, payloads, payload_meta=None):
+        """Attach ``{node: parquet_bytes}`` to embed in the record stream.
+
+        ``payload_meta`` is ``{node: {num_rows, compression, page_index,
+        bloom_columns}}``.  Plain data rather than a stager object, so the
+        writer never reaches into the pyarrow layer and never has to guess at
+        values the caller actually knows.
+        """
         self._parquet_payloads = payloads
-        self._parquet_meta = {}
-        for node, payload in payloads.items():
-            self._parquet_meta[node] = {
-                "num_rows": stager.row_counts[node] if stager else 0,
-                "compression": "zstd",
-                "page_index": True,
-                "bloom_columns": (stager.bloom_columns_for(node) if stager else []),
-            }
+        self._parquet_meta = payload_meta or {}
 
     def copy_schema(self, reader):
         self.set_schema(deepcopy(reader.schema))
         self.set_metadata(reader.metadata)
 
     def write(self, iterable=None, metadata=True):
+        """Write the PFB to the handle opened by the context manager."""
+        self.write_to(self._file_obj, iterable, metadata=metadata)
+
+    def write_to(self, file_obj, iterable=None, metadata=True):
+        """Write the PFB to an explicitly supplied file object.
+
+        :func:`write_indexed` needs this: its first pass writes to a staging
+        buffer that it then has to read back, so it cannot let the context
+        manager close the handle.
+        """
+
         def _iter():
             if metadata:
                 yield avro_record(None, "Metadata", self._metadata, [])
@@ -283,13 +270,13 @@ class PFBWriter(PFBBase):
                                 obj[field] = encode_enum(value)
                     yield record
             # Payloads last: a consumer that iterates to completion produces
-            # all of its output before reaching them.  pfb.index.container
+            # all of its output before reaching them.  write_indexed() below
             # explains how a reader still fetches one without a full scan.
             for node, payload in (self._parquet_payloads or {}).items():
                 meta = self._parquet_meta.get(node, {})
                 yield avro_record(
                     None,
-                    "NodeParquet",
+                    NODE_PARQUET,
                     {
                         "node": node,
                         "payload": payload,
@@ -304,12 +291,10 @@ class PFBWriter(PFBBase):
         header_metadata = None
         if self._index_manifest is not None:
             # Header metadata values must be str; the manifest is JSON text.
-            from .index.manifest import dump_manifest
-
             header_metadata = dump_manifest(self._index_manifest)
 
         writer(
-            self._file_obj,
+            file_obj,
             make_avro_schema(self.schema, with_parquet=bool(self._parquet_payloads)),
             _iter(),
             metadata=header_metadata,
@@ -365,3 +350,108 @@ class PFBWriter(PFBBase):
             return record
 
         self._hooks.append(_rename_enum)
+
+
+# --------------------------------------------------------------------------
+# Writing an indexed PFB
+# --------------------------------------------------------------------------
+#
+# The design streams one `NodeParquet` entity per node in the Avro record
+# stream, which makes payloads lazy and skippable in a way header metadata
+# could not be.  That creates a placement problem, and this is where it is
+# solved.
+#
+# Payloads are emitted *last*, so a consumer that iterates to completion
+# produces all of its output before it reaches them.  But "last" also means a
+# reader wanting a payload would have to decode every data record first --
+# exactly the full scan the index exists to avoid, which on a real export made
+# indexed retrieval (514 ms) slower than the scan it replaced (504 ms).
+#
+# The fix is to record, for each node, the ordinal of the Avro *block* its
+# payload lands in.  `fastavro.block_reader` skips a block by its length prefix
+# without decoding it, so fetching one payload walks block headers (a few ms)
+# and decodes exactly one block.  Ordinals rather than byte offsets avoid a
+# circularity: the header is written before the data, so it cannot contain
+# offsets that are only known afterwards.
+#
+# Knowing the ordinals requires having written the blocks, so the file is built
+# in two passes.  The second copies every block byte for byte -- nothing is
+# re-encoded, which is both what makes it cheap and what keeps the ordinals
+# valid, since re-encoding could move block boundaries.
+
+
+class _RawBlock(object):
+    """Adapter presenting pre-encoded block bytes to ``Writer.write_block``."""
+
+    __slots__ = ("num_records", "bytes_")
+
+    def __init__(self, num_records, raw):
+        self.num_records = num_records
+        self.bytes_ = io.BytesIO(raw)
+
+
+def locate_payload_blocks(file_obj):
+    """Return ``(payload_blocks, blocks, writer_schema, codec)`` for a staged PFB.
+
+    One pass.  Every block must be read to find the payload records, but the
+    blocks come back as raw bytes so the caller can re-emit them without
+    re-encoding.
+    """
+    file_obj.seek(0)
+    block_reader = fastavro.block_reader(file_obj)
+    blocks = []
+    payload_blocks = {}
+    for ordinal, block in enumerate(block_reader):
+        raw = block.bytes_.getvalue()
+        count = block.num_records
+        for record in block:
+            if record["name"] == NODE_PARQUET:
+                payload_blocks[record["object"]["node"]] = ordinal
+        blocks.append((count, raw))
+    return payload_blocks, blocks, block_reader.writer_schema, block_reader.codec
+
+
+def rewrite_with_manifest(out_file, writer_schema, codec, blocks, metadata):
+    """Copy ``blocks`` verbatim under a header carrying ``metadata``."""
+    out = Writer(out_file, writer_schema, codec=codec, metadata=metadata)
+    for count, raw in blocks:
+        out.write_block(_RawBlock(count, raw))
+    out.flush()
+    return out
+
+
+def write_indexed(
+    out_file, schema, metadata, records, manifest, payloads=None, payload_meta=None
+):
+    """Write an indexed PFB and return the manifest as actually stored.
+
+    Without ``payloads`` this is tiers 0-2: the manifest goes in the Avro header
+    and the file is otherwise unchanged, so no consumer can tell the difference.
+
+    With ``payloads`` it is tier 3, written in the two passes described above.
+    """
+    if not payloads:
+        _write_pfb(out_file, schema, metadata, records, manifest)
+        return manifest
+
+    staging = io.BytesIO()
+    _write_pfb(staging, schema, metadata, records, manifest, payloads, payload_meta)
+
+    payload_blocks, blocks, writer_schema, codec = locate_payload_blocks(staging)
+    stored = dict(manifest)
+    stored["embedded"] = True
+    stored["payload_blocks"] = payload_blocks
+    rewrite_with_manifest(out_file, writer_schema, codec, blocks, dump_manifest(stored))
+    return stored
+
+
+def _write_pfb(
+    out_file, schema, metadata, records, manifest, payloads=None, payload_meta=None
+):
+    pfb_writer = PFBWriter(out_file)
+    pfb_writer.set_schema(schema)
+    pfb_writer.set_metadata(metadata)
+    pfb_writer.set_index_manifest(manifest)
+    if payloads:
+        pfb_writer.set_parquet_payloads(payloads, payload_meta)
+    pfb_writer.write_to(out_file, records)

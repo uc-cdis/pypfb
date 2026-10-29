@@ -23,7 +23,7 @@ from ..cli import to_command
 def to_parquet(ctx, output, compression, data_page_size, no_page_index):
     """Write one Parquet file per node into OUTPUT_DIR."""
     try:
-        from ..index.staging import ParquetStager
+        from ..parquet import ParquetStager
     except ImportError:
         raise click.ClickException(
             "pyarrow is required; install with: pip install pypfb[parquet]"

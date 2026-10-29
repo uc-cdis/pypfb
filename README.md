@@ -40,6 +40,14 @@ poetry install
 ```
 
 
+To use `pfb index`, `pfb search`, or `pfb to parquet`, install the `parquet`
+extra, which adds pyarrow:
+
+    pip install pypfb[parquet]
+
+Reading an indexed PFB needs no extra; only building an index and querying an
+embedded payload do.
+
 ## Usage
 
 ### Main
@@ -51,8 +59,10 @@ poetry install
     Commands:
       add     Add records into a PFB file.
       from    Generate PFB from other data formats.
+      index   Build or inspect a PFB search index.
       make    Make a blank record for add.
       rename  Rename different parts of schema.
+      search  Search records within a PFB file.
       show    Show different parts of a PFB file.
       to      Convert PFB into other data formats.
 
@@ -219,6 +229,78 @@ poetry install
       None
     Example:
       pfb to -i data.avro tsv
+
+### Convert PFB into Parquet (1 Parquet file per node)
+
+Requires the `parquet` extra: `pip install pypfb[parquet]`.
+
+    Usage: pfb to [PARENT OPTIONS] parquet [OPTIONS] OUTPUT_DIR
+
+      Write one Parquet file per node into OUTPUT_DIR.
+
+    Options:
+      --compression TEXT        Parquet codec.  [default: zstd]
+      --data-page-size INTEGER  [default: 65536]
+      --no-page-index           Skip the page index (it costs ~0.4%).
+    Example:
+      pfb to -i data.avro parquet ./parquet-out
+
+### Build a search index
+
+Derives per-field statistics from Parquet and stores them in the PFB header.
+With `--embed-parquet` it also embeds one Parquet file per node, which enables
+record retrieval but adds a member to the Avro `object` union -- a breaking
+change for consumers outside this SDK. Requires the `parquet` extra.
+
+    Usage: pfb index build [OPTIONS]
+
+      Read a PFB, derive statistics and an index, write an indexed PFB.
+
+    Options:
+      -i, --input FILENAME     The input PFB file.  [default: <stdin>]
+      -o, --output FILENAME    The indexed PFB file to write.  [required]
+      --embed-parquet          Embed per-node Parquet payloads, enabling record
+                               retrieval (tier 3).  [default: no-embed-parquet]
+      --domain-cap INTEGER     Max distinct values before a field falls back to
+                               bloom or range.  [default: 256]
+      --data-page-size INTEGER Parquet page size.  [default: 65536]
+      --compression TEXT       Parquet codec.  [default: zstd]
+      --no-bloom               Skip bloom filters (~3.5% of the payload).
+    Example:
+      pfb index build -i data.avro -o indexed.avro
+      pfb index build -i data.avro -o embedded.avro --embed-parquet
+
+To inspect what was built:
+
+    Usage: pfb index show [OPTIONS]
+
+    Options:
+      -i, --input FILENAME  The PFB file.  [default: <stdin>]
+      --node TEXT           Show one node's field summaries instead.
+      --full                Print the whole manifest.
+    Example:
+      pfb index show -i indexed.avro --node demographic
+
+### Search records in a PFB
+
+Uses the embedded Parquet payload and its page index when present, and falls
+back to a full scan with a warning when absent. The manifest alone can rule
+some queries out without reading any records. All predicates must target the
+same node.
+
+    Usage: pfb search [OPTIONS]
+
+      Find records matching every predicate.
+
+    Options:
+      -i, --input FILENAME  The PFB file.  [default: <stdin>]
+      -w, --where TEXT      NODE.FIELD[=|!=|>|>=|<|<=]VALUE; repeatable (AND).
+                            [required]
+      --count               Print only the number of matches.
+      --explain             Report how the answer was reached, not the rows.
+    Example:
+      pfb search -i embedded.avro -w 'demographic.population=CEU' --count
+      pfb search -i embedded.avro -w 'demographic.population=CEU' --explain
 
 ### PFB ETL
 

@@ -7,29 +7,31 @@ import pytest
 
 pa = pytest.importorskip("pyarrow")
 
-from pfb.index.arrow import (  # noqa: E402
+from pfb.manifest import (  # noqa: E402
+    MANIFEST_COMPRESS_THRESHOLD,
+    MANIFEST_KEY,
+    MANIFEST_KEY_COMPRESSED,
+    NODE_PARQUET,
+    STRATEGY_BLOOM,
+    STRATEGY_DOMAIN,
+    STRATEGY_NONE,
+    STRATEGY_RANGE,
+    PredicateError,
+    answerable_from_manifest,
+    dump_manifest,
+    load_manifest,
+    parse_predicate,
+)
+from pfb.parquet import (  # noqa: E402
     ID_COLUMN,
     RELATIONS_COLUMN,
     UnsupportedPFBType,
     avro_field_to_arrow,
+    build_index,
     node_to_arrow_schema,
-)
-from pfb.index.builder import build_index, write_indexed  # noqa: E402
-from pfb.index.container import NODE_PARQUET, iter_payloads  # noqa: E402
-from pfb.index.manifest import (  # noqa: E402
-    COMPRESS_THRESHOLD,
-    MANIFEST_KEY,
-    MANIFEST_KEY_COMPRESSED,
-    dump_manifest,
-    load_manifest,
-)
-from pfb.index.query import (  # noqa: E402
-    PredicateError,
-    answerable_from_manifest,
-    parse_predicate,
     search_payload,
+    write_index,
 )
-from pfb.index.stats import BLOOM, DOMAIN, NONE, RANGE  # noqa: E402
 from pfb.reader import PFBReader  # noqa: E402
 
 
@@ -59,7 +61,7 @@ def built(source):
 
 def _write(result, embed):
     out = io.BytesIO()
-    manifest = write_indexed(out, result, embed=embed)
+    manifest = write_index(out, result, embed=embed)
     out.seek(0)
     return out, manifest
 
@@ -141,7 +143,7 @@ def test_manifest_roundtrips_as_plain_json():
 
 
 def test_large_manifest_is_compressed():
-    manifest = {"version": 1, "nodes": {"n": list(range(COMPRESS_THRESHOLD))}}
+    manifest = {"version": 1, "nodes": {"n": list(range(MANIFEST_COMPRESS_THRESHOLD))}}
     stored = dump_manifest(manifest)
     assert list(stored) == [MANIFEST_KEY_COMPRESSED]
     assert load_manifest(stored) == manifest
@@ -252,7 +254,7 @@ def test_small_domains_are_listed(source):
     source.seek(0)
     manifest = build_index(source, domain_cap=256).manifest
     fields = manifest["nodes"]["demographic"]["fields"]
-    listed = [f for f in fields.values() if f["strategy"] == DOMAIN]
+    listed = [f for f in fields.values() if f["strategy"] == STRATEGY_DOMAIN]
     assert listed
     for field in listed:
         assert len(field["domain"]) == field["distinct_count"] <= 256
@@ -267,15 +269,16 @@ def test_cardinality_guard_falls_back_above_the_cap(source):
         for f in node["fields"].values()
     }
     # With a cap of zero nothing may be listed as a full domain.
-    assert DOMAIN not in strategies
-    assert strategies & {BLOOM, RANGE, NONE}
+    assert STRATEGY_DOMAIN not in strategies
+    assert strategies & {STRATEGY_BLOOM, STRATEGY_RANGE, STRATEGY_NONE}
 
 
 def test_bloom_columns_take_the_bloom_strategy(source):
     source.seek(0)
     manifest = build_index(source, domain_cap=0).manifest
     assert (
-        manifest["nodes"]["demographic"]["fields"]["submitter_id"]["strategy"] == BLOOM
+        manifest["nodes"]["demographic"]["fields"]["submitter_id"]["strategy"]
+        == STRATEGY_BLOOM
     )
 
 
@@ -314,8 +317,9 @@ def test_manifest_is_readable_without_pyarrow(built):
 def test_embedded_output_contains_one_payload_per_node(built):
     out, manifest = _write(built, embed=True)
     assert manifest["embedded"] is True
-    payloads = list(iter_payloads(out))
-    assert len(payloads) == len(built.payloads)
+    with PFBReader(out) as reader:
+        fetched = {n: reader.parquet(n) for n in built.payloads}
+    assert fetched == built.payloads
 
 
 def test_payload_block_ordinals_are_recorded(built):
@@ -429,7 +433,7 @@ def test_manifest_rules_out_a_value_outside_the_domain(built):
     predicate = parse_predicate("demographic.submitter_id=definitely-not-present")
     manifest = built.manifest
     field = manifest["nodes"]["demographic"]["fields"]["submitter_id"]
-    if field["strategy"] != DOMAIN:
+    if field["strategy"] != STRATEGY_DOMAIN:
         pytest.skip("submitter_id is not domain-indexed at the default cap")
     assert answerable_from_manifest(manifest, predicate) is False
 
@@ -437,7 +441,7 @@ def test_manifest_rules_out_a_value_outside_the_domain(built):
 def test_manifest_cannot_confirm_a_present_value(built):
     manifest = built.manifest
     field = manifest["nodes"]["demographic"]["fields"]["submitter_id"]
-    if field["strategy"] != DOMAIN:
+    if field["strategy"] != STRATEGY_DOMAIN:
         pytest.skip("submitter_id is not domain-indexed at the default cap")
     predicate = parse_predicate(
         "demographic.submitter_id={}".format(field["domain"][0])
@@ -451,3 +455,49 @@ def test_manifest_rules_out_an_unknown_node(built):
         answerable_from_manifest(built.manifest, parse_predicate("nope.field=1"))
         is False
     )
+
+
+# --- payload fetch must not disturb iteration ----------------------------
+
+
+def test_parquet_does_not_disturb_a_fresh_reader(make_source, built):
+    """Fetching a payload must leave iteration intact.
+
+    ``parquet()`` has to seek, and the live fastavro reader is mid-stream on the
+    same handle.  Seeking it directly rewinds the file underneath the reader, so
+    the records that came back afterwards were garbage.  The only code path that
+    did both is the ``pfb search`` fallback, which is why this needed its own
+    test.
+    """
+    with PFBReader(make_source()) as plain:
+        expected = list(plain)
+
+    out, _ = _write(built, embed=True)
+    with PFBReader(out) as reader:
+        assert reader.parquet("demographic") is not None
+        assert list(reader) == expected
+
+
+def test_parquet_mid_iteration_does_not_lose_records(built):
+    """Interleaving a payload fetch with iteration yields every record once."""
+    out, _ = _write(built, embed=True)
+    blob = out.getvalue()
+
+    with PFBReader(io.BytesIO(blob)) as reader:
+        everything = [r["id"] for r in reader]
+
+    with PFBReader(io.BytesIO(blob)) as reader:
+        seen = []
+        for index, record in enumerate(reader):
+            seen.append(record["id"])
+            if index == 3:
+                assert reader.parquet("demographic") is not None
+        assert seen == everything
+
+
+def test_repeated_payload_fetches_are_stable(built):
+    out, _ = _write(built, embed=True)
+    with PFBReader(out) as reader:
+        first = reader.parquet("demographic")
+        second = reader.parquet("demographic")
+        assert first == second == built.payloads["demographic"]

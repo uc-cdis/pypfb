@@ -7,7 +7,11 @@ import sys
 import click
 
 from ..cli import main
-from ..index.manifest import load_manifest
+from ..manifest import (
+    PredicateError,
+    answerable_from_manifest,
+    parse_predicate,
+)
 from ..reader import PFBReader
 
 
@@ -39,13 +43,6 @@ def search(input_file, where, count, explain):
     falls back to a full Avro scan with a warning when it is absent.  All
     predicates must target the same node.
     """
-    from ..index.query import (
-        PredicateError,
-        answerable_from_manifest,
-        parse_predicate,
-        search_payload,
-    )
-
     try:
         predicates = [parse_predicate(w) for w in where]
     except PredicateError as e:
@@ -72,7 +69,14 @@ def search(input_file, where, count, explain):
         payload = reader.parquet(node) if manifest else None
         if payload is not None:
             try:
+                from ..parquet import search_payload
+
                 result = search_payload(payload, predicates)
+            except ImportError:
+                raise click.ClickException(
+                    "pyarrow is required to read an embedded payload; "
+                    "install with: pip install pypfb[parquet]"
+                )
             except PredicateError as e:
                 raise click.UsageError(str(e))
             _emit(result.rows, count, explain, source="parquet", result=result)
@@ -95,35 +99,17 @@ def search(input_file, where, count, explain):
 
 
 def _scan(reader, node, predicates):
-    """Brute-force fallback, so an unindexed file still answers correctly."""
-    from ..index.query import Predicate
+    """Brute-force fallback, so an unindexed file still answers correctly.
 
-    def matches(obj, predicate):
-        if predicate.field not in obj:
-            return predicate.op == "!="
-        left = obj[predicate.field]
-        right = predicate.value
-        try:
-            left_number, right_number = float(left), float(right)
-            left, right = left_number, right_number
-        except (TypeError, ValueError):
-            left, right = str(left), str(right)
-        return {
-            "=": left == right,
-            "!=": left != right,
-            ">": left > right,
-            ">=": left >= right,
-            "<": left < right,
-            "<=": left <= right,
-        }[predicate.op]
-
-    assert isinstance(predicates[0], Predicate)
+    Comparison is ``Predicate.matches_record`` so that the fallback and the
+    Parquet path cannot drift apart.
+    """
     rows = []
     for record in reader:
         if record["name"] != node:
             continue
         obj = record["object"]
-        if all(matches(obj, p) for p in predicates):
+        if all(p.matches_record(obj) for p in predicates):
             row = dict(obj)
             row["__pfb_id"] = record["id"]
             rows.append(row)

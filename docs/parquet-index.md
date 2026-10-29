@@ -9,6 +9,74 @@ indexed PFB needs nothing new
 
 ---
 
+## Basic example
+
+```bash
+# Tiers 0-2: statistics only.  No Avro schema change, +0.3%, and the manifest
+# is readable with fastavro alone -- no pyarrow needed to consume it.
+pfb index build -i export.avro -o indexed.pfb
+# indexed 14 nodes, 293 fields
+# tiers 0-2 only; pass --embed-parquet for record retrieval
+
+pfb index show -i indexed.pfb
+pfb index show -i indexed.pfb --node demographic
+
+# Tier 3: embed per-node Parquet, enabling record retrieval.  +26.8%, and a
+# breaking schema change for consumers outside this SDK.
+pfb index build -i export.avro -o embedded.pfb --embed-parquet
+# embedded 2,694,279 bytes of Parquet across 14 payloads
+
+pfb search -i embedded.pfb -w 'demographic.population=CEU' --count
+# 179
+
+pfb search -i embedded.pfb -w 'demographic.population=CEU' --explain
+
+# On a tiers 0-2 file the manifest can still rule a query out with no payload
+# and no record read at all.
+pfb search -i indexed.pfb -w 'demographic.population=NOPE' --count
+# 0
+
+# The staging layer on its own, no PFB involved.
+pfb to -i export.avro parquet ./parquet-out
+
+# An embedded file is still readable by existing consumers.
+pfb show -i embedded.pfb nodes | wc -l   # 40, same as the input
+pfb to -i embedded.pfb tsv ./out         # exit 0, all 14 files
+```
+
+From Python:
+
+```python
+from pfb.manifest import answerable_from_manifest, parse_predicate
+from pfb.reader import PFBReader
+from pfb.parquet import search_payload
+
+with PFBReader("embedded.pfb") as reader:
+    manifest = reader.index_manifest
+    predicate = parse_predicate("demographic.population=CEU")
+
+    # Tier 2: can the manifest alone prove there is no match?
+    if answerable_from_manifest(manifest, predicate) is False:
+        rows = []
+    else:
+        # Tier 3: fetch just the one Avro block holding the payload.
+        rows = search_payload(reader.parquet("demographic"), [predicate]).rows
+
+print(len(rows))
+```
+
+Building an index programmatically:
+
+```python
+from pfb.parquet import build_index, write_index
+
+result = build_index("export.avro")
+with open("embedded.pfb", "wb") as out:
+    manifest = write_index(out, result, embed=True)
+```
+
+---
+
 ## What this is
 
 Four tiers of capability over a PFB, each a superset of the last:
@@ -138,37 +206,83 @@ in tension are both met.
 
 ---
 
-## What each file does
+## Where the code lives
 
-### `src/pfb/index/arrow.py` — Avro → Arrow type mapping
+No sub-package. Two flat modules sit alongside `reader.py` and `writer.py`, and
+everything else goes into the file that already owns that responsibility.
 
-Covered above. Also defines the two carried columns: `__pfb_id`, so a Parquet hit maps
-back to an Avro record, and `__pfb_relations`, so edge traversal and edge counts don't
-need a second pass.
+The split is driven by one constraint worth stating plainly: **`cli.py` loads
+every `pfb.plugins` entry point on every invocation, with no `try`/`except`.**
+A module-scope `import pyarrow` in any `commands/` or `exporters/` module would
+therefore break `pfb --help` outright on an install without the extra, and add
+~0.7 s to every command on one with it. So pyarrow lives in exactly one module,
+below the plugins and above `reader`/`writer`, imported lazily by its callers.
 
-### `src/pfb/index/staging.py` — records → indexed Parquet
+```text
+base.py        unchanged except for two accessors
+manifest.py    NEW - manifest format, predicates, tier-2 lookups   (stdlib only)
+reader.py      manifest parsing, union filtering, payload fetch     (no pyarrow)
+writer.py      NodeParquet emission, the two-pass indexed write     (no pyarrow)
+parquet.py     NEW - Arrow mapping, staging, stats, build, query    (pyarrow)
+commands/, exporters/   thin CLI; `from ..parquet import ...` inside callbacks
+```
 
-`ParquetStager` buckets records by node and flushes row groups at `batch_size`, so peak
-memory is bounded by (nodes × batch size) rather than by the export.
+### `src/pfb/manifest.py` — the format, and what it can answer alone
 
-This is where the write-time index configuration lives, and none of it is on by default
-in pyarrow: `write_page_index=True`, `use_dictionary=True`, zstd, a 64 KiB
-`data_page_size`, and `bloom_filter_options` for identifier columns. Note that
-`bloom_filter_options` reaches `ParquetWriter` through `**options` — there is no
-`write_bloom_filter` parameter, despite how it reads.
+Stdlib only, because this is the part a consumer can use with nothing but
+`fastavro`.
 
-Bloom filters are restricted to `submitter_id` / `participant_id` / `specimen_id` because
-the PoC priced them at 3.5% of the payload, 8× what the page index costs. `--no-bloom`
-turns them off.
+The manifest is JSON under the header key `pfb.index.v1.manifest`. fastavro
+rejects `bytes` header values, so a manifest over 16 KB is deflated and
+base64-encoded into a separate key (`...manifest.z`); exactly one is ever
+written and `load_manifest` accepts either. This matters here — the real
+export's manifest is 171 KB of JSON.
 
-### `src/pfb/index/stats.py` — field summaries and the cardinality guard
+`load_manifest` returns `None`, never raises, for missing, corrupt, or
+future-versioned manifests, so a v1 reader meeting a v2 file degrades to a scan
+rather than refusing to open it.
 
-`footer_stats()` reads null counts and min/max from the Parquet footer without touching a
-data page. It deliberately ignores `distinct_count`: pyarrow leaves it unset, so domains
-come from `pc.unique()` instead.
+`NODE_PARQUET` and `NODE_PARQUET_SCHEMA` live here too. That **removes a real
+duplication**: the same Avro literal previously existed in both the container
+module and `writer.py`. Putting it here lets `reader.py` take the name and
+`writer.py` the schema without either importing the other.
 
-`field_summaries()` applies the cardinality guard, which is what keeps the manifest
-bounded by field count rather than by record count:
+`Predicate` is a plain value object — `node`, `field`, `op`, `value`, and
+comparison against Python values. It deliberately knows nothing about Arrow;
+turning one into a pushdown expression is `parquet.predicate_to_expression`.
+Previously `Predicate.coerce` did a function-scope `import pyarrow` inside a
+type that otherwise needs none.
+
+`answerable_from_manifest()` is tier 2 doing real work: from the manifest alone
+it can sometimes prove **no record matches** — a value outside a listed domain,
+or outside a numeric range — and answer without reading a payload at all. It
+returns `False` (nothing matches) or `None` (can't tell), and deliberately
+**never returns `True`**: a value being in the domain says some record has it,
+not which one.
+
+### `src/pfb/parquet.py` — everything that needs pyarrow
+
+**Avro → Arrow mapping.** Covered under the defects below. Also defines the two
+carried columns: `__pfb_id`, so a Parquet hit maps back to an Avro record, and
+`__pfb_relations`, so edge traversal and edge counts need no second pass.
+
+**`ParquetStager`** buckets records by node and flushes row groups at
+`batch_size`, bounding peak memory by (nodes × batch size) rather than by the
+export. This is where the write-time index configuration lives, none of which is
+on by default in pyarrow: `write_page_index=True`, `use_dictionary=True`, zstd,
+a 64 KiB `data_page_size`, and `bloom_filter_options` for identifier columns.
+Note `bloom_filter_options` reaches `ParquetWriter` through `**options` — there
+is no `write_bloom_filter` parameter, despite how it reads.
+
+Bloom filters are restricted to `submitter_id` / `participant_id` /
+`specimen_id` because the PoC priced them at 3.5% of the payload, 8× what the
+page index costs. `--no-bloom` turns them off.
+
+**Statistics and the cardinality guard.** `footer_stats()` reads null counts and
+min/max from the footer without touching a data page, and deliberately ignores
+`distinct_count` — pyarrow leaves it unset, so domains come from `pc.unique()`.
+`field_summaries()` then keeps the manifest bounded by field count rather than
+record count:
 
 | Distinct values | Column | Strategy | Stored in the manifest |
 | --- | --- | --- | --- |
@@ -177,63 +291,44 @@ bounded by field count rather than by record count:
 | > cap | numeric/temporal | `range` | min and max only |
 | > cap | anything else | `none` | nothing |
 
-On the real export at the default cap of 256: 115 `domain`, 4 `range`, 174 `none`.
+On the real export at the default cap of 256: 115 `domain`, 4 `range`,
+174 `none`.
 
-### `src/pfb/index/container.py` — embedding and extraction
+**`search_payload()`** pushes the predicate into `pq.read_table(filters=...)`
+and lets pyarrow consult the row-group statistics and page index. No
+hand-written pruning logic.
 
-The `NodeParquet` schema, the two-pass machinery, and `read_payload()`. Documented above.
-`read_payload` returns `None` rather than raising when a payload isn't where the manifest
-says it is, which is the safe response to a file whose blocks were rewritten after the
-index was built.
+**`build_index()`** is the orchestration, and lives here rather than in a click
+command so that a caller indexing a PFB programmatically never has to import a
+CLI module. It reads through `PFBReader` rather than raw Avro so enum values are
+decoded before they reach Parquet.
 
-### `src/pfb/index/manifest.py` — the stored format
+### `src/pfb/writer.py` — the Avro container work
 
-JSON under the header key `pfb.index.v1.manifest`. fastavro rejects `bytes` header
-values, so a manifest over 16 KB is deflated and base64-encoded into a separate key
-(`...manifest.z`); exactly one is ever written and `load_manifest` accepts either. This
-matters here: the real export's manifest is 171 KB of JSON.
+All of it pyarrow-free: payloads are handled as opaque bytes throughout.
 
-`load_manifest` returns `None` — never raises — for missing, corrupt, or
-future-versioned manifests, so a v1 reader meeting a v2 file degrades to a scan rather
-than refusing to open it.
-
-### `src/pfb/index/query.py` — predicates
-
-`parse_predicate` handles `= != > >= < <=`; `Predicate.coerce` casts the right-hand side
-to the Arrow column type so `age>50` doesn't compare as a string.
-
-`answerable_from_manifest()` is tier 2 doing real work: given only the manifest it can
-sometimes prove **no record matches** — a value outside a listed domain, or outside a
-numeric range — and answer without reading a payload at all. It returns `False` (nothing
-matches) or `None` (can't tell), and deliberately **never returns `True`**: a value being
-in the domain says some record has it, not which one.
-
-`search_payload()` pushes the predicate into `pq.read_table(filters=...)` and lets
-pyarrow consult the row-group statistics and page index. No hand-written pruning logic.
-
-### `src/pfb/writer.py`
-
-`make_avro_schema()` takes `with_parquet=False`; the `NodeParquet` union member is only
-added when payloads are actually being embedded, so a file written without
+`make_avro_schema()` takes `with_parquet=False`; the `NodeParquet` union member
+is added only when payloads are actually embedded, so a file written without
 `--embed-parquet` is byte-compatible with one written by master.
 
-`write()` emits payloads after all data records, and passes the manifest as header
-metadata.
+`set_parquet_payloads()` takes **plain data** (`{node: bytes}` plus a meta dict).
+It previously held a `ParquetStager` and duck-typed `.row_counts` /
+`.bloom_columns_for()` off it — the pyarrow layer reaching down into the writer
+— and its `stager=None` fallback hardcoded `compression="zstd"` and
+`page_index=True`, silently contradicting `--compression`.
 
-Also removes the dead `to_update = {}` / `obj.update(to_update)` pair the PoC flagged
-(`writer.py:233,243` on master).
+`write_indexed()` is the two-pass write described in the placement fix below.
+`write_to()` is a new sibling of `write()` that takes an explicit file object;
+the two-pass build needs it because it must read its staging buffer back, and
+the previous code called `__enter__()` without `__exit__()` to stop `PFBWriter`
+closing the buffer.
 
-### `src/pfb/reader.py`
+### `src/pfb/reader.py` — reading it back
 
-Name-based union filtering and `NodeParquet` skipping, covered above, plus
-`parquet(node)` and `parquet_file(node)` for seeking retrieval.
+Name-based union filtering and `NodeParquet` skipping (see the defects below),
+manifest parsing on open, and `parquet()` / `parquet_file()` for payload fetch.
 
-### `src/pfb/exporters/tsv.py`
-
-Independent latent bug the PoC found, fixed here because this branch makes it reachable:
-the bare `next()` at line 98 had no default and raised `StopIteration` for any record
-whose node is missing from `metadata["nodes"]`. It now defaults to `None` and skips with
-a warning.
+`parquet()` reads through a **duplicated file handle**. See the bug fix section.
 
 ### CLI
 
@@ -245,12 +340,39 @@ pfb search      -i in.pfb -w 'demographic.population=CEU' [--count] [--explain]
 pfb to -i in.pfb parquet OUTPUT_DIR
 ```
 
-`pfb search` tries three paths in order: the manifest alone (can it rule the query out?),
-the embedded payload, then a full scan with a warning. An unindexed file always returns
-correct results.
+`pfb search` tries three paths in order: the manifest alone (can it rule the
+query out?), the embedded payload, then a full scan with a warning. An unindexed
+file always returns correct results, and the fallback now shares
+`Predicate.matches_record` with the indexed path so the two cannot drift apart.
 
-`pfb to parquet` exposes the staging layer standalone — useful in its own right, and it
-makes the type mapping testable without any container work.
+`pfb to parquet` exposes the staging layer standalone — useful in its own right,
+and it makes the type mapping testable without any container work.
+
+---
+
+## A fourth defect, found while relocating this code
+
+`PFBReader.parquet()` called `seek(0)` on the **same file handle** the live
+`fastavro` reader was using. Iterating the reader afterwards therefore read from
+a rewound file with desynchronised reader state.
+
+The only code path that both fetches a payload and then iterates is the
+`pfb search` fallback — reached when the manifest claims an embedded payload but
+the block ordinal is stale — which is exactly why the original tests missed it.
+It is a latent corruption in the one path specifically written to be safe.
+
+`parquet()` now reads through an independent handle: `os.dup` of the descriptor
+where there is one, re-opening by name otherwise, and a copy for in-memory
+buffers. A stream that is none of those (notably stdin) yields `None`, which is
+honest — seeking is impossible there regardless.
+
+Three regression tests cover it, and all three fail against the old behaviour:
+
+| Test | Asserts |
+| --- | --- |
+| `test_parquet_does_not_disturb_a_fresh_reader` | fetch, then iterate → every record identical to an unindexed read |
+| `test_parquet_mid_iteration_does_not_lose_records` | fetch *during* iteration → no record lost or repeated |
+| `test_repeated_payload_fetches_are_stable` | two fetches return the same bytes |
 
 ---
 
@@ -306,15 +428,27 @@ than the entire compressed file it lives in. That change is not in this branch b
 is independent of indexing, but it should be weighed before tier 3 ships.
 
 **Ordinals are positional.** Any tool that rewrites block boundaries invalidates
-`payload_blocks`. The two-pass copy avoids this internally, and `read_payload` fails soft,
+`payload_blocks`. The two-pass copy avoids this internally, and payload fetch fails soft,
 but there is no checksum binding a manifest to the blocks it describes. Worth adding
 before this is relied on in production.
+
+**`pfb search -i -` cannot fetch a payload.** `click.File("rb")` with `default="-"`
+yields non-seekable stdin, and payload fetch fundamentally requires seeking. Today it
+degrades to the scan path rather than erroring, which is correct but silently slow.
+Rejecting `-` for `search` with a clear message would be better; it is deliberately not
+in this change.
+
+**One failing plugin breaks the whole CLI.** `cli.py` calls `ep.load()` for every
+`pfb.plugins` entry point with no `try`/`except`, so any plugin whose dependency is
+missing takes down `pfb --help` along with it. This feature works around it by keeping
+pyarrow out of every plugin module, but the underlying fragility is still there and is
+worth guarding independently.
 
 ---
 
 ## Tests
 
-`tests/test_parquet_index.py`, 46 tests, all passing alongside the existing 30.
+`tests/test_parquet_index.py`, 49 tests, all passing alongside the existing 30.
 
 Mapped against the proposal's §5.10 table:
 
@@ -341,6 +475,8 @@ New tests the proposal did not anticipate:
 | `test_unembedded_output_has_no_new_union_member` | tiers 0–2 really are inert |
 | `test_manifest_is_readable_without_pyarrow` | tier 0–2 consumers need only fastavro |
 | `test_manifest_cannot_confirm_a_present_value` | the domain check never returns `True` |
+| `test_parquet_does_not_disturb_a_fresh_reader` | the seek bug above |
+| `test_parquet_mid_iteration_does_not_lose_records` | the seek bug, interleaved |
 
 Checked against the real export outside the suite, with `--embed-parquet`:
 `pfb show nodes` → 40 nodes, `pfb to tsv` → exit 0 and 14 files, `pfb show stats` → 14

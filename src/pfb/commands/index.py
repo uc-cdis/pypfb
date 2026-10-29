@@ -7,7 +7,7 @@ import sys
 import click
 
 from ..cli import main
-from ..index.manifest import load_manifest
+from ..manifest import load_manifest
 
 
 @main.group(short_help="Build or inspect a PFB search index.")
@@ -66,8 +66,7 @@ def build(
     Avro header and nothing else about the file changes.
     """
     try:
-        from ..index.builder import build_index, write_indexed
-        from ..index.staging import DEFAULT_BLOOM_COLUMNS
+        from ..parquet import DEFAULT_BLOOM_COLUMNS, build_index, write_index
     except ImportError:
         raise click.ClickException(
             "pyarrow is required for indexing; install with: pip install pypfb[parquet]"
@@ -80,7 +79,7 @@ def build(
         data_page_size=data_page_size,
         bloom_columns=() if no_bloom else DEFAULT_BLOOM_COLUMNS,
     )
-    manifest = write_indexed(output, result, embed=embed_parquet)
+    manifest = write_index(output, result, embed=embed_parquet)
 
     fields = sum(len(n["fields"]) for n in manifest["nodes"].values())
     click.echo(
