@@ -6,14 +6,9 @@ import sys
 
 import click
 
-from ..blockindex import BlockIndex, load_manifest
-from ..blockindex.builder import (
-    DEFAULT_DOMAIN_CAP,
-    build_index,
-    rechunk,
-    write_indexed,
-)
+from ..base import BlockIndex, load_manifest
 from ..cli import main
+from ..writer import DEFAULT_DOMAIN_CAP, build_index, rechunk, write_indexed
 
 
 @main.group(short_help="Build or inspect a PFB block search index.")

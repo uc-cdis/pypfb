@@ -6,8 +6,9 @@ import sys
 
 import click
 
-from ..blockindex.query import PredicateError, parse_predicate, search as run_search
+from ..base import PredicateError, parse_predicate
 from ..cli import main
+from ..reader import search as run_search
 
 
 @main.command(short_help="Search records within a PFB file.")

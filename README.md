@@ -51,8 +51,10 @@ poetry install
     Commands:
       add     Add records into a PFB file.
       from    Generate PFB from other data formats.
+      index   Build or inspect a PFB block search index.
       make    Make a blank record for add.
       rename  Rename different parts of schema.
+      search  Search records within a PFB file.
       show    Show different parts of a PFB file.
       to      Convert PFB into other data formats.
 
@@ -219,6 +221,62 @@ poetry install
       None
     Example:
       pfb to -i data.avro tsv
+
+### Build a search index
+
+Adds a block-level search index to an existing PFB so records can be found by
+predicate without decoding the whole file. The records themselves are untouched:
+the Avro blocks are copied byte for byte and the index is stored in the file
+header, so the output is readable by any existing PFB consumer.
+
+    Usage: pfb index build [OPTIONS]
+
+      Read a PFB, build a block index, and write an indexed copy.
+
+    Options:
+      -i, --input FILENAME    The input PFB file.  [default: <stdin>]
+      -o, --output FILENAME   The indexed PFB file to write.  [required]
+      --domain-cap INTEGER    Max distinct values before a field falls back to
+                              range or no index.  [default: 256]
+      --field NODE.FIELD      Index only these fields; repeatable.
+      --sync-interval INTEGER Re-chunk records into blocks of roughly this many
+                              bytes before indexing.  Smaller blocks prune
+                              better but cost more to walk.
+    Example:
+      pfb index build -i data.avro -o indexed.avro
+      pfb index build -i data.avro -o fine.avro --sync-interval 1000
+
+To inspect what was built:
+
+    Usage: pfb index show [OPTIONS]
+
+    Options:
+      -i, --input FILENAME  The PFB file.  [default: <stdin>]
+      --full                Print the whole manifest including block lists.
+    Example:
+      pfb index show -i indexed.avro
+
+### Search records in a PFB
+
+Uses the index when the file has one and falls back to reading every block when
+it does not; results are identical either way. All predicates must target the
+same node, since they are ANDed against a single record.
+
+    Usage: pfb search [OPTIONS]
+
+      Find records matching every predicate.
+
+    Options:
+      -i, --input FILENAME  The PFB file.  [default: <stdin>]
+      -w, --where TEXT      NODE.FIELD[=|!=|>|>=|<|<=]VALUE; repeatable (AND).
+                            [required]
+      --count               Print only the number of matching records.
+      --explain             Print how many blocks the index pruned instead of
+                            the records.
+    Example:
+      pfb search -i indexed.avro -w 'demographic.population=CEU' --count
+      pfb search -i indexed.avro -w 'demographic.population=CEU' --explain
+      pfb search -i indexed.avro -w 'subject.age>50' -w 'subject.project_id=DEV-test'
 
 ### PFB ETL
 

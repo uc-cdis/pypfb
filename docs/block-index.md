@@ -7,6 +7,65 @@ nothing added to the record stream.
 
 ---
 
+## Basic example
+
+```bash
+# 1. add an index to an existing PFB.  Records are untouched: the blocks are
+#    copied byte for byte and the index goes in the Avro file header.
+pfb index build -i export.avro -o indexed.pfb
+# indexed 29022 records in 627 blocks across 15 nodes
+# fields: 31 none, 117 postings, 4 range
+
+# 2. search it
+pfb search -i indexed.pfb -w 'demographic.population=CEU' --count
+# 179
+
+# 3. see what the index skipped
+pfb search -i indexed.pfb -w 'demographic.population=CEU' --explain
+# {
+#   "blocks_total": 627, "blocks_read": 46, "blocks_pruned": 581,
+#   "prune_ratio": 0.9266, "records_scanned": 3133, "records_matched": 179,
+#   "indexed": true
+# }
+
+# 4. predicates AND together; all must target one node
+pfb search -i indexed.pfb -w 'demographic.population=CEU' \
+                          -w 'demographic.annotated_sex=female' --count
+
+# 5. finer blocks prune harder, at the cost of a larger index and a slower walk
+pfb index build -i export.avro -o fine.pfb --sync-interval 1000
+
+# 6. inspect the manifest
+pfb index show -i indexed.pfb
+
+# 7. the indexed file is still an ordinary PFB
+pfb show -i indexed.pfb nodes | wc -l   # 40, same as the input
+pfb to -i indexed.pfb tsv ./out         # exit 0, all 14 files
+```
+
+From Python:
+
+```python
+from pfb.base import parse_predicate
+from pfb.reader import PFBReader, search
+
+# the manifest is parsed from the header when the file is opened
+with PFBReader("indexed.pfb") as reader:
+    print(reader.block_index.nodes)                     # indexed node names
+    print(reader.block_index.indexed_fields("demographic"))
+
+# searching reads only the blocks the index points at
+with open("indexed.pfb", "rb") as f:
+    result = search(f, [parse_predicate("demographic.population=CEU")])
+
+print(len(result.records), result.explain())
+```
+
+An unindexed PFB works too — `search` reads every block and
+`result.indexed` is `False`, so callers never have to special-case one.
+
+---
+
 ## The idea in one paragraph
 
 An Avro object container file is not an opaque blob of records — it is a sequence of
@@ -50,57 +109,69 @@ the indexed file yields records byte-identical to the original.
 
 ---
 
-## What each file does
+## Where the code lives
 
-### `src/pfb/blockindex/manifest.py` — the stored format
+No new package: every piece sits in the module that already owns that
+responsibility.
 
-Defines the manifest and the read-side `BlockIndex` wrapper.
+### `src/pfb/base.py` — shared, dependency-free pieces
 
-The manifest is JSON under the header key `pfb.blockindex.v1`. fastavro rejects `bytes`
-header values, so when the JSON exceeds 16 KB it is deflated and base64-encoded into a
-*separate* key, `pfb.blockindex.v1.z`. Exactly one of the two is ever written, and
-`load_manifest` accepts either. This matters at scale: the manifest for the real export
-is 317 KB of JSON, which compresses to the 74 KB actually stored.
+Three bands were added, all of them things both the read and write paths need.
+
+**Schema introspection**, next to the existing `is_enum` /
+`handle_schema_field_unicode` / `decode_enum`:
+
+- `field_traits()` walks the writer schema and tags each field `enum` /
+  `numeric` / `array`. `enum` drives value decoding, `numeric` selects the range
+  strategy, `array` tells the builder to index each element rather than the list.
+- `node_schemas()` filters union members **by name**. `PFBReader.__enter__`
+  finds node schemas by skipping exactly one member and treating the rest as
+  nodes; filtering by name instead means a future union member cannot show up as
+  a phantom node.
+- `decode_value()` applies `decode_enum`. The builder reads records straight out
+  of Avro blocks rather than through `PFBReader`, so enum values arrive still
+  escaped (`_32_` forms). Indexing them raw would key the postings on strings no
+  user would ever type as a predicate.
+
+**Manifest format** — `MANIFEST_KEY`, `dump_manifest`, `load_manifest`, and the
+`BlockIndex` read-side view.
+
+The manifest is JSON under the header key `pfb.blockindex.v1`. fastavro rejects
+`bytes` header values, so when the JSON exceeds 16 KB it is deflated and
+base64-encoded into a *separate* key, `pfb.blockindex.v1.z`; exactly one of the
+two is ever written and `load_manifest` accepts either. This matters at scale:
+the manifest for the real export is 317 KB of JSON, which compresses to the 74 KB
+actually stored.
 
 `load_manifest` returns `None` — rather than raising — for a missing, corrupt, or
-future-versioned manifest. A reader built against v1 that meets a v2 file degrades to a
-full scan instead of refusing to open it.
+future-versioned manifest, so a reader built against v1 that meets a v2 file
+degrades to a full scan instead of refusing to open it.
 
-`BlockIndex.candidate_blocks()` is the core read-side call, and it is deliberately
-**conservative**: it returns a *superset* of the blocks that could match, never a
-subset. Callers re-check every decoded record against the predicate anyway, so a
-too-large superset costs time while a too-small one would cost correctness. Every
-fallback path in the class widens to the node's full block set.
+`BlockIndex.candidate_blocks()` is the core read-side call, and it is
+deliberately **conservative**: it returns a *superset* of the blocks that could
+match, never a subset. Callers re-check every decoded record against the
+predicate anyway, so a too-large superset costs time while a too-small one would
+cost correctness. Every fallback path widens to the node's full block set.
 
-### `src/pfb/blockindex/schema.py` — schema introspection
+**Predicates** — `Predicate`, `parse_predicate`, `PredicateError`.
 
-Two jobs the builder needs that `PFBReader` normally does for you.
+`= != > >= < <=` are supported. Comparison is numeric when both sides parse as
+numbers and lexical otherwise, so `age>9` does not match `10` as a string. `=`
+against an array field means "contains". `overlaps_range()` answers "could a
+value in `[low, high]` satisfy this?" against per-block bounds, and errs toward
+`True` throughout — a block is only skipped when it provably cannot match.
 
-`field_traits()` walks the writer schema and tags each field `enum` / `numeric` /
-`array`. `enum` drives value decoding, `numeric` selects the range strategy, `array`
-tells the builder to index each element rather than the list object.
+### `src/pfb/writer.py` — building the index
 
-`node_schemas()` deserves a note. `PFBReader.__enter__` finds node schemas by skipping
-**exactly one** union member and treating everything after it as a node — which is why,
-in the Parquet design, a new union member gets misreported as a 41st node. This version
-filters by name instead, so adding union members later cannot produce phantom nodes.
-
-`decode_value()` applies `base.decode_enum`. The builder reads records straight out of
-Avro blocks rather than through `PFBReader`, so enum values arrive still escaped
-(`_32_` forms). Indexing them raw would key the postings on strings no user would ever
-type as a predicate.
-
-### `src/pfb/blockindex/builder.py` — building and writing
-
-`build_index()` makes one pass with `block_reader`, and for each record accumulates two
-things per field: a postings map, and (for numeric fields) per-block `[min, max]`
-bounds. Both are collected at once because the choice between them depends on the
-distinct count, which isn't known until the file has been read.
+`build_index()` makes one pass with `block_reader`, accumulating per field both a
+postings map and (for numeric fields) per-block `[min, max]` bounds. Both are
+collected at once because the choice between them depends on the distinct count,
+which is not known until the file has been read.
 
 `_FieldAccumulator` implements the **cardinality guard**. Once a field exceeds
-`--domain-cap` distinct values it drops its partial postings map and stops collecting,
-so a UUID column cannot blow up memory or the manifest. What it falls back to depends on
-the type:
+`--domain-cap` distinct values it drops its partial postings map and stops
+collecting, so a UUID column cannot blow up memory or the manifest. What it falls
+back to depends on the type:
 
 | Distinct values | Type | Strategy | Stored |
 | --- | --- | --- | --- |
@@ -110,59 +181,41 @@ the type:
 
 On the real export that yields 117 `postings`, 4 `range`, and 31 `none`.
 
-`write_indexed()` is the second pass, and the reason the whole thing is cheap. Blocks are
-copied **byte for byte** via a small `_RawBlock` adapter — `Writer.write_block` only
-reads `num_records` and `bytes_`, never the records — so nothing is re-encoded. That is
-not just a speed trick: re-encoding could shift where block boundaries fall, which would
-silently invalidate every ordinal in the manifest just written.
+`write_indexed()` is the second pass, and the reason the whole thing is cheap.
+Blocks are copied **byte for byte** via a small `_RawBlock` adapter —
+`Writer.write_block` only reads `num_records` and `bytes_`, never the records —
+so nothing is re-encoded. That is not just a speed trick: re-encoding could shift
+where block boundaries fall, which would silently invalidate every ordinal in the
+manifest just written. The input codec is carried through unchanged, because
+block payloads are stored already-compressed.
 
-The input codec is carried through unchanged, because block payloads are stored
-already-compressed; writing them under a different codec would produce a file whose
-declared codec doesn't match its contents.
-
-This two-pass structure also sidesteps a problem the columnar design ran into. The
-header is written before the data, so it cannot contain byte offsets that are only known
-afterwards. Storing **ordinals** instead of byte offsets removes the circularity
+This two-pass structure also sidesteps a problem a columnar design runs into. The
+header is written before the data, so it cannot contain byte offsets that are
+only known afterwards. Storing **ordinals** instead removes the circularity
 entirely — and the backfill costs 20 ms, because it is a byte copy.
 
-`rechunk()` re-encodes records into blocks of a given size. This is the real tuning knob
-(see below), and unlike `write_indexed` it *does* re-encode, so it must run before the
-index is built.
+`rechunk()` re-encodes records into blocks of a given size. This is the real
+tuning knob (see below), and unlike `write_indexed` it *does* re-encode, so it
+must run before the index is built.
 
-### `src/pfb/blockindex/query.py` — predicates and retrieval
+### `src/pfb/reader.py` — querying
 
-`Predicate` parses `NODE.FIELD OP VALUE` for `= != > >= < <=`. Comparison is numeric when
-both sides parse as numbers and lexical otherwise, so `age>9` doesn't match `10` as a
-string. `=` against an array field means "contains".
+`PFBReader.__enter__` parses the manifest out of the header — eagerly, because it
+is already in memory with the header and it is small — and exposes it as
+`reader.block_index`, `None` when absent. Normal iteration is untouched; nothing
+was added to the stream, so there is nothing to filter out of it.
 
-`overlaps_range()` answers "could a value in `[low, high]` satisfy this?" against
-per-block bounds, and errs toward `True` throughout — a block is only skipped when it
-provably cannot match.
+`search()` intersects candidate blocks across predicates, then walks the file
+decoding only the survivors. Two details worth knowing:
 
-`search()` intersects candidate blocks across predicates, then walks the file decoding
-only the survivors. Two details worth knowing:
+- **All predicates must target one node.** They are ANDed against a single
+  record, and a record belongs to exactly one node, so a cross-node conjunction
+  has no meaning. This raises rather than silently returning nothing.
+- **Only the fields a predicate mentions get decoded** during the scan; the full
+  record object is built only for matches. Decoding every field of every
+  candidate cost roughly 2× on the real export (65 ms → 50 ms when fixed).
 
-- **All predicates must target one node.** They are ANDed against a single record, and a
-  record belongs to exactly one node, so a cross-node conjunction has no meaning. This
-  raises rather than silently returning nothing.
-- **Only the fields a predicate mentions get decoded** during the scan; the full record
-  object is built only for matches. Decoding every field of every candidate cost roughly
-  2× on the real export (65 ms → 50 ms when fixed).
-
-A file with no index still returns correct results — every block is read — so callers
-never have to special-case one. `SearchResult.indexed` reports which path was taken.
-
-### `src/pfb/base.py` and `src/pfb/reader.py` — reader integration
-
-Nine lines and five lines respectively. `PFBBase` gains the `block_index` property and
-its setter, matching the existing `schema` / `metadata` accessor pattern.
-`PFBReader.__enter__` parses the manifest out of the header — eagerly, because it is
-already in memory with the header and it is small — and leaves it `None` when absent.
-
-Normal iteration is untouched. Nothing was added to the stream, so there is nothing to
-filter out of it.
-
-### `src/pfb/commands/index.py` and `src/pfb/commands/search.py` — CLI
+### `src/pfb/commands/index.py`, `src/pfb/commands/search.py` — CLI
 
 ```
 pfb index build -i in.pfb -o out.pfb [--domain-cap N] [--field NODE.FIELD] [--sync-interval N]
@@ -170,18 +223,8 @@ pfb index show  -i in.pfb [--full]
 pfb search      -i in.pfb -w 'demographic.population=CEU' [--count] [--explain]
 ```
 
-`--explain` reports blocks read, blocks pruned, and records scanned versus matched —
-the numbers that tell you whether the index is earning its place on *your* data:
-
-```json
-{
-  "blocks_total": 627, "blocks_read": 46, "blocks_pruned": 581,
-  "prune_ratio": 0.9266, "records_scanned": 3133, "records_matched": 179,
-  "indexed": true
-}
-```
-
-Both are registered as `pfb.plugins` entry points, like every other subcommand.
+Both are registered as `pfb.plugins` entry points, like every other subcommand,
+and hold only option parsing and output formatting.
 
 ---
 

@@ -6,21 +6,22 @@ import json
 import fastavro
 import pytest
 
-from pfb.base import encode_enum
-from pfb.blockindex import load_manifest
-from pfb.blockindex.builder import build_index, rechunk, write_indexed
-from pfb.blockindex.manifest import (
-    COMPRESS_THRESHOLD,
+from pfb.base import (
+    MANIFEST_COMPRESS_THRESHOLD,
     MANIFEST_KEY,
     MANIFEST_KEY_COMPRESSED,
-    NONE,
-    POSTINGS,
-    RANGE,
+    STRATEGY_NONE,
+    STRATEGY_POSTINGS,
+    STRATEGY_RANGE,
     BlockIndex,
+    PredicateError,
     dump_manifest,
+    encode_enum,
+    load_manifest,
+    parse_predicate,
 )
-from pfb.blockindex.query import PredicateError, parse_predicate, search
-from pfb.reader import PFBReader
+from pfb.reader import PFBReader, search
+from pfb.writer import build_index, rechunk, write_indexed
 
 POPULATIONS = ["CEU", "YRI", "JPT", "CHB"]
 
@@ -223,7 +224,7 @@ def test_manifest_roundtrips_as_plain_json():
 def test_large_manifest_is_compressed():
     manifest = {
         "version": 1,
-        "nodes": {"n": list(range(COMPRESS_THRESHOLD))},
+        "nodes": {"n": list(range(MANIFEST_COMPRESS_THRESHOLD))},
         "fields": {},
     }
     stored = dump_manifest(manifest)
@@ -262,20 +263,20 @@ def test_node_block_map_covers_every_node(plain_pfb):
 def test_enum_values_are_indexed_decoded(plain_pfb):
     manifest = build_index(plain_pfb).manifest
     entry = manifest["fields"]["demographic.population"]
-    assert entry["s"] == POSTINGS
+    assert entry["s"] == STRATEGY_POSTINGS
     assert set(entry["v"]) == set(POPULATIONS)
 
 
 def test_cardinality_guard_drops_high_cardinality_strings(plain_pfb):
     manifest = build_index(plain_pfb, domain_cap=8).manifest
     # 600 distinct submitter_ids, not orderable -> no index, not a 600-key map.
-    assert manifest["fields"]["demographic.submitter_id"]["s"] == NONE
+    assert manifest["fields"]["demographic.submitter_id"]["s"] == STRATEGY_NONE
 
 
 def test_cardinality_guard_falls_back_to_range_for_numbers(plain_pfb):
     manifest = build_index(plain_pfb, domain_cap=8).manifest
     entry = manifest["fields"]["demographic.age"]
-    assert entry["s"] == RANGE
+    assert entry["s"] == STRATEGY_RANGE
     for low, high in entry["r"].values():
         assert low <= high
 
@@ -283,7 +284,7 @@ def test_cardinality_guard_falls_back_to_range_for_numbers(plain_pfb):
 def test_array_fields_are_indexed_per_element(plain_pfb):
     manifest = build_index(plain_pfb, domain_cap=8).manifest
     entry = manifest["fields"]["demographic.consent_codes"]
-    assert entry["s"] == POSTINGS
+    assert entry["s"] == STRATEGY_POSTINGS
     assert set(entry["v"]) == {"c0", "c1", "c2", "open"}
 
 
