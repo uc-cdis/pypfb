@@ -1,6 +1,7 @@
 import click
 
 from ..cli import main
+from ..importers.linkml import is_linkml_pfb
 from ..reader import PFBReader
 from ..writer import PFBWriter
 
@@ -32,6 +33,13 @@ def rename(ctx, input_file, output_file):
     ctx.obj["writer"] = PFBWriter(output_file)
 
 
+def _check_supported(reader):
+    if is_linkml_pfb(reader.metadata):
+        raise click.ClickException(
+            "pfb rename is not supported for PFB files created from a LinkML schema."
+        )
+
+
 @rename.command("node", short_help="Rename node.")
 @click.argument("old")
 @click.argument("new")
@@ -40,6 +48,7 @@ def node_command(ctx, old, new):
     """Rename node from OLD to NEW."""
     try:
         with ctx.obj["reader"] as reader, ctx.obj["writer"] as writer:
+            _check_supported(reader)
             writer.copy_schema(reader)
             writer.prepare_encode_cache()
             writer.rename_node(old.encode("utf-8"), new.encode("utf-8"))
@@ -68,6 +77,7 @@ def enum_command(ctx, field, old, new):
     """Rename enum of FIELD from OLD to NEW."""
     try:
         with ctx.obj["reader"] as reader, ctx.obj["writer"] as writer:
+            _check_supported(reader)
             writer.copy_schema(reader)
             writer.prepare_encode_cache()
             writer.rename_enum(field, old.encode("utf-8"), new.encode("utf-8"))

@@ -33,6 +33,12 @@ pip install pypfb[gen3]
 (The optional `gen3` dependencies add the ability to convert a Gen3 data dictionary into
 a PFB file.)
 
+* With LinkML support (`pfb from linkml`):
+
+```bash
+pip install pypfb[linkml]
+```
+
 * From source code:
 
 ```bash
@@ -135,6 +141,42 @@ poetry install
 
     Example:
       pfb from -o data.avro tsv -s schema.avro --program DEV --project test /path/to/data/tsv/
+
+### Convert a LinkML schema and data to PFB
+
+Requires the `linkml` extra (`pip install pypfb[linkml]`).
+
+    Usage: pfb from [PARENT OPTIONS] linkml [OPTIONS] [PATH]
+
+      Convert LinkML data files under PATH into a PFB file.
+
+      PATH holds one JSON file per concrete class of the LinkML schema, named
+      after the class either exactly or in snake_case (e.g. "ResearchStudy.json"
+      or "research_study.json").  Each file is a list of objects conforming to
+      the schema; references to other objects are given by their identifier.
+
+    Parent Options:
+      -o, --output FILENAME  The output PFB file.  [default: <stdout>]
+
+    Options:
+      -s, --schema FILE  The LinkML schema (YAML).  [required]
+
+    Example:
+      pfb from -o data.avro linkml -s schema.yaml /path/to/data/json/
+
+The PFB schema is built directly from the LinkML schema:
+
+* Every concrete class becomes a node with the class's name. Abstract classes and mixins
+  are not nodes; their slots are inherited by the concrete classes.
+* Primitive- and enum-valued slots become fields; class-valued slots become links, one
+  per concrete class the slot's range may refer to.
+* A link's multiplicity comes from the source slot alone (`MANY_TO_ONE` or
+  `MANY_TO_MANY`); the other side is not described by LinkML, so it is recorded as
+  `MANY`.
+* Required slots and enum values are checked before anything is written. Keys that are
+  not slots of their class, and references that match no record, are dropped with a
+  warning.
+* `pfb rename` is not supported for PFB files created from a LinkML schema.
 
 ### Make new blank record
 

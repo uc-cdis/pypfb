@@ -19,12 +19,17 @@ gen3dictionary = ">=2.0.3"
 aiohttp = ">=3.6.3"
 dictionaryutils = ">=3.4.8"
 gen3 = ">=4.11.3"
+linkml-runtime = { version = ">=1.9.5", optional = true }
+
+[tool.poetry.extras]
+linkml = ["linkml-runtime"]
 
 [tool.poetry.dev-dependencies]
 codacy-coverage = "*"
 pytest = ">=6.2.5"
 pytest-cov = ">=2.5"
 gen3git = "*"
+linkml-runtime = ">=1.9.5"
 
 [tool.poetry.scripts]
 pfb = 'pfb.cli:main'
@@ -33,6 +38,7 @@ pfb = 'pfb.cli:main'
 "from_gen3dict" = "pfb.importers.gen3dict"
 "from_json" = "pfb.importers.json"
 "from_tsv" = "pfb.importers.tsv"
+"from_linkml" = "pfb.importers.linkml"
 "to_gremlin" = "pfb.exporters.gremlin"
 "to_tsv" = "pfb.exporters.tsv"
 "show" = "pfb.commands.show"
