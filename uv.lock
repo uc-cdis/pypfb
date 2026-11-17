@@ -1451,7 +1451,7 @@ requires-dist = [
     { name = "gen3", specifier = ">=5.0.0" },
     { name = "gen3dictionary", specifier = ">=2.0.3" },
     { name = "importlib-metadata", marker = "python_full_version <= '3.9'", specifier = ">=3.6.0" },
-    { name = "python-json-logger", specifier = ">=2.0.0" },
+    { name = "python-json-logger", specifier = ">=4.2.0" },
     { name = "pyyaml", specifier = ">=6.0.1" },
 ]
 

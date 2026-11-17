@@ -8,7 +8,7 @@ license = "Apache-2.0"
 dependencies = [
     "click>=8.1.7",
     "fastavro>=1.11.0",
-    "python-json-logger>=2.0.0",
+    "python-json-logger>=4.2.0",
     "PyYAML>=6.0.1",
     "importlib_metadata>=3.6.0 ; python_full_version <= '3.9'",
     "gen3dictionary>=2.0.3",
