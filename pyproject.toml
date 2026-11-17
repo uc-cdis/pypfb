@@ -1,46 +1,57 @@
-[tool.poetry]
+[project]
 name = "pypfb"
 version = "0.6.2"
 description = "Python SDK for PFB format"
-authors = ["CTDS UChicago <cdis@uchicago.edu>"]
+authors = [{ name = "CTDS UChicago", email = "cdis@uchicago.edu" }]
+requires-python = ">=3.13, <=3.15"
 license = "Apache-2.0"
-packages = [
-    { include = "pfb", from = "src" },
+dependencies = [
+    "click>=8.1.7",
+    "fastavro>=1.11.0",
+    "python-json-logger>=2.0.0",
+    "PyYAML>=6.0.1",
+    "importlib_metadata>=3.6.0 ; python_full_version <= '3.9'",
+    "gen3dictionary>=2.0.3",
+    "aiohttp>=3.6.3",
+    "dictionaryutils>=3.4.8",
+    "gen3>=5.0.0",
 ]
 
-[tool.poetry.dependencies]
-python = ">=3.9, <4"
-click = ">=8.1.7"
-fastavro = ">=1.11.0"
-python-json-logger = ">=2.0.0"
-PyYAML = ">=6.0.1"
-importlib_metadata = { version = ">=3.6.0", python = "<=3.9" }
-gen3dictionary = ">=2.0.3"
-aiohttp = ">=3.6.3"
-dictionaryutils = ">=3.4.8"
-gen3 = ">=4.11.3"
+[project.scripts]
+pfb = "pfb.cli:main"
 
-[tool.poetry.dev-dependencies]
+[project.entry-points."pfb.plugins"]
+from_gen3dict = "pfb.importers.gen3dict"
+from_json = "pfb.importers.json"
+from_tsv = "pfb.importers.tsv"
+to_gremlin = "pfb.exporters.gremlin"
+to_tsv = "pfb.exporters.tsv"
+show = "pfb.commands.show"
+add = "pfb.commands.add"
+rename = "pfb.commands.rename"
+import = "pfb.commands.import"
+etl = "pfb.commands.etl"
+
+[tool.hatch.build.targets.sdist]
+include = ["src/pfb"]
+
+[tool.hatch.build.targets.wheel]
+include = ["src/pfb"]
+
+[tool.hatch.build.targets.wheel.sources]
+"src/pfb" = "pfb"
+
+[poetry.group.dev.dependencies]
 codacy-coverage = "*"
-pytest = ">=6.2.5"
-pytest-cov = ">=2.5"
+pytest = ">=9.2.5"
+pytest-cov = ">=7.1"
 gen3git = "*"
 
-[tool.poetry.scripts]
-pfb = 'pfb.cli:main'
-
-[tool.poetry.plugins."pfb.plugins"]
-"from_gen3dict" = "pfb.importers.gen3dict"
-"from_json" = "pfb.importers.json"
-"from_tsv" = "pfb.importers.tsv"
-"to_gremlin" = "pfb.exporters.gremlin"
-"to_tsv" = "pfb.exporters.tsv"
-"show" = "pfb.commands.show"
-"add" = "pfb.commands.add"
-"rename" = "pfb.commands.rename"
-"import" = "pfb.commands.import"
-"etl" = "pfb.commands.etl"
-
 [build-system]
-requires = ["poetry>=1.4.1"]
-build-backend = "poetry.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+]
