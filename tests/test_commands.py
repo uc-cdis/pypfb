@@ -21,144 +21,144 @@ def _test_schema(r):
                                 decode_enum(symbol)
 
 
-def test_from_dict(runner, invoke):
-    with runner.isolated_filesystem():
-        result = invoke(
-            "from",
-            "-o",
-            "output.avro",
-            "dict",
-            "http://s3.amazonaws.com/dictionary-artifacts/kf-dictionary/1.1.0/schema.json",
-        )
-        assert result.exit_code == 0, result.output
+def test_from_dict(invoke, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    result = invoke(
+        "from",
+        "-o",
+        "output.avro",
+        "dict",
+        "http://s3.amazonaws.com/dictionary-artifacts/kf-dictionary/1.1.0/schema.json",
+    )
+    assert result.exit_code == 0, result.output
 
-        with open("output.avro", "rb") as f:
-            r = reader(f)
-            _test_schema(r)
-            assert len(list(r)) == 1
-
-
-def test_from_json(runner, invoke, path_join):
-    with runner.isolated_filesystem():
-        result = invoke(
-            "from",
-            "-o",
-            "output.avro",
-            "json",
-            path_join("data"),
-            "-s",
-            path_join("schema", "kf.avro"),
-            "--program",
-            "DEV",
-            "--project",
-            "test",
-        )
-        assert result.exit_code == 0, result.output
-        with open("output.avro", "rb") as f:
-            r = reader(f)
-            _test_schema(r)
-            data = list(r)
-            assert len(data) == 37
-            for record in data:
-                if record["name"] == "submitted_aligned_reads":
-                    obj = record["object"]
-                    if "soixantine_counterimpulse" in obj["submitter_id"]:
-                        assert decode_enum(obj["state"]) == "validated"
-                        assert decode_enum(obj["data_type"]) == "Aligned Reads"
-                        assert decode_enum(obj["data_category"]) == "Sequencing Reads"
-                        assert decode_enum(obj["file_state"]) == "registered"
-                        assert obj["file_format"] == "thumb_cotranspire"
-                        assert obj["file_name"] == "virtuosi_conticent"
+    with open("output.avro", "rb") as f:
+        r = reader(f)
+        _test_schema(r)
+        assert len(list(r)) == 1
 
 
-def test_from_tsv(runner, invoke, path_join):
-    with runner.isolated_filesystem():
-        result = invoke(
-            "from",
-            "-o",
-            "output.avro",
-            "tsv",
-            path_join("tsv_data"),
-            "-s",
-            path_join("schema", "kf.avro"),
-            "--program",
-            "DEV",
-            "--project",
-            "test",
-        )
-        assert result.exit_code == 0, result.output
-        with open("output.avro", "rb") as f:
-            r = reader(f)
-            _test_schema(r)
-            data = list(r)
-            assert len(data) == 37
-            for record in data:
-                if record["name"] == "submitted_aligned_reads":
-                    obj = record["object"]
-                    if "soixantine_counterimpulse" in obj["submitter_id"]:
-                        assert decode_enum(obj["state"]) == "validated"
-                        assert decode_enum(obj["data_type"]) == "Aligned Reads"
-                        assert decode_enum(obj["data_category"]) == "Sequencing Reads"
-                        assert decode_enum(obj["file_state"]) == "registered"
-                        assert obj["file_format"] == "thumb_cotranspire"
-                        assert obj["file_name"] == "virtuosi_conticent"
+def test_from_json(runner, invoke, path_join, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    result = invoke(
+        "from",
+        "-o",
+        "output.avro",
+        "json",
+        path_join("data"),
+        "-s",
+        path_join("schema", "kf.avro"),
+        "--program",
+        "DEV",
+        "--project",
+        "test",
+    )
+    assert result.exit_code == 0, result.output
+    with open("output.avro", "rb") as f:
+        r = reader(f)
+        _test_schema(r)
+        data = list(r)
+        assert len(data) == 37
+        for record in data:
+            if record["name"] == "submitted_aligned_reads":
+                obj = record["object"]
+                if "soixantine_counterimpulse" in obj["submitter_id"]:
+                    assert decode_enum(obj["state"]) == "validated"
+                    assert decode_enum(obj["data_type"]) == "Aligned Reads"
+                    assert decode_enum(obj["data_category"]) == "Sequencing Reads"
+                    assert decode_enum(obj["file_state"]) == "registered"
+                    assert obj["file_format"] == "thumb_cotranspire"
+                    assert obj["file_name"] == "virtuosi_conticent"
 
 
-def test_to_gremlin(runner, invoke, path_join, test_avro):
-    with runner.isolated_filesystem():
-        result = invoke("to", "gremlin", "./output", input=test_avro)
-        assert result.exit_code == 0, result.output
-        with gzip.open(os.path.join("output", "demographic.csv.gz"), "rt") as f:
-            result = list(csv.DictReader(f))
-            assert len(result) == 1
-            result = result[0]
-            result.pop("~id")
-            result = dict(result)
-            assert result == {
-                "ethnicity:String": "not hispanic or latino",
-                "age_at_last_follow_up_days:Long": "18074",
-                "cause_of_death:String": "Not Reported",
-                "gender:String": "female",
-                "~label": "demographic",
-                "updated_datetime:String": "",
-                "vital_status:String": "Dead",
-                "submitter_id:String": "demographic_duteousness_unassailing",
-                "project_id:String": "DEV-test",
-                "created_datetime:String": "",
-                "race:String": "Native Hawaiian or Other Pacific Islander",
-                "state:String": "validated",
-            }
+def test_from_tsv(invoke, path_join, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    result = invoke(
+        "from",
+        "-o",
+        "output.avro",
+        "tsv",
+        path_join("tsv_data"),
+        "-s",
+        path_join("schema", "kf.avro"),
+        "--program",
+        "DEV",
+        "--project",
+        "test",
+    )
+    assert result.exit_code == 0, result.output
+    with open("output.avro", "rb") as f:
+        r = reader(f)
+        _test_schema(r)
+        data = list(r)
+        assert len(data) == 37
+        for record in data:
+            if record["name"] == "submitted_aligned_reads":
+                obj = record["object"]
+                if "soixantine_counterimpulse" in obj["submitter_id"]:
+                    assert decode_enum(obj["state"]) == "validated"
+                    assert decode_enum(obj["data_type"]) == "Aligned Reads"
+                    assert decode_enum(obj["data_category"]) == "Sequencing Reads"
+                    assert decode_enum(obj["file_state"]) == "registered"
+                    assert obj["file_format"] == "thumb_cotranspire"
+                    assert obj["file_name"] == "virtuosi_conticent"
 
 
-def test_to_tsv(runner, invoke, test_avro):
-    with runner.isolated_filesystem():
-        result = invoke("to", "tsv", "./tsvs", input=test_avro)
-        assert result.exit_code == 0, result.output
-        with open(os.path.join("tsvs", "demographic.tsv"), "rt") as f:
-            result = list(csv.DictReader(f, delimiter="\t"))
-            assert len(result) == 1
-            result = result[0]
-            result = dict(result)
-            assert result == {
-                "ethnicity": "not hispanic or latino",
-                "age_at_last_follow_up_days": "18074",
-                "cause_of_death": "Not Reported",
-                "gender": "female",
-                "participants.id": "participant_metalinguistics_monofilm",
-                "type": "demographic",
-                "updated_datetime": "",
-                "vital_status": "Dead",
-                "submitter_id": "demographic_duteousness_unassailing",
-                "project_id": "DEV-test",
-                "created_datetime": "",
-                "race": "Native Hawaiian or Other Pacific Islander",
-                "state": "validated",
-                "participants.submitter_id": "null",
-                "id": "demographic_duteousness_unassailing",
-            }
+def test_to_gremlin(invoke, test_avro, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    result = invoke("to", "gremlin", "./output", input=test_avro)
+    assert result.exit_code == 0, result.output
+    with gzip.open(os.path.join("output", "demographic.csv.gz"), "rt") as f:
+        result = list(csv.DictReader(f))
+        assert len(result) == 1
+        result = result[0]
+        result.pop("~id")
+        result = dict(result)
+        assert result == {
+            "ethnicity:String": "not hispanic or latino",
+            "age_at_last_follow_up_days:Long": "18074",
+            "cause_of_death:String": "Not Reported",
+            "gender:String": "female",
+            "~label": "demographic",
+            "updated_datetime:String": "",
+            "vital_status:String": "Dead",
+            "submitter_id:String": "demographic_duteousness_unassailing",
+            "project_id:String": "DEV-test",
+            "created_datetime:String": "",
+            "race:String": "Native Hawaiian or Other Pacific Islander",
+            "state:String": "validated",
+        }
 
 
-def test_make(invoke, path_join):
+def test_to_tsv(invoke, test_avro, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    result = invoke("to", "tsv", "./tsvs", input=test_avro)
+    assert result.exit_code == 0, result.output
+    with open(os.path.join("tsvs", "demographic.tsv"), "rt") as f:
+        result = list(csv.DictReader(f, delimiter="\t"))
+        assert len(result) == 1
+        result = result[0]
+        result = dict(result)
+        assert result == {
+            "ethnicity": "not hispanic or latino",
+            "age_at_last_follow_up_days": "18074",
+            "cause_of_death": "Not Reported",
+            "gender": "female",
+            "participants.id": "participant_metalinguistics_monofilm",
+            "type": "demographic",
+            "updated_datetime": "",
+            "vital_status": "Dead",
+            "submitter_id": "demographic_duteousness_unassailing",
+            "project_id": "DEV-test",
+            "created_datetime": "",
+            "race": "Native Hawaiian or Other Pacific Islander",
+            "state": "validated",
+            "participants.submitter_id": "null",
+            "id": "demographic_duteousness_unassailing",
+        }
+
+
+def run_test_make(invoke, path_join):
     result = invoke("make", "-i", path_join("schema", "kf.avro"), "sample")
     assert result.exit_code == 0, result.output
     record = json.loads(result.output, object_pairs_hook=str_hook)
@@ -200,15 +200,15 @@ def test_make(invoke, path_join):
     return result.output
 
 
-def test_add(runner, invoke, path_join):
-    with runner.isolated_filesystem():
-        shutil.copyfile(path_join("pfb-data", "test.avro"), "test.avro")
-        with open("test.avro", "rb") as f:
-            assert len(list(reader(f))) == 37
-        result = invoke("add", "test.avro", input=test_make(invoke, path_join))
-        assert result.exit_code == 0, result.output
-        with open("test.avro", "rb") as f:
-            assert len(list(reader(f))) == 38
+def test_add(invoke, path_join, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    shutil.copyfile(path_join("pfb-data", "test.avro"), "test.avro")
+    with open("test.avro", "rb") as f:
+        assert len(list(reader(f))) == 37
+    result = invoke("add", "test.avro", input=run_test_make(invoke, path_join))
+    assert result.exit_code == 0, result.output
+    with open("test.avro", "rb") as f:
+        assert len(list(reader(f))) == 38
 
 
 def test_show(invoke, test_avro):
@@ -272,74 +272,75 @@ def test_show(invoke, test_avro):
     assert result.exit_code == 0, result.output
 
 
-def test_rename_node(runner, invoke, test_avro):
-    with runner.isolated_filesystem():
-        result = invoke(
-            "rename",
-            "-o",
-            "output.avro",
-            "node",
-            "outcome",
-            "outcome2",
-            input=test_avro,
-        )
-        assert result.exit_code == 0, result.output
-        with open("output.avro", "rb") as f:
-            r = reader(f)
-            _test_schema(r)
-            found = False
-            for node in r.writer_schema["fields"][2]["type"]:
-                if node["name"] == "outcome":
-                    assert False
-                if node["name"] == "outcome2":
-                    found = True
-                    break
-            assert found
-            assert "outcome" in node["aliases"]
+def test_rename_node(invoke, test_avro, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
 
-            found = False
-            for record in r:
-                if record["name"] == "outcome":
-                    assert False
-                if record["name"] == "outcome2":
-                    found = True
-                    break
-            assert found
+    result = invoke(
+        "rename",
+        "-o",
+        "output.avro",
+        "node",
+        "outcome",
+        "outcome2",
+        input=test_avro,
+    )
+    assert result.exit_code == 0, result.output
+    with open("output.avro", "rb") as f:
+        r = reader(f)
+        _test_schema(r)
+        found = False
+        for node in r.writer_schema["fields"][2]["type"]:
+            if node["name"] == "outcome":
+                assert False
+            if node["name"] == "outcome2":
+                found = True
+                break
+        assert found
+        assert "outcome" in node["aliases"]
+
+        found = False
+        for record in r:
+            if record["name"] == "outcome":
+                assert False
+            if record["name"] == "outcome2":
+                found = True
+                break
+        assert found
 
 
-def test_rename_enum(runner, invoke, test_avro):
-    with runner.isolated_filesystem():
-        result = invoke(
-            "rename",
-            "-o",
-            "output.avro",
-            "enum",
-            "state",
-            "validated",
-            "validated2",
-            input=test_avro,
-        )
-        assert result.exit_code == 0, result.output
-        new = encode_enum("validated2")
-        with open("output.avro", "rb") as f:
-            r = reader(f)
-            found = False
-            for node in r.writer_schema["fields"][2]["type"]:
-                if node["name"] == "outcome":
-                    for field in node["fields"]:
-                        if field["name"] == "state":
-                            for t in field["type"]:
-                                if isinstance(t, dict) and t["type"] == "enum":
-                                    if new in t["symbols"]:
-                                        found = True
-                            if found and field.get("default"):
-                                assert field["default"] == new
-            assert found
+def test_rename_enum(invoke, test_avro, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    result = invoke(
+        "rename",
+        "-o",
+        "output.avro",
+        "enum",
+        "state",
+        "validated",
+        "validated2",
+        input=test_avro,
+    )
+    assert result.exit_code == 0, result.output
+    new = encode_enum("validated2")
+    with open("output.avro", "rb") as f:
+        r = reader(f)
+        found = False
+        for node in r.writer_schema["fields"][2]["type"]:
+            if node["name"] == "outcome":
+                for field in node["fields"]:
+                    if field["name"] == "state":
+                        for t in field["type"]:
+                            if isinstance(t, dict) and t["type"] == "enum":
+                                if new in t["symbols"]:
+                                    found = True
+                        if found and field.get("default"):
+                            assert field["default"] == new
+        assert found
 
-            found = False
-            for record in r:
-                if record["name"] == "outcome":
-                    assert record["object"]["state"] == new
-                    found = True
-                    break
-            assert found
+        found = False
+        for record in r:
+            if record["name"] == "outcome":
+                assert record["object"]["state"] == new
+                found = True
+                break
+        assert found

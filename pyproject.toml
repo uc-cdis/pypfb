@@ -55,3 +55,9 @@ build-backend = "hatchling.build"
 dev = [
     "pytest>=9.2.0",
 ]
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore:jsonschema.RefResolver is deprecated:DeprecationWarning",
+    "ignore:'asyncio.iscoroutinefunction' is deprecated:DeprecationWarning",
+]
