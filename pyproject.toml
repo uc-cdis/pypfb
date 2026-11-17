@@ -13,7 +13,7 @@ dependencies = [
     "importlib_metadata>=3.6.0 ; python_full_version <= '3.9'",
     "gen3dictionary>=2.0.3",
     "aiohttp>=3.6.3",
-    "dictionaryutils>=3.4.8",
+    "dictionaryutils>=4.0.0",
     "gen3>=5.0.0",
 ]
 
