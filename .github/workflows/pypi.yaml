@@ -4,13 +4,29 @@ on:
   push:
     tags:
       - '*'
+
 jobs:
-  PyPIPoetryPublish:
-    name: PyPI Poetry Publish
-    uses: uc-cdis/.github/.github/workflows/python_package_index_publish.yaml@master
-    with:
-        PYTHON_VERSION: '3.13'
-        DO_TEST_PUBLISH_FIRST: true
-    secrets:
-      PYPI_TEST_API_TOKEN: ${{ secrets.PYPI_TEST_API_TOKEN }}
-      PYPI_PROD_API_TOKEN: ${{ secrets.PYPI_PROD_API_TOKEN }}
+  publish:
+    name: Build and publish to PyPI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: '3.14'
+
+      - name: Build sdist and wheel
+        run: uv build
+
+      - name: Publish to TestPyPI
+        run: uv publish
+        env:
+          UV_PUBLISH_URL: https://test.pypi.org/legacy/
+          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TEST_API_TOKEN }}
+
+      - name: Publish to PyPI
+        run: uv publish
+        env:
+          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_PROD_API_TOKEN }}

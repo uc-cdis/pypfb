@@ -46,18 +46,18 @@ my_dictionaries = [
 
 
 @pytest.mark.parametrize("dictionary", my_dictionaries)
-def test_dictionary(runner, invoke, dictionary):
-    with runner.isolated_filesystem():
-        result = invoke(
-            "from",
-            "-o",
-            "test.avro",
-            "dict",
-            dictionary,
-        )
-        assert result.exit_code == 0, result.output
+def test_dictionary(invoke, dictionary, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    result = invoke(
+        "from",
+        "-o",
+        "test.avro",
+        "dict",
+        dictionary,
+    )
+    assert result.exit_code == 0, result.output
 
-        with open("test.avro", "rb") as f:
-            r = reader(f)
-            _test_schema(r)
-            assert len(list(r)) == 1
+    with open("test.avro", "rb") as f:
+        r = reader(f)
+        _test_schema(r)
+        assert len(list(r)) == 1
